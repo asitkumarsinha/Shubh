@@ -82,22 +82,50 @@ if (userCount === 0) {
 }
 
 const medCount = db.prepare('SELECT COUNT(*) AS c FROM medicines').get().c;
+const sampleImages = {
+  'Paracetamol 500mg': '/assets/medicines/paracetamol.svg',
+  'Amoxicillin 250mg': '/assets/medicines/amoxicillin.svg',
+  'Cetirizine 10mg': '/assets/medicines/cetirizine.svg',
+  'Vitamin D3 60K': '/assets/medicines/vitamin-d3.svg',
+  'Cough Syrup 100ml': '/assets/medicines/cough-syrup.svg',
+  'ORS Sachet': '/assets/medicines/ors.svg',
+};
+
 if (medCount === 0) {
   const insert = db.prepare(
     `INSERT INTO medicines (name, description, price, image, stock, created_by)
      VALUES (?, ?, ?, ?, ?, 1)`
   );
   const seed = [
-    ['Paracetamol 500mg', 'Pain relief and fever reducer. Strip of 10 tablets.', 45.0, null, 200],
-    ['Amoxicillin 250mg', 'Antibiotic capsules for bacterial infections.', 120.0, null, 150],
-    ['Cetirizine 10mg', 'Antihistamine for allergy relief.', 35.0, null, 180],
-    ['Vitamin D3 60K', 'Weekly vitamin D supplement softgels.', 95.0, null, 100],
-    ['Cough Syrup 100ml', 'Relieves dry and productive cough.', 85.0, null, 80],
-    ['ORS Sachet', 'Oral rehydration salts for dehydration.', 20.0, null, 300],
+    ['Paracetamol 500mg', 'Pain relief and fever reducer. Strip of 10 tablets.', 45.0, sampleImages['Paracetamol 500mg'], 200],
+    ['Amoxicillin 250mg', 'Antibiotic capsules for bacterial infections.', 120.0, sampleImages['Amoxicillin 250mg'], 150],
+    ['Cetirizine 10mg', 'Antihistamine for allergy relief.', 35.0, sampleImages['Cetirizine 10mg'], 180],
+    ['Vitamin D3 60K', 'Weekly vitamin D supplement softgels.', 95.0, sampleImages['Vitamin D3 60K'], 100],
+    ['Cough Syrup 100ml', 'Relieves dry and productive cough.', 85.0, sampleImages['Cough Syrup 100ml'], 80],
+    ['ORS Sachet', 'Oral rehydration salts for dehydration.', 20.0, sampleImages['ORS Sachet'], 300],
   ];
   const tx = db.transaction((rows) => rows.forEach((r) => insert.run(...r)));
   tx(seed);
 }
+
+// Attach sample catalogue images when missing or pointing at deleted uploads
+(() => {
+  const rows = db.prepare('SELECT id, name, image FROM medicines').all();
+  const update = db.prepare('UPDATE medicines SET image = ? WHERE id = ?');
+  for (const row of rows) {
+    const sample = sampleImages[row.name] || '/assets/medicines/default.svg';
+    if (!row.image) {
+      update.run(sample, row.id);
+      continue;
+    }
+    if (row.image.startsWith('/uploads/')) {
+      const diskPath = path.join(__dirname, row.image.replace(/^\//, ''));
+      if (!fs.existsSync(diskPath)) {
+        update.run(sample, row.id);
+      }
+    }
+  }
+})();
 
 // Migrate existing DBs to allow 'rejected' status (SQLite cannot ALTER CHECK)
 (() => {

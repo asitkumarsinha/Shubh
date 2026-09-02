@@ -28,6 +28,6 @@ export class MyOrdersComponent implements OnInit {
   }
 
   imageUrl(path: string | null): string {
-    return path || 'assets/medicine-placeholder.svg';
+    return path || 'assets/medicines/default.svg';
   }
 }

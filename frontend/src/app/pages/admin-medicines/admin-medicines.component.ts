@@ -101,6 +101,6 @@ export class AdminMedicinesComponent implements OnInit {
   }
 
   imageUrl(m: Medicine): string {
-    return m.image || 'assets/medicine-placeholder.svg';
+    return m.image || 'assets/medicines/default.svg';
   }
 }

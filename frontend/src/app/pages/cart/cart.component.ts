@@ -25,7 +25,7 @@ export class CartComponent {
   ) {}
 
   imageUrl(path: string | null): string {
-    return path || 'assets/medicine-placeholder.svg';
+    return path || 'assets/medicines/default.svg';
   }
 
   checkout(): void {

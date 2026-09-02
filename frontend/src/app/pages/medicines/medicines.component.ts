@@ -39,7 +39,7 @@ export class MedicinesComponent implements OnInit {
   }
 
   imageUrl(m: Medicine): string {
-    return m.image ? m.image : 'assets/medicine-placeholder.svg';
+    return m.image || 'assets/medicines/default.svg';
   }
 
   addToCart(m: Medicine): void {

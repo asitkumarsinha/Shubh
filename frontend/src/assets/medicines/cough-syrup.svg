@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Cough Syrup">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffe4e6"/>
+      <stop offset="100%" stop-color="#fff1f2"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="240" rx="24" fill="url(#bg)"/>
+  <rect x="138" y="52" width="44" height="22" rx="6" fill="#9f1239"/>
+  <rect x="128" y="72" width="64" height="18" rx="4" fill="#be123c"/>
+  <path d="M118 95 h84 l10 105 h-104 z" fill="#fecdd3" stroke="#fb7185" stroke-width="3"/>
+  <path d="M128 130 h64 l6 70 h-76 z" fill="url(#liquid)"/>
+  <text x="160" y="42" text-anchor="middle" fill="#9f1239" font-family="Segoe UI, Arial" font-size="18" font-weight="700">Cough Syrup</text>
+</svg>
