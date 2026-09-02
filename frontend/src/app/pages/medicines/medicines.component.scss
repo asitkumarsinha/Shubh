@@ -1,16 +1,67 @@
+.eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.35rem 1.5rem;
+  margin-bottom: 1.75rem;
+  animation: rise 0.45s ease both;
+}
+
+.hero-logo {
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 24px rgba(225, 29, 72, 0.35));
+  animation: beat 2.4s ease-in-out infinite;
+}
+
+.hero-copy h1 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  color: #fff;
+}
+
+.hero-copy p:last-child {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.catalogue-head h2 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+  color: #fff;
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.05); }
+  50% { transform: scale(1); }
+  65% { transform: scale(1.03); }
+}
+
 .medicine-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .medicine-item {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--line);
-  animation: rise 0.5s ease both;
+  gap: 0.95rem;
+  padding: 1rem;
+  animation: rise 0.45s ease both;
 }
 
 .medicine-item:nth-child(2) { animation-delay: 0.05s; }
@@ -23,10 +74,12 @@
 }
 
 .thumb {
+  position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: 14px;
-  background: linear-gradient(160deg, #d1fae5, #ecfeff);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .thumb img {
@@ -34,23 +87,37 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.45s ease;
+  transition: transform 0.4s ease;
 }
 
 .medicine-item:hover .thumb img {
   transform: scale(1.04);
 }
 
+.rx-tag {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
 .body h3 {
   margin: 0 0 0.35rem;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
+  color: #fff;
 }
 
 .body p {
   margin: 0 0 0.85rem;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.5;
   min-height: 2.8em;
 }
@@ -60,9 +127,33 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .meta strong {
   font-size: 1.15rem;
-  color: var(--teal-700);
+  color: #fff;
+}
+
+.soft-pill {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.soft-pill.low {
+  color: #fecaca;
+  border-color: rgba(255, 138, 128, 0.35);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
 }

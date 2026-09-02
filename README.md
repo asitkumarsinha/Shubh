@@ -1,4 +1,4 @@
-# MediShop — Online Medicine Store
+# Shubh Surgical — Online Medicine Store
 
 Angular frontend + Express/SQLite backend for multi-user medicine shopping with admin approval workflow.
 
@@ -64,7 +64,18 @@ They will **not** appear in a real Gmail/Outlook inbox until SMTP is configured.
 SMTP_SERVICE=gmail
 SMTP_USER=your.email@gmail.com
 SMTP_PASS=your_16_char_app_password
-MAIL_FROM="MediShop Reports <your.email@gmail.com>"
+MAIL_FROM="Shubh Surgical Reports <your.email@gmail.com>"
 ```
 
 4. Restart the backend (`npm start` in `backend/`)
+
+## Go live (others can access)
+
+See **[DEPLOY.md](DEPLOY.md)** for a full Render walkthrough.
+
+Short version:
+1. Push this project to GitHub
+2. Create a **Web Service** on [render.com](https://render.com)
+3. Build: `npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend`
+4. Start: `node backend/server.js`
+5. Share the public URL Render gives you

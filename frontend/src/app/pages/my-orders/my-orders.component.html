@@ -2,43 +2,56 @@
   <header class="page-head">
     <div>
       <h1>My orders</h1>
-      <p>Track bills, approval, and dispatch status.</p>
+      <p>Track bill → QR pending → approval (PO) → dispatch.</p>
     </div>
   </header>
 
   @if (loading) {
     <p class="muted">Loading…</p>
   } @else if (orders.length === 0) {
-    <div class="empty">
+    <div class="empty glass-card">
       <p>No orders yet.</p>
       <a routerLink="/medicines" class="btn primary">Shop medicines</a>
     </div>
   } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Bill</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>PO</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (o of orders; track o.id) {
-            <tr>
-              <td>{{ o.bill_number }}</td>
-              <td>{{ o.items.length }}</td>
-              <td>₹{{ o.total | number: '1.2-2' }}</td>
-              <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
-              <td>{{ o.po_number || '—' }}</td>
-              <td><a [routerLink]="['/orders', o.id]" class="btn ghost">View bill / QR</a></td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <div class="order-list">
+      @for (o of orders; track o.id) {
+        <article class="order-card glass-card">
+          <div class="order-card__head">
+            <div class="title-row">
+              <span class="doc-icon" aria-hidden="true"></span>
+              <h2>{{ o.bill_number }}</h2>
+            </div>
+            <div class="pill-row">
+              <span class="badge" [attr.data-status]="o.status">{{ o.status }}</span>
+              @if (o.po_number) {
+                <span class="soft-pill">{{ o.po_number }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="order-card__body">
+            @for (item of o.items.slice(0, 2); track item.id) {
+              <div class="product-row">
+                <img [src]="imageUrl(item.medicine_image)" [alt]="item.medicine_name" />
+                <div class="info">
+                  <h3>{{ item.medicine_name }}</h3>
+                  <p>₹{{ item.price | number: '1.2-2' }} · Qty {{ item.quantity }}</p>
+                </div>
+                <strong>{{ item.quantity }} units</strong>
+              </div>
+            }
+            @if (o.items.length > 2) {
+              <p class="more muted">+{{ o.items.length - 2 }} more item(s)</p>
+            }
+          </div>
+
+          <div class="order-card__foot">
+            <div class="total">Total: ₹{{ o.total | number: '1.2-2' }}</div>
+            <a class="btn ghost" [routerLink]="['/orders', o.id]">View bill / QR</a>
+          </div>
+        </article>
+      }
     </div>
   }
 </section>

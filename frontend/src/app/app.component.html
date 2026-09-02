@@ -1,6 +1,9 @@
 <div class="app-shell">
   <header class="topbar">
-    <a routerLink="/" class="brand">MediShop</a>
+    <a routerLink="/" class="brand" aria-label="Shubh Surgical home">
+      <img class="brand-logo" src="assets/shubh-surgical-logo.svg" alt="" width="36" height="36" />
+      <span class="brand-text">Shubh Surgical</span>
+    </a>
 
     <nav>
       @if (auth.isLoggedIn()) {

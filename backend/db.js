@@ -69,7 +69,7 @@ if (!admin) {
   db.prepare(
     `INSERT INTO users (name, email, password, role, phone, address)
      VALUES (?, ?, ?, 'admin', ?, ?)`
-  ).run('Admin', 'admin@medishop.com', hash, '9999999999', 'MediShop HQ');
+  ).run('Admin', 'admin@medishop.com', hash, '9999999999', 'Shubh Surgical HQ');
 }
 
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users WHERE role = ?').get('user').c;

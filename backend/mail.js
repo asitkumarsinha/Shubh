@@ -22,7 +22,7 @@ function buildHtmlEmail({ to, subject, text }) {
 </head>
 <body style="margin:0;padding:24px;background:#f3faf7;font-family:Segoe UI,Arial,sans-serif;color:#0f2f2a;">
   <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #cfe7df;border-radius:16px;padding:24px;">
-    <h1 style="margin:0 0 8px;font-size:22px;">MediShop Report</h1>
+    <h1 style="margin:0 0 8px;font-size:22px;">Shubh Surgical Report</h1>
     <p style="margin:0 0 16px;color:#5b736e;">Sent to ${escapeHtml(to)}</p>
     <pre style="white-space:pre-wrap;font-family:Consolas,monospace;font-size:13px;line-height:1.5;background:#f0fdfa;padding:16px;border-radius:12px;">${escapeHtml(text)}</pre>
   </div>
@@ -119,7 +119,7 @@ async function sendReportEmail({ to, subject, text }) {
   const from =
     process.env.MAIL_FROM ||
     process.env.SMTP_USER ||
-    '"MediShop Reports" <reports@medishop.local>';
+    '"Shubh Surgical Reports" <reports@shubhsurgical.local>';
 
   const info = await transporter.sendMail({
     from,

@@ -47,6 +47,44 @@ export class OrderDetailComponent implements OnInit {
     return this.order?.items.reduce((s, i) => s + i.quantity, 0) || 0;
   }
 
+  pipelineSteps(): { key: string; label: string; state: 'done' | 'current' | 'failed' | 'todo' }[] {
+    const status = this.order?.status || 'pending';
+    const failed = status === 'rejected' || status === 'cancelled';
+
+    const rank: Record<string, number> = {
+      pending: 1,
+      approved: 2,
+      dispatched: 3,
+      rejected: 1,
+      cancelled: 2,
+    };
+    const current = rank[status] ?? 1;
+
+    const keys = [
+      { key: 'bill', label: 'Bill created', at: 0 },
+      { key: 'pending', label: 'Pending / QR', at: 1 },
+      { key: 'approved', label: 'Approved · PO', at: 2 },
+      { key: 'dispatched', label: 'Dispatched', at: 3 },
+    ];
+
+    if (status === 'dispatched') {
+      return keys.map((step) => ({ ...step, state: 'done' as const }));
+    }
+
+    return keys.map((step) => {
+      if (failed && step.at === current) {
+        return {
+          ...step,
+          label: status === 'rejected' ? 'Rejected' : 'Cancelled',
+          state: 'failed' as const,
+        };
+      }
+      if (step.at < current) return { ...step, state: 'done' as const };
+      if (step.at === current) return { ...step, state: 'current' as const };
+      return { ...step, state: 'todo' as const };
+    });
+  }
+
   approve(): void {
     if (!this.order) return;
     this.acting = true;

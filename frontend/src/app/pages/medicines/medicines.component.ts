@@ -4,6 +4,7 @@ import { MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { Medicine } from '../../core/models';
+import { apiErrorMessage } from '../../core/api-error';
 
 @Component({
   selector: 'app-medicines',
@@ -30,8 +31,8 @@ export class MedicinesComponent implements OnInit {
         this.medicines = data;
         this.loading = false;
       },
-      error: () => {
-        this.error = 'Unable to load medicines';
+      error: (err) => {
+        this.error = apiErrorMessage(err, 'Unable to load medicines');
         this.loading = false;
       },
     });

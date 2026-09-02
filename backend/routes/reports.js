@@ -59,7 +59,7 @@ function buildReport() {
 
 function formatReportText(report) {
   const lines = [
-    '=== MediShop Sales Report ===',
+    '=== Shubh Surgical Sales Report ===',
     '',
     `Total Orders: ${report.summary.totalOrders}`,
     `Unique Buyers: ${report.summary.uniqueBuyers}`,
@@ -116,7 +116,7 @@ router.post('/email', authenticate, requireAdmin, async (req, res) => {
     const text = formatReportText(report);
     const result = await sendReportEmail({
       to: email,
-      subject: `MediShop Report - ${new Date().toLocaleDateString()}`,
+      subject: `Shubh Surgical Report - ${new Date().toLocaleDateString()}`,
       text,
     });
 

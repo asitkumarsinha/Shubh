@@ -6,21 +6,25 @@
 }
 
 .filters .active {
-  background: var(--teal-700);
-  color: #fff;
-  border-color: var(--teal-700);
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f242c;
+  border-color: #fff;
 }
 
 .action-select {
   min-width: 140px;
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
   font: inherit;
   font-weight: 600;
-  background: #fff;
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
   cursor: pointer;
+}
+
+.action-select option {
+  color: #1f242c;
 }
 
 .action-select:disabled {

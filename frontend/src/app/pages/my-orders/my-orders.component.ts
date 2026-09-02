@@ -26,4 +26,8 @@ export class MyOrdersComponent implements OnInit {
       error: () => (this.loading = false),
     });
   }
+
+  imageUrl(path: string | null): string {
+    return path || 'assets/medicine-placeholder.svg';
+  }
 }

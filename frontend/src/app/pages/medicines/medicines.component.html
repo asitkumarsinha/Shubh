@@ -1,8 +1,18 @@
 <section class="page">
-  <header class="page-head">
+  <section class="hero glass-card" aria-label="Shubh Surgical">
+    <img class="hero-logo" src="assets/shubh-surgical-logo.svg" alt="Shubh Surgical logo" width="88" height="88" />
+    <div class="hero-copy">
+      <p class="eyebrow">Trusted medical supply</p>
+      <h1>Shubh Surgical</h1>
+      <p>Quality medicines and surgical care essentials — browse, order, and track with confidence.</p>
+    </div>
+  </section>
+
+  <header class="page-head catalogue-head">
     <div>
-      <h1>Medicines</h1>
-      <p>Check medicines, prices, and add items to your cart.</p>
+      <p class="eyebrow">Catalogue</p>
+      <h2>Medicines</h2>
+      <p>Verified stock, clear pricing — select items for your cart.</p>
     </div>
   </header>
 
@@ -18,19 +28,20 @@
   } @else {
     <div class="medicine-grid">
       @for (m of medicines; track m.id) {
-        <article class="medicine-item">
+        <article class="medicine-item glass-card">
           <div class="thumb">
             <img [src]="imageUrl(m)" [alt]="m.name" />
+            <span class="rx-tag">Rx</span>
           </div>
           <div class="body">
             <h3>{{ m.name }}</h3>
             <p>{{ m.description }}</p>
             <div class="meta">
               <strong>₹{{ m.price | number: '1.2-2' }}</strong>
-              <span>Stock: {{ m.stock }}</span>
+              <span class="soft-pill" [class.low]="m.stock < 5">Stock {{ m.stock }}</span>
             </div>
             @if (!auth.isAdmin()) {
-              <button class="btn primary" [disabled]="m.stock < 1" (click)="addToCart(m)">
+              <button class="btn ghost" [disabled]="m.stock < 1" (click)="addToCart(m)">
                 {{ m.stock < 1 ? 'Out of stock' : 'Add to cart' }}
               </button>
             }

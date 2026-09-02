@@ -1,0 +1,12 @@
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+frontend/dist/
+backend/data/
+backend/uploads/
+backend/data/outbox/
+backend/.env
+.env
+*.log
+.angular/
+.DS_Store
