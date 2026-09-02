@@ -1,0 +1,40 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a routerLink="/" class="brand">MediShop</a>
+
+    <nav>
+      @if (auth.isLoggedIn()) {
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>
+          <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
+          <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
+        } @else {
+          <a routerLink="/medicines" routerLinkActive="active">Shop</a>
+          <a routerLink="/cart" routerLinkActive="active">
+            Cart
+            @if (cart.count() > 0) {
+              <span class="cart-count">{{ cart.count() }}</span>
+            }
+          </a>
+          <a routerLink="/orders" routerLinkActive="active">My orders</a>
+        }
+      } @else {
+        <a routerLink="/medicines" routerLinkActive="active">Catalogue</a>
+        <a routerLink="/login" routerLinkActive="active">Login</a>
+      }
+    </nav>
+
+    <div class="user-chip">
+      @if (auth.user(); as u) {
+        <span>{{ u.name }} · {{ u.role }}</span>
+        <button class="btn ghost" (click)="auth.logout()">Logout</button>
+      } @else {
+        <a routerLink="/register" class="btn primary">Register</a>
+      }
+    </div>
+  </header>
+
+  <main>
+    <router-outlet />
+  </main>
+</div>

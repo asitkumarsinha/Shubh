@@ -1,0 +1,42 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>Medicines</h1>
+      <p>Check medicines, prices, and add items to your cart.</p>
+    </div>
+  </header>
+
+  @if (message) {
+    <div class="toast ok">{{ message }}</div>
+  }
+  @if (error) {
+    <div class="toast bad">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <p class="muted">Loading catalogue…</p>
+  } @else {
+    <div class="medicine-grid">
+      @for (m of medicines; track m.id) {
+        <article class="medicine-item">
+          <div class="thumb">
+            <img [src]="imageUrl(m)" [alt]="m.name" />
+          </div>
+          <div class="body">
+            <h3>{{ m.name }}</h3>
+            <p>{{ m.description }}</p>
+            <div class="meta">
+              <strong>₹{{ m.price | number: '1.2-2' }}</strong>
+              <span>Stock: {{ m.stock }}</span>
+            </div>
+            @if (!auth.isAdmin()) {
+              <button class="btn primary" [disabled]="m.stock < 1" (click)="addToCart(m)">
+                {{ m.stock < 1 ? 'Out of stock' : 'Add to cart' }}
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

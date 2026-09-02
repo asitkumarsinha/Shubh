@@ -1,0 +1,31 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.filters .active {
+  background: var(--teal-700);
+  color: #fff;
+  border-color: var(--teal-700);
+}
+
+.action-select {
+  min-width: 140px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.action-select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+small { color: var(--muted); }

@@ -1,0 +1,40 @@
+<section class="auth-page">
+  <div class="auth-visual" aria-hidden="true">
+    <h1>MediShop</h1>
+    <p>Create your customer account and order medicines online.</p>
+  </div>
+
+  <form class="auth-card" (ngSubmit)="submit()">
+    <h2>Create account</h2>
+    <p class="muted">Customers can browse, cart, and checkout</p>
+
+    <label>Full name
+      <input [(ngModel)]="name" name="name" required />
+    </label>
+    <label>Email
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </label>
+    <label>Password
+      <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
+    </label>
+    <label>Phone
+      <input [(ngModel)]="phone" name="phone" />
+    </label>
+    <label>Address
+      <textarea [(ngModel)]="address" name="address" rows="2"></textarea>
+    </label>
+
+    @if (error) {
+      <p class="error">{{ error }}</p>
+    }
+
+    <button type="submit" class="btn primary" [disabled]="loading">
+      {{ loading ? 'Creating…' : 'Register' }}
+    </button>
+
+    <p class="footer-text">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+    </p>
+  </form>
+</section>

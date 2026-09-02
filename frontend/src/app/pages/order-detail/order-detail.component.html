@@ -1,0 +1,73 @@
+<section class="page">
+  @if (loading) {
+    <p class="muted">Loading bill…</p>
+  } @else if (order) {
+    <header class="page-head">
+      <div>
+        <h1>Bill {{ order.bill_number }}</h1>
+        <p>
+          {{ itemCount() }} item(s) selected · Status:
+          <span class="badge" [attr.data-status]="order.status">{{ order.status }}</span>
+        </p>
+      </div>
+      <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">Back</a>
+    </header>
+
+    @if (message) { <div class="toast ok">{{ message }}</div> }
+    @if (error) { <div class="toast bad">{{ error }}</div> }
+
+    <div class="bill-layout">
+      <div>
+        <div class="bill-meta">
+          <div><span>Customer</span><strong>{{ order.user?.name || 'You' }}</strong></div>
+          <div><span>Email</span><strong>{{ order.user?.email }}</strong></div>
+          <div><span>Date</span><strong>{{ order.created_at }}</strong></div>
+          @if (order.po_number) {
+            <div><span>Purchase Order</span><strong>{{ order.po_number }}</strong></div>
+          }
+        </div>
+
+        <h2 class="section-title">Selected medicines</h2>
+        <div class="items">
+          @for (item of order.items; track item.id) {
+            <article class="item">
+              <img [src]="imageUrl(item.medicine_image)" [alt]="item.medicine_name" />
+              <div>
+                <h3>{{ item.medicine_name }}</h3>
+                <p>Qty {{ item.quantity }} × ₹{{ item.price | number: '1.2-2' }}</p>
+              </div>
+              <strong>₹{{ item.quantity * item.price | number: '1.2-2' }}</strong>
+            </article>
+          }
+        </div>
+
+        <div class="total-row">
+          <span>Total amount</span>
+          <strong>₹{{ order.total | number: '1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <aside class="qr-panel">
+        <h2>Checkout QR</h2>
+        <p>Scan or share this QR with admin for payment confirmation.</p>
+        <img class="qr" [src]="order.qr_code" alt="Order QR code" />
+        <p class="muted small">Awaiting admin approval after payment verification.</p>
+
+        @if (auth.isAdmin()) {
+          <div class="admin-actions">
+            @if (order.status === 'pending') {
+              <button class="btn primary" [disabled]="acting" (click)="approve()">Approve &amp; generate PO</button>
+              <button class="btn danger" [disabled]="acting" (click)="reject()">Reject order</button>
+            }
+            @if (order.status === 'approved') {
+              <button class="btn primary" [disabled]="acting" (click)="dispatch()">Mark ready to dispatch</button>
+              <button class="btn danger" [disabled]="acting" (click)="cancel()">Cancel order</button>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  } @else {
+    <div class="toast bad">{{ error || 'Order not found' }}</div>
+  }
+</section>

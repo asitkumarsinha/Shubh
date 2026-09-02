@@ -1,0 +1,44 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>My orders</h1>
+      <p>Track bills, approval, and dispatch status.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <p class="muted">Loading…</p>
+  } @else if (orders.length === 0) {
+    <div class="empty">
+      <p>No orders yet.</p>
+      <a routerLink="/medicines" class="btn primary">Shop medicines</a>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>PO</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of orders; track o.id) {
+            <tr>
+              <td>{{ o.bill_number }}</td>
+              <td>{{ o.items.length }}</td>
+              <td>₹{{ o.total | number: '1.2-2' }}</td>
+              <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
+              <td>{{ o.po_number || '—' }}</td>
+              <td><a [routerLink]="['/orders', o.id]" class="btn ghost">View bill / QR</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

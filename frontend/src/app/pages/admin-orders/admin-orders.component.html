@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>Orders</h1>
+      <p>Change order status with the Action control after Status.</p>
+    </div>
+  </header>
+
+  @if (message) { <div class="toast ok">{{ message }}</div> }
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  <div class="filters">
+    <button class="btn ghost" [class.active]="filter === ''" (click)="setFilter('')">All</button>
+    <button class="btn ghost" [class.active]="filter === 'pending'" (click)="setFilter('pending')">Pending</button>
+    <button class="btn ghost" [class.active]="filter === 'approved'" (click)="setFilter('approved')">Approved</button>
+    <button class="btn ghost" [class.active]="filter === 'dispatched'" (click)="setFilter('dispatched')">Dispatched</button>
+    <button class="btn ghost" [class.active]="filter === 'rejected'" (click)="setFilter('rejected')">Rejected</button>
+    <button class="btn ghost" [class.active]="filter === 'cancelled'" (click)="setFilter('cancelled')">Cancelled</button>
+  </div>
+
+  @if (loading) {
+    <p class="muted">Loading orders…</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>User</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Action</th>
+            <th>PO</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of orders; track o.id) {
+            <tr>
+              <td>{{ o.bill_number }}</td>
+              <td>
+                <div>{{ o.user?.name }}</div>
+                <small>{{ o.user?.email }}</small>
+              </td>
+              <td>₹{{ o.total | number: '1.2-2' }}</td>
+              <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
+              <td>
+                <select
+                  class="action-select"
+                  [ngModel]="actionValue(o)"
+                  [disabled]="updatingId === o.id"
+                  (ngModelChange)="onActionChange(o, $event)"
+                >
+                  @for (opt of actionOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </td>
+              <td>{{ o.po_number || '—' }}</td>
+              <td>
+                <a class="btn ghost" [routerLink]="['/orders', o.id]">Bill / QR</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
