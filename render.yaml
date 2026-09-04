@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: medishop
+    name: shubh-surgical
     runtime: node
     plan: free
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build
     startCommand: node backend/server.js
     envVars:
       - key: NODE_VERSION

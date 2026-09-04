@@ -14,10 +14,12 @@ Angular frontend + Express/SQLite backend for multi-user medicine shopping with 
 
 ## Demo accounts
 
-| Role  | Email               | Password  |
-|-------|---------------------|-----------|
-| Admin | admin@medishop.com  | admin123  |
-| User  | user@medishop.com   | user123   |
+
+| Role  | Email                                           | Password |
+| ----- | ----------------------------------------------- | -------- |
+| Admin | [admin@medishop.com](mailto:admin@medishop.com) | admin123 |
+| User  | [user@medishop.com](mailto:user@medishop.com)   | user123  |
+
 
 ## Run locally
 
@@ -29,7 +31,7 @@ npm install
 npm start
 ```
 
-API: http://localhost:3000
+API: [http://localhost:3000](http://localhost:3000)
 
 ### 2. Frontend (Angular)
 
@@ -39,7 +41,7 @@ npm install
 npm start
 ```
 
-App: http://localhost:4200 (proxies `/api` and `/uploads` to the backend)
+App: [http://localhost:4200](http://localhost:4200) (proxies `/api` and `/uploads` to the backend)
 
 ## Order flow
 
@@ -67,15 +69,18 @@ SMTP_PASS=your_16_char_app_password
 MAIL_FROM="Shubh Surgical Reports <your.email@gmail.com>"
 ```
 
-4. Restart the backend (`npm start` in `backend/`)
+1. Restart the backend (`npm start` in `backend/`)
 
 ## Go live (others can access)
 
-See **[DEPLOY.md](DEPLOY.md)** for a full Render walkthrough.
+See **[DEPLOY.md](DEPLOY.md)** for hosting details.
 
 Short version:
+
 1. Push this project to GitHub
-2. Create a **Web Service** on [render.com](https://render.com)
-3. Build: `npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend`
-4. Start: `node backend/server.js`
-5. Share the public URL Render gives you
+2. Create a **Web Service** (Render / Railway / Azure, etc.)
+3. **Root Directory:** leave empty (repo root)
+4. **Build:** `npm install --prefix backend && npm install --prefix frontend && npm run build`
+5. **Start:** `node backend/server.js`
+6. Open the public URL — `/api/health` should show `"hasFrontend": true`
+
