@@ -9,7 +9,7 @@ Set these exactly on Render / Railway / Azure / any Node portal:
 | Setting | Value |
 |--------|--------|
 | **Root Directory** | *(leave empty / repository root)* — do **not** set to `backend` |
-| **Build Command** | `npm install --prefix backend && npm install --prefix frontend && npm run build` |
+| **Build Command** | `npm install --prefix backend && npm rebuild better-sqlite3 --prefix backend && npm install --prefix frontend && npm run build` |
 | **Start Command** | `node backend/server.js` |
 | **Node version** | `20` (`NODE_VERSION=20`) |
 
@@ -68,3 +68,4 @@ MAIL_FROM=Shubh Surgical Reports <your.email@gmail.com>
 
 - Free Render plans sleep when idle (first open can take 30–60s)
 - SQLite/uploads can reset on free redeploys without a persistent disk
+- **Never commit `node_modules`** — Windows binaries break on Render (`invalid ELF header`). If that error appears, clear Render build cache and redeploy after removing `node_modules` from git.
