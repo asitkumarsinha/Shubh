@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
-const { JWT_SECRET, authenticate } = require('../middleware/auth');
+const { JWT_SECRET, authenticate, BLOCKED_MESSAGE } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -36,6 +36,9 @@ router.post('/login', (req, res) => {
   const row = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
   if (!row || !bcrypt.compareSync(password, row.password)) {
     return res.status(401).json({ message: 'Invalid email or password' });
+  }
+  if (row.status === 'blocked') {
+    return res.status(403).json({ message: BLOCKED_MESSAGE });
   }
   const user = {
     id: row.id,

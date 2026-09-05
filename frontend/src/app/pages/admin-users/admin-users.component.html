@@ -1,0 +1,102 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>Users detail</h1>
+      <p>Registered accounts, contact details, and ranking by orders.</p>
+    </div>
+  </header>
+
+  @if (message) {
+    <div class="toast ok">{{ message }}</div>
+  }
+  @if (error) {
+    <div class="toast bad">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <p class="muted">Loading users…</p>
+  } @else if (summary) {
+    <div class="stats">
+      <div><span>Shop users</span><strong>{{ summary.totalUsers }}</strong></div>
+      <div><span>Admins</span><strong>{{ summary.totalAdmins }}</strong></div>
+      <div><span>Users with orders</span><strong>{{ summary.usersWithOrders }}</strong></div>
+      <div><span>Blocked</span><strong>{{ summary.blockedUsers }}</strong></div>
+    </div>
+
+    <h2 class="section-title">Top users by orders</h2>
+    @if (topUsers.length === 0) {
+      <p class="muted">No customer orders yet.</p>
+    } @else {
+      <div class="top-grid">
+        @for (u of topUsers; track u.id) {
+          <article class="top-card" [attr.data-rank]="u.rank">
+            <span class="rank">#{{ u.rank }}</span>
+            <h3>{{ u.name }}</h3>
+            <p>{{ u.email }}</p>
+            <div class="top-meta">
+              <span>{{ u.orderCount }} {{ u.orderCount === 1 ? 'order' : 'orders' }}</span>
+              <strong>₹{{ u.totalSpent | number: '1.2-2' }}</strong>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <h2 class="section-title">All users</h2>
+    <p class="note">Passwords are stored encrypted and cannot be shown in plain text.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Orders</th>
+            <th>Total spent</th>
+            <th>Last order</th>
+            <th>Access</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users; track u.id) {
+            <tr>
+              <td>{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>
+                <span class="pwd">{{ u.password }}</span>
+                <span class="muted lock">encrypted</span>
+              </td>
+              <td>{{ u.phone || '—' }}</td>
+              <td>{{ u.address || '—' }}</td>
+              <td><span class="badge" [attr.data-status]="u.role === 'admin' ? 'approved' : 'pending'">{{ u.role }}</span></td>
+              <td>{{ u.created_at ? (u.created_at | date: 'mediumDate') : '—' }}</td>
+              <td>{{ u.orderCount }}</td>
+              <td>₹{{ u.totalSpent | number: '1.2-2' }}</td>
+              <td>{{ u.lastOrderAt ? (u.lastOrderAt | date: 'mediumDate') : '—' }}</td>
+              <td>
+                @if (u.role === 'admin') {
+                  <span class="muted">Always allowed</span>
+                } @else {
+                  <select
+                    class="action-select"
+                    [ngModel]="u.status"
+                    [disabled]="updatingId === u.id"
+                    (ngModelChange)="onStatusChange(u, $event)"
+                  >
+                    @for (opt of accessOptions; track opt.value) {
+                      <option [ngValue]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

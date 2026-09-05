@@ -7,6 +7,28 @@ export interface User {
   address?: string;
 }
 
+export interface AdminUserDetail extends User {
+  created_at?: string;
+  orderCount: number;
+  totalSpent: number;
+  lastOrderAt: string | null;
+  password: string;
+  passwordEncrypted: boolean;
+  rank?: number;
+  status: 'allowed' | 'blocked';
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserDetail[];
+  topUsers: AdminUserDetail[];
+  summary: {
+    totalUsers: number;
+    totalAdmins: number;
+    usersWithOrders: number;
+    blockedUsers: number;
+  };
+}
+
 export interface Medicine {
   id: number;
   name: string;

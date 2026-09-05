@@ -21,6 +21,7 @@ db.exec(`
     role TEXT NOT NULL CHECK(role IN ('admin', 'user')) DEFAULT 'user',
     phone TEXT,
     address TEXT,
+    status TEXT NOT NULL DEFAULT 'allowed' CHECK(status IN ('allowed', 'blocked')),
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -124,6 +125,13 @@ if (medCount === 0) {
         update.run(sample, row.id);
       }
     }
+  }
+})();
+
+(() => {
+  const cols = db.prepare(`PRAGMA table_info(users)`).all();
+  if (!cols.some((c) => c.name === 'status')) {
+    db.exec(`ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'allowed'`);
   }
 })();
 
