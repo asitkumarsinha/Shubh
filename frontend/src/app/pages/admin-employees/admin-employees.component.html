@@ -1,0 +1,108 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>Employee</h1>
+      <p>Add staff, update records, upload a photo, and view the full employee list.</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" [class.primary]="mode === 'form'" [class.ghost]="mode !== 'form'" type="button" (click)="showForm()">
+        {{ editingId ? 'Update' : 'Add' }}
+      </button>
+      <button class="btn" [class.primary]="mode === 'view'" [class.ghost]="mode !== 'view'" type="button" (click)="showView()">
+        View
+      </button>
+    </div>
+  </header>
+
+  @if (message) { <div class="toast ok">{{ message }}</div> }
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  @if (mode === 'form') {
+    <form class="panel" (ngSubmit)="save()">
+      <h2>{{ editingId ? 'Update employee' : 'Add employee' }}</h2>
+      <div class="two">
+        <label>Full name *
+          <input [(ngModel)]="name" name="name" required />
+        </label>
+        <label>Email *
+          <input type="email" [(ngModel)]="email" name="email" required />
+        </label>
+      </div>
+      <div class="two">
+        <label>Phone *
+          <input [(ngModel)]="phone" name="phone" required />
+        </label>
+        <label>Designation *
+          <input [(ngModel)]="designation" name="designation" required placeholder="Pharmacist, Store keeper…" />
+        </label>
+      </div>
+      <div class="two">
+        <label>Department
+          <input [(ngModel)]="department" name="department" />
+        </label>
+        <label>Joining date
+          <input type="date" [(ngModel)]="joining_date" name="joining_date" />
+        </label>
+      </div>
+      <label>Address
+        <textarea [(ngModel)]="address" name="address" rows="2"></textarea>
+      </label>
+      <label>Employee photo
+        <input type="file" accept="image/*" (change)="onFile($event)" />
+      </label>
+      <div class="actions">
+        <button class="btn primary" type="submit" [disabled]="loading">
+          {{ loading ? 'Saving…' : editingId ? 'Update' : 'Add employee' }}
+        </button>
+        @if (editingId) {
+          <button class="btn ghost" type="button" (click)="resetForm()">Cancel edit</button>
+        }
+      </div>
+    </form>
+  } @else {
+    @if (employees.length === 0) {
+      <div class="empty glass-card">
+        <p>No employees yet.</p>
+        <button class="btn primary" type="button" (click)="showForm()">Add employee</button>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Designation</th>
+              <th>Department</th>
+              <th>Joined</th>
+              <th>Address</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (emp of employees; track emp.id) {
+              <tr>
+                <td><img class="emp-photo" [src]="imageUrl(emp)" [alt]="emp.name" /></td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.email }}</td>
+                <td>{{ emp.phone }}</td>
+                <td>{{ emp.designation }}</td>
+                <td>{{ emp.department || '—' }}</td>
+                <td>{{ emp.joining_date || '—' }}</td>
+                <td>{{ emp.address || '—' }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="btn ghost" type="button" (click)="edit(emp)">Update</button>
+                    <button class="btn danger" type="button" (click)="remove(emp)">Remove</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

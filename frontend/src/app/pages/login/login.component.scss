@@ -88,6 +88,15 @@
   animation: slideIn 0.85s ease 0.08s both;
 }
 
+.auth-visual .slogan {
+  margin: 0 0 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  opacity: 0.95;
+  animation-delay: 0.04s;
+}
+
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }

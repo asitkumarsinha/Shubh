@@ -51,6 +51,19 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 
+  CREATE TABLE IF NOT EXISTS employees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    phone TEXT NOT NULL,
+    designation TEXT NOT NULL,
+    department TEXT,
+    address TEXT,
+    joining_date TEXT,
+    image TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL,

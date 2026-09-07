@@ -12,5 +12,7 @@ import { CartService } from './core/cart.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  readonly helpManualUrl = 'assets/help/Shubh-Surgical-Training-Manual.pdf?v=2';
+
   constructor(public auth: AuthService, public cart: CartService) {}
 }

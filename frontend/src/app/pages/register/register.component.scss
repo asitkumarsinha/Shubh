@@ -3,6 +3,7 @@
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 1.25rem;
+  align-items: stretch;
 }
 
 .auth-visual {
@@ -13,6 +14,7 @@
   overflow: hidden;
   background:
     radial-gradient(ellipse at 20% 80%, rgba(255, 255, 255, 0.12), transparent 50%),
+    radial-gradient(ellipse at 90% 10%, rgba(255, 138, 128, 0.18), transparent 40%),
     linear-gradient(155deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--blur));
@@ -31,6 +33,40 @@
   font-weight: 800;
   color: rgba(255, 255, 255, 0.08);
   line-height: 1;
+  animation: rxPulse 6s ease-in-out infinite;
+}
+
+.orb {
+  position: absolute;
+  width: 9.5rem;
+  height: 9.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  top: 14%;
+  left: 12%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.06);
+  animation: slideIn 0.9s ease both;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.auth-logo {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(225, 29, 72, 0.35));
+  animation: beat 2.4s ease-in-out infinite;
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.05); }
+  50% { transform: scale(1); }
+  65% { transform: scale(1.03); }
 }
 
 .auth-visual h1 {
@@ -39,23 +75,36 @@
   margin: 0 0 0.5rem;
   position: relative;
   z-index: 1;
-}
-
-.auth-logo {
-  position: relative;
-  z-index: 1;
-  width: 72px;
-  height: 72px;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 8px 20px rgba(225, 29, 72, 0.35));
+  animation: slideIn 0.7s ease both;
 }
 
 .auth-visual p {
   max-width: 28rem;
+  font-size: 1.05rem;
   line-height: 1.6;
   opacity: 0.85;
   position: relative;
   z-index: 1;
+  animation: slideIn 0.85s ease 0.08s both;
+}
+
+.auth-visual .slogan {
+  margin: 0 0 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  opacity: 0.95;
+  animation-delay: 0.04s;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes rxPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
 }
 
 .auth-card {
@@ -66,6 +115,7 @@
   padding: 2.25rem clamp(1.4rem, 3vw, 2.5rem);
   background: var(--glass);
   backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);

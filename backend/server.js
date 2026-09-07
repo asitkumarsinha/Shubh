@@ -10,6 +10,7 @@ const medicineRoutes = require('./routes/medicines');
 const orderRoutes = require('./routes/orders');
 const reportRoutes = require('./routes/reports');
 const userRoutes = require('./routes/users');
+const employeeRoutes = require('./routes/employees');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -27,6 +28,7 @@ app.use('/api/medicines', medicineRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/employees', employeeRoutes);
 
 function resolveDistPath() {
   const candidates = [

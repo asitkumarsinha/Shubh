@@ -29,6 +29,19 @@ export interface AdminUsersResponse {
   };
 }
 
+export interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  department?: string;
+  address?: string;
+  joining_date?: string;
+  image: string | null;
+  created_at?: string;
+}
+
 export interface Medicine {
   id: number;
   name: string;

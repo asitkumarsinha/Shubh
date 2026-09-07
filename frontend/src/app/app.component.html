@@ -10,7 +10,8 @@
         @if (auth.isAdmin()) {
           <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>
           <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
-          <a routerLink="/admin/users" routerLinkActive="active">Users detail</a>
+          <a routerLink="/admin/users" routerLinkActive="active">Clients</a>
+          <a routerLink="/admin/employees" routerLinkActive="active">Employee</a>
           <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
         } @else {
           <a routerLink="/medicines" routerLinkActive="active">Shop</a>
@@ -31,6 +32,23 @@
     <div class="user-chip">
       @if (auth.user(); as u) {
         <span>{{ u.name }} · {{ u.role }}</span>
+        @if (auth.isAdmin()) {
+          <a
+            class="help-link"
+            href="{{ helpManualUrl }}"
+            target="_blank"
+            rel="noopener"
+            title="Help Center"
+            aria-label="Help Center"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.25" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="M9.6 9.4a2.4 2.4 0 1 1 3.7 2.02c-.7.42-1.3.9-1.3 1.78v.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <circle cx="12" cy="17" r="1" fill="currentColor" />
+            </svg>
+            <span>Help Center</span>
+          </a>
+        }
         <button class="btn ghost" (click)="auth.logout()">Logout</button>
       } @else {
         <a routerLink="/register" class="btn primary">Register</a>

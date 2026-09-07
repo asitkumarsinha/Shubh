@@ -209,8 +209,9 @@
 }
 
 .qr {
-  width: 220px;
-  height: 220px;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
   margin: 1rem auto;
   display: block;
   border-radius: 16px;
