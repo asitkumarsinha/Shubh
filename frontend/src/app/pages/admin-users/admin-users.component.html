@@ -2,96 +2,96 @@
   <header class="page-head">
     <div>
       <h1>Clients</h1>
-      <p>Registered client accounts, contact details, and ranking by orders.</p>
+      <p>Client accounts, retail/wholesale groups, and ranking by orders.</p>
     </div>
+    <button class="btn primary" type="button" [disabled]="exporting" (click)="exportList()">
+      {{ exporting ? 'Saving…' : 'Export client list' }}
+    </button>
   </header>
 
-  @if (message) {
-    <div class="toast ok">{{ message }}</div>
-  }
   @if (error) {
     <div class="toast bad">{{ error }}</div>
   }
 
   @if (loading) {
-    <p class="muted">Loading users…</p>
+    <p class="muted">Loading clients…</p>
   } @else if (summary) {
     <div class="stats">
-      <div><span>Shop users</span><strong>{{ summary.totalUsers }}</strong></div>
-      <div><span>Admins</span><strong>{{ summary.totalAdmins }}</strong></div>
-      <div><span>Users with orders</span><strong>{{ summary.usersWithOrders }}</strong></div>
+      <div><span>Clients</span><strong>{{ summary.totalUsers }}</strong></div>
+      <div><span>Retail</span><strong>{{ summary.retailClients }}</strong></div>
+      <div><span>Wholesale</span><strong>{{ summary.wholesaleClients }}</strong></div>
+      <div><span>With orders</span><strong>{{ summary.usersWithOrders }}</strong></div>
       <div><span>Blocked</span><strong>{{ summary.blockedUsers }}</strong></div>
     </div>
 
-    <h2 class="section-title">Top users by orders</h2>
+    <h2 class="section-title">Top clients by orders</h2>
     @if (topUsers.length === 0) {
       <p class="muted">No customer orders yet.</p>
     } @else {
       <div class="top-grid">
         @for (u of topUsers; track u.id) {
-          <article class="top-card" [attr.data-rank]="u.rank">
-            <span class="rank">#{{ u.rank }}</span>
+          <a class="top-card" [routerLink]="['/admin/users', u.id]">
+            <span class="rank">#{{ u.rank }} · {{ u.client_group }}</span>
             <h3>{{ u.name }}</h3>
             <p>{{ u.email }}</p>
             <div class="top-meta">
               <span>{{ u.orderCount }} {{ u.orderCount === 1 ? 'order' : 'orders' }}</span>
               <strong>₹{{ u.totalSpent | number: '1.2-2' }}</strong>
             </div>
-          </article>
+          </a>
         }
       </div>
     }
 
-    <h2 class="section-title">All users</h2>
-    <p class="note">Passwords are stored encrypted and cannot be shown in plain text.</p>
+    <h2 class="section-title">All clients</h2>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Password</th>
             <th>Phone</th>
-            <th>Address</th>
-            <th>Role</th>
-            <th>Joined</th>
+            <th>Group</th>
             <th>Orders</th>
             <th>Total spent</th>
-            <th>Last order</th>
             <th>Access</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (u of users; track u.id) {
+          @for (u of clients(); track u.id) {
             <tr>
               <td>{{ u.name }}</td>
               <td>{{ u.email }}</td>
-              <td>
-                <span class="pwd">{{ u.password }}</span>
-                <span class="muted lock">encrypted</span>
-              </td>
               <td>{{ u.phone || '—' }}</td>
-              <td>{{ u.address || '—' }}</td>
-              <td><span class="badge" [attr.data-status]="u.role === 'admin' ? 'approved' : 'pending'">{{ u.role }}</span></td>
-              <td>{{ u.created_at ? (u.created_at | date: 'mediumDate') : '—' }}</td>
+              <td>
+                <select
+                  class="action-select"
+                  [ngModel]="u.client_group"
+                  [disabled]="updatingId === u.id"
+                  (ngModelChange)="onGroupChange(u, $event)"
+                >
+                  @for (opt of groupOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </td>
               <td>{{ u.orderCount }}</td>
               <td>₹{{ u.totalSpent | number: '1.2-2' }}</td>
-              <td>{{ u.lastOrderAt ? (u.lastOrderAt | date: 'mediumDate') : '—' }}</td>
               <td>
-                @if (u.role === 'admin') {
-                  <span class="muted">Always allowed</span>
-                } @else {
-                  <select
-                    class="action-select"
-                    [ngModel]="u.status"
-                    [disabled]="updatingId === u.id"
-                    (ngModelChange)="onStatusChange(u, $event)"
-                  >
-                    @for (opt of accessOptions; track opt.value) {
-                      <option [ngValue]="opt.value">{{ opt.label }}</option>
-                    }
-                  </select>
-                }
+                <select
+                  class="action-select"
+                  [ngModel]="u.status"
+                  [disabled]="updatingId === u.id"
+                  (ngModelChange)="onStatusChange(u, $event)"
+                >
+                  @for (opt of accessOptions; track opt.value) {
+                    <option [ngValue]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <a class="btn ghost" [routerLink]="['/admin/users', u.id]">View</a>
               </td>
             </tr>
           }

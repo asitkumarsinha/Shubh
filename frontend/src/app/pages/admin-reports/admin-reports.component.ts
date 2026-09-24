@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/order.service';
 import { Report } from '../../core/models';
+import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
 
 @Component({
   selector: 'app-admin-reports',
@@ -18,12 +19,14 @@ export class AdminReportsComponent implements OnInit {
   message = '';
   error = '';
   sending = false;
+  sendPhase: SavePhase = 'idle';
   mailConfigured = false;
   previewUrl = '';
   outboxUrl = '';
   delivered = false;
+  readonly saveButtonLabel = saveButtonLabel;
 
-  constructor(private reportService: ReportService) {}
+  constructor(private reportService: ReportService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.reportService.get().subscribe({
@@ -48,25 +51,30 @@ export class AdminReportsComponent implements OnInit {
   sendEmail(): void {
     if (!this.email) {
       this.error = 'Please enter an email id';
+      this.toast.error(this.error);
       return;
     }
     this.sending = true;
+    this.sendPhase = 'saving';
     this.error = '';
     this.message = '';
     this.previewUrl = '';
     this.outboxUrl = '';
+    this.toast.beginSave();
 
     this.reportService.email(this.email).subscribe({
       next: (res) => {
         this.sending = false;
+        this.sendPhase = 'saved';
         this.showEmailPrompt = false;
         this.message = res.message;
         this.delivered = !!res.delivered;
         this.mailConfigured = !!res.mailConfigured;
         this.previewUrl = res.previewUrl || '';
         this.outboxUrl = res.outboxUrl || '';
+        this.toast.success(res.message || 'Report saved');
+        setTimeout(() => (this.sendPhase = 'idle'), 2500);
 
-        // Open the email view immediately so the report is visible
         if (res.previewUrl) {
           window.open(res.previewUrl, '_blank');
         } else if (res.outboxUrl) {
@@ -75,10 +83,14 @@ export class AdminReportsComponent implements OnInit {
       },
       error: (err) => {
         this.sending = false;
-        this.error =
+        this.sendPhase = 'failed';
+        const msg =
           err.error?.message ||
           err.error?.hint ||
           'Failed to send email';
+        this.error = msg;
+        this.toast.error(msg);
+        setTimeout(() => (this.sendPhase = 'idle'), 2500);
       },
     });
   }

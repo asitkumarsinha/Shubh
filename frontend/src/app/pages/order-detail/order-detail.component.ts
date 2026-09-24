@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrderService } from '../../core/order.service';
 import { AuthService } from '../../core/auth.service';
 import { Order } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -15,14 +16,15 @@ import { Order } from '../../core/models';
 export class OrderDetailComponent implements OnInit {
   order: Order | null = null;
   error = '';
-  message = '';
   loading = true;
   acting = false;
+  actLabel = '';
 
   constructor(
     private route: ActivatedRoute,
     private orders: OrderService,
-    public auth: AuthService
+    public auth: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -87,64 +89,52 @@ export class OrderDetailComponent implements OnInit {
 
   approve(): void {
     if (!this.order) return;
-    this.acting = true;
-    this.orders.approve(this.order.id).subscribe({
-      next: (o) => {
-        this.order = o;
-        this.message = `Approved. Purchase order ${o.po_number} generated.`;
-        this.acting = false;
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Approve failed';
-        this.acting = false;
-      },
-    });
+    this.runAction('Approving…', this.orders.approve(this.order.id), (o) =>
+      `Approved. Purchase order ${o.po_number} generated.`
+    );
   }
 
   reject(): void {
     if (!this.order) return;
-    this.acting = true;
-    this.orders.reject(this.order.id).subscribe({
-      next: (o) => {
-        this.order = o;
-        this.message = 'Order rejected';
-        this.acting = false;
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Reject failed';
-        this.acting = false;
-      },
-    });
+    this.runAction('Saving…', this.orders.reject(this.order.id), () => 'Order rejected');
   }
 
   cancel(): void {
     if (!this.order) return;
-    this.acting = true;
-    this.orders.cancel(this.order.id).subscribe({
-      next: (o) => {
-        this.order = o;
-        this.message = 'Order cancelled';
-        this.acting = false;
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Cancel failed';
-        this.acting = false;
-      },
-    });
+    this.runAction('Saving…', this.orders.cancel(this.order.id), () => 'Order cancelled');
   }
 
   dispatch(): void {
     if (!this.order) return;
+    this.runAction('Saving…', this.orders.dispatch(this.order.id), () =>
+      'Medicine ready / marked as dispatched'
+    );
+  }
+
+  private runAction(
+    pending: string,
+    req: ReturnType<OrderService['approve']>,
+    ok: (o: Order) => string
+  ): void {
     this.acting = true;
-    this.orders.dispatch(this.order.id).subscribe({
+    this.actLabel = pending;
+    this.error = '';
+    this.toast.beginSave();
+    req.subscribe({
       next: (o) => {
         this.order = o;
-        this.message = 'Medicine ready / marked as dispatched';
         this.acting = false;
+        this.actLabel = 'Saved';
+        this.toast.success(ok(o));
+        setTimeout(() => (this.actLabel = ''), 2500);
       },
       error: (err) => {
-        this.error = err.error?.message || 'Dispatch failed';
         this.acting = false;
+        this.actLabel = 'Save failed';
+        const msg = err.error?.message || 'Save failed';
+        this.error = msg;
+        this.toast.error(msg);
+        setTimeout(() => (this.actLabel = ''), 2500);
       },
     });
   }

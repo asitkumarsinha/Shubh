@@ -1,0 +1,2 @@
+In 'My Orders' QR code rplace with  'QR.jpeg' in assets folder.
+ 

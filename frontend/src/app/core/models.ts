@@ -5,6 +5,7 @@ export interface User {
   role: 'admin' | 'user';
   phone?: string;
   address?: string;
+  client_group?: 'retail' | 'wholesale';
 }
 
 export interface AdminUserDetail extends User {
@@ -16,6 +17,8 @@ export interface AdminUserDetail extends User {
   passwordEncrypted: boolean;
   rank?: number;
   status: 'allowed' | 'blocked';
+  client_group: 'retail' | 'wholesale';
+  notes: string;
 }
 
 export interface AdminUsersResponse {
@@ -26,7 +29,21 @@ export interface AdminUsersResponse {
     totalAdmins: number;
     usersWithOrders: number;
     blockedUsers: number;
+    retailClients: number;
+    wholesaleClients: number;
   };
+}
+
+export interface AdminClientDetail {
+  client: AdminUserDetail;
+  orders: Array<{
+    id: number;
+    bill_number: string;
+    po_number: string | null;
+    total: number;
+    status: string;
+    created_at: string;
+  }>;
 }
 
 export interface Employee {
@@ -42,11 +59,46 @@ export interface Employee {
   created_at?: string;
 }
 
+export interface DashboardPendingOrder {
+  id: number;
+  bill_number: string;
+  total: number;
+  created_at: string;
+  status: string;
+  userName: string;
+  userEmail: string;
+}
+
+export interface DashboardLowStockItem {
+  id: number;
+  name: string;
+  stock: number;
+  price: number;
+  image: string | null;
+}
+
+export interface Dashboard {
+  summary: {
+    todayOrders: number;
+    pendingApprovals: number;
+    revenue: number;
+    revenueToday: number;
+    lowStock: number;
+    newClients: number;
+    lowStockThreshold: number;
+  };
+  pendingOrders: DashboardPendingOrder[];
+  lowStockItems: DashboardLowStockItem[];
+}
+
 export interface Medicine {
   id: number;
   name: string;
   description: string;
   price: number;
+  wholesale_price?: number;
+  listPrice?: number;
+  unitPrice?: number;
   image: string | null;
   stock: number;
   created_at?: string;

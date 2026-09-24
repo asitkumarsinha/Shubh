@@ -126,6 +126,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   margin-bottom: 0.85rem;
   font-size: 0.9rem;
 }
@@ -133,6 +135,11 @@
 .meta strong {
   font-size: 1.15rem;
   color: #fff;
+}
+
+.list-price {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .soft-pill {

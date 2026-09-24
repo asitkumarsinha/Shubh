@@ -46,6 +46,9 @@
 }
 
 .top-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
   position: relative;
   padding: 1.1rem 1.15rem 1rem;
   border-radius: var(--radius-sm);

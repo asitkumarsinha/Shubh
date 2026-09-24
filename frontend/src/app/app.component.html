@@ -1,6 +1,6 @@
 <div class="app-shell">
   <header class="topbar">
-    <a routerLink="/" class="brand" aria-label="Shubh Surgical home">
+    <a [routerLink]="auth.isAdmin() ? '/admin' : '/'" class="brand" aria-label="Shubh Surgical home">
       <img class="brand-logo" src="assets/shubh-surgical-logo.svg" alt="" width="36" height="36" />
       <span class="brand-text">Shubh Surgical</span>
     </a>
@@ -8,6 +8,7 @@
     <nav>
       @if (auth.isLoggedIn()) {
         @if (auth.isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
           <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>
           <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
           <a routerLink="/admin/users" routerLinkActive="active">Clients</a>

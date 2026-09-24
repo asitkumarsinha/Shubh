@@ -37,7 +37,7 @@
       <div class="email-row">
         <input type="email" [(ngModel)]="email" placeholder="user@example.com" />
         <button class="btn primary" [disabled]="sending" (click)="sendEmail()">
-          {{ sending ? 'Sending…' : 'Send' }}
+          {{ saveButtonLabel(sendPhase, 'Send', 'Sending…') }}
         </button>
         <button class="btn ghost" type="button" (click)="showEmailPrompt = false">Close</button>
       </div>

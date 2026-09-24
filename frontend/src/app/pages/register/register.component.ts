@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -21,7 +22,7 @@ export class RegisterComponent {
   error = '';
   loading = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
 
   submit(): void {
     this.error = '';
@@ -37,11 +38,14 @@ export class RegisterComponent {
       .subscribe({
         next: () => {
           this.loading = false;
+          this.toast.success('Account saved');
           this.router.navigate(['/medicines']);
         },
         error: (err) => {
           this.loading = false;
-          this.error = apiErrorMessage(err, 'Registration failed');
+          const msg = apiErrorMessage(err, 'Registration failed');
+          this.error = msg;
+          this.toast.error(msg);
         },
       });
   }

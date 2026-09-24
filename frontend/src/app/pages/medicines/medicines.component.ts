@@ -5,6 +5,7 @@ import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { Medicine } from '../../core/models';
 import { apiErrorMessage } from '../../core/api-error';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-medicines',
@@ -16,13 +17,13 @@ import { apiErrorMessage } from '../../core/api-error';
 export class MedicinesComponent implements OnInit {
   medicines: Medicine[] = [];
   loading = true;
-  message = '';
   error = '';
 
   constructor(
     private medicineService: MedicineService,
     public cart: CartService,
-    public auth: AuthService
+    public auth: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -44,20 +45,23 @@ export class MedicinesComponent implements OnInit {
 
   addToCart(m: Medicine): void {
     if (!this.auth.isLoggedIn()) {
+      this.toast.error('Please login as a user to add medicines to cart');
       this.error = 'Please login as a user to add medicines to cart';
       return;
     }
     if (this.auth.isAdmin()) {
       this.error = 'Admin cannot purchase. Switch to a user account.';
+      this.toast.error(this.error);
       return;
     }
     try {
       this.cart.add(m, 1);
-      this.message = `${m.name} added to cart`;
       this.error = '';
-      setTimeout(() => (this.message = ''), 2000);
+      this.toast.success(`${m.name} added to cart`);
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Could not add to cart';
+      const msg = e instanceof Error ? e.message : 'Could not add to cart';
+      this.error = msg;
+      this.toast.error(msg);
     }
   }
 }

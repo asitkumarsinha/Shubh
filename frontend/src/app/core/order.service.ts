@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Order, Report } from './models';
+import { Dashboard, Order, Report } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -47,6 +47,17 @@ export class OrderService {
     status: 'pending' | 'approved' | 'dispatched' | 'rejected' | 'cancelled'
   ): Observable<Order> {
     return this.http.patch<Order>(`${this.api}/${id}/status`, { status });
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class DashboardService {
+  private readonly api = '/api/dashboard';
+
+  constructor(private http: HttpClient) {}
+
+  get(): Observable<Dashboard> {
+    return this.http.get<Dashboard>(this.api);
   }
 }
 

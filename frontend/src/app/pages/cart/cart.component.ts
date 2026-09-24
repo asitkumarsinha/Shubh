@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CartService } from '../../core/cart.service';
 import { OrderService } from '../../core/order.service';
 import { AuthService } from '../../core/auth.service';
+import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
 
 @Component({
   selector: 'app-cart',
@@ -15,13 +16,16 @@ import { AuthService } from '../../core/auth.service';
 })
 export class CartComponent {
   loading = false;
+  savePhase: SavePhase = 'idle';
   error = '';
+  readonly saveButtonLabel = saveButtonLabel;
 
   constructor(
     public cart: CartService,
     private orders: OrderService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   imageUrl(path: string | null): string {
@@ -31,6 +35,7 @@ export class CartComponent {
   checkout(): void {
     if (!this.auth.isLoggedIn() || this.auth.isAdmin()) {
       this.error = 'Please login as a customer to checkout';
+      this.toast.error(this.error);
       return;
     }
     const items = this.cart.items().map((i) => ({
@@ -38,16 +43,24 @@ export class CartComponent {
       quantity: i.quantity,
     }));
     this.loading = true;
+    this.savePhase = 'saving';
     this.error = '';
+    this.toast.beginSave();
     this.orders.checkout(items).subscribe({
       next: (order) => {
         this.cart.clear();
         this.loading = false;
+        this.savePhase = 'saved';
+        this.toast.success(`Order saved · bill ${order.bill_number}`);
         this.router.navigate(['/orders', order.id]);
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'Checkout failed';
+        this.savePhase = 'failed';
+        const msg = err.error?.message || 'Checkout failed';
+        this.error = msg;
+        this.toast.error(msg);
+        setTimeout(() => (this.savePhase = 'idle'), 2500);
       },
     });
   }

@@ -60,7 +60,7 @@
       <div class="order-card__foot">
         <div class="total">Total: ₹{{ cart.total() | number: '1.2-2' }}</div>
         <button class="btn ghost" [disabled]="loading" (click)="checkout()">
-          {{ loading ? 'Processing…' : 'Place order' }}
+          {{ saveButtonLabel(savePhase, 'Place order', 'Saving…') }}
         </button>
       </div>
     </div>

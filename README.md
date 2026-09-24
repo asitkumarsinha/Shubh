@@ -17,8 +17,8 @@ Angular frontend + Express/SQLite backend for multi-user medicine shopping with 
 
 | Role  | Email                                           | Password |
 | ----- | ----------------------------------------------- | -------- |
-| Admin | [admin@medishop.com](mailto:admin@medishop.com) | admin123 |
-| User  | [user@medishop.com](mailto:user@medishop.com)   | user123  |
+| Admin | [admin@shubhsurgical.com](mailto:admin@shubhsurgical.com) | admin123 |
+| User  | [user@shubhsurgical.com](mailto:user@shubhsurgical.com)   | user123  |
 
 
 ## Run locally

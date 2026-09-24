@@ -16,9 +16,6 @@
     </div>
   </header>
 
-  @if (message) {
-    <div class="toast ok">{{ message }}</div>
-  }
   @if (error) {
     <div class="toast bad">{{ error }}</div>
   }
@@ -38,6 +35,10 @@
             <p>{{ m.description }}</p>
             <div class="meta">
               <strong>₹{{ m.price | number: '1.2-2' }}</strong>
+              @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
+                <s class="list-price">₹{{ m.listPrice | number: '1.2-2' }}</s>
+                <span class="soft-pill">Wholesale</span>
+              }
               <span class="soft-pill" [class.low]="m.stock < 5">Stock {{ m.stock }}</span>
             </div>
             @if (!auth.isAdmin()) {

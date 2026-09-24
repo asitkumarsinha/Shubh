@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../core/employee.service';
 import { Employee } from '../../core/models';
+import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
 
 @Component({
   selector: 'app-admin-employees',
@@ -23,11 +24,12 @@ export class AdminEmployeesComponent implements OnInit {
   joining_date = '';
   file: File | null = null;
   editingId: number | null = null;
-  message = '';
   error = '';
   loading = false;
+  savePhase: SavePhase = 'idle';
+  readonly saveButtonLabel = saveButtonLabel;
 
-  constructor(private employeeService: EmployeeService) {}
+  constructor(private employeeService: EmployeeService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.reload();
@@ -82,6 +84,7 @@ export class AdminEmployeesComponent implements OnInit {
   save(): void {
     if (!this.name || !this.email || !this.phone || !this.designation) {
       this.error = 'Name, email, phone and designation are required';
+      this.toast.error(this.error);
       return;
     }
     const form = new FormData();
@@ -95,7 +98,9 @@ export class AdminEmployeesComponent implements OnInit {
     if (this.file) form.append('image', this.file);
 
     this.loading = true;
+    this.savePhase = 'saving';
     this.error = '';
+    this.toast.beginSave();
     const req =
       this.editingId === null
         ? this.employeeService.create(form)
@@ -104,28 +109,38 @@ export class AdminEmployeesComponent implements OnInit {
     req.subscribe({
       next: () => {
         this.loading = false;
-        this.message = this.editingId ? 'Employee updated' : 'Employee added';
+        this.savePhase = 'saved';
+        const msg = this.editingId ? 'Employee updated' : 'Employee added';
+        this.toast.success(msg);
         this.resetForm();
         this.reload();
         this.mode = 'view';
-        setTimeout(() => (this.message = ''), 2500);
+        setTimeout(() => (this.savePhase = 'idle'), 2500);
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'Save failed';
+        this.savePhase = 'failed';
+        const msg = err.error?.message || 'Save failed';
+        this.error = msg;
+        this.toast.error(msg);
+        setTimeout(() => (this.savePhase = 'idle'), 2500);
       },
     });
   }
 
   remove(emp: Employee): void {
     if (!confirm(`Remove employee ${emp.name}?`)) return;
+    this.toast.beginSave();
     this.employeeService.remove(emp.id).subscribe({
       next: () => {
-        this.message = `${emp.name} removed`;
+        this.toast.success(`${emp.name} removed`);
         this.reload();
-        setTimeout(() => (this.message = ''), 2000);
       },
-      error: (err) => (this.error = err.error?.message || 'Delete failed'),
+      error: (err) => {
+        const msg = err.error?.message || 'Delete failed';
+        this.error = msg;
+        this.toast.error(msg);
+      },
     });
   }
 

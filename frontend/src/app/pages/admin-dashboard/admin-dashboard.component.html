@@ -1,0 +1,125 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Today’s desk — orders, stock, clients, and quick actions.</p>
+    </div>
+  </header>
+
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  @if (loading) {
+    <p class="muted">Loading dashboard…</p>
+  } @else if (data) {
+    <div class="stats">
+      <a class="stat" routerLink="/admin/orders">
+        <span>Today's orders</span>
+        <strong>{{ data.summary.todayOrders }}</strong>
+      </a>
+      <a class="stat" routerLink="/admin/orders">
+        <span>Pending approvals</span>
+        <strong>{{ data.summary.pendingApprovals }}</strong>
+      </a>
+      <div class="stat">
+        <span>Revenue</span>
+        <strong>₹{{ data.summary.revenue | number: '1.2-2' }}</strong>
+        <em>Today ₹{{ data.summary.revenueToday | number: '1.2-2' }}</em>
+      </div>
+      <a class="stat" routerLink="/admin/medicines">
+        <span>Low stock</span>
+        <strong>{{ data.summary.lowStock }}</strong>
+        <em>Below {{ data.summary.lowStockThreshold }} units</em>
+      </a>
+      <a class="stat" routerLink="/admin/users">
+        <span>New clients</span>
+        <strong>{{ data.summary.newClients }}</strong>
+        <em>Registered today</em>
+      </a>
+    </div>
+
+    <h2 class="section-title">Quick actions</h2>
+    <div class="actions-grid">
+      <article class="panel">
+        <header>
+          <h3>Approve pending order</h3>
+          <a routerLink="/admin/orders" class="btn ghost">All orders</a>
+        </header>
+        @if (data.pendingOrders.length === 0) {
+          <p class="muted">No pending orders.</p>
+        } @else {
+          <ul class="action-list">
+            @for (o of data.pendingOrders; track o.id) {
+              <li>
+                <div>
+                  <strong>{{ o.bill_number }}</strong>
+                  <span>{{ o.userName }} · ₹{{ o.total | number: '1.2-2' }}</span>
+                </div>
+                <button
+                  class="btn primary"
+                  type="button"
+                  [disabled]="approvingId === o.id"
+                  (click)="approve(o.id)"
+                >
+                  {{ approvingId === o.id ? 'Approving…' : 'Approve' }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="panel">
+        <header>
+          <h3>Restock item</h3>
+          <a routerLink="/admin/medicines" class="btn ghost">Medicines</a>
+        </header>
+        @if (data.lowStockItems.length === 0) {
+          <p class="muted">No low-stock items.</p>
+        } @else {
+          <ul class="action-list">
+            @for (m of data.lowStockItems; track m.id) {
+              <li>
+                <div>
+                  <strong>{{ m.name }}</strong>
+                  <span>Stock {{ m.stock }}</span>
+                </div>
+                <div class="restock">
+                  <input
+                    type="number"
+                    min="1"
+                    [(ngModel)]="restockQty[m.id]"
+                    [name]="'qty' + m.id"
+                  />
+                  <button
+                    class="btn primary"
+                    type="button"
+                    [disabled]="restockingId === m.id"
+                    (click)="restock(m.id)"
+                  >
+                    {{ restockingId === m.id ? 'Saving…' : restockedId === m.id ? 'Saved' : 'Restock' }}
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="panel">
+        <header>
+          <h3>Add employee</h3>
+          <a routerLink="/admin/employees" class="btn ghost">Employee</a>
+        </header>
+        <form class="emp-form" (ngSubmit)="addEmployee()">
+          <input [(ngModel)]="empName" name="empName" placeholder="Full name *" required />
+          <input type="email" [(ngModel)]="empEmail" name="empEmail" placeholder="Email *" required />
+          <input [(ngModel)]="empPhone" name="empPhone" placeholder="Phone *" required />
+          <input [(ngModel)]="empDesignation" name="empDesignation" placeholder="Designation *" required />
+          <button class="btn primary" type="submit" [disabled]="empSaving">
+            {{ saveButtonLabel(empPhase, 'Add employee', 'Adding…') }}
+          </button>
+        </form>
+      </article>
+    </div>
+  }
+</section>

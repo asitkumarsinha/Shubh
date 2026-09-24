@@ -22,6 +22,8 @@ db.exec(`
     phone TEXT,
     address TEXT,
     status TEXT NOT NULL DEFAULT 'allowed' CHECK(status IN ('allowed', 'blocked')),
+    client_group TEXT NOT NULL DEFAULT 'retail' CHECK(client_group IN ('retail', 'wholesale')),
+    notes TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -30,6 +32,7 @@ db.exec(`
     name TEXT NOT NULL,
     description TEXT,
     price REAL NOT NULL,
+    wholesale_price REAL,
     image TEXT,
     stock INTEGER NOT NULL DEFAULT 0,
     created_by INTEGER,
@@ -83,7 +86,7 @@ if (!admin) {
   db.prepare(
     `INSERT INTO users (name, email, password, role, phone, address)
      VALUES (?, ?, ?, 'admin', ?, ?)`
-  ).run('Admin', 'admin@medishop.com', hash, '9999999999', 'Shubh Surgical HQ');
+  ).run('Admin', 'admin@shubhsurgical.com', hash, '9999999999', 'Shubh Surgical HQ');
 }
 
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users WHERE role = ?').get('user').c;
@@ -92,7 +95,7 @@ if (userCount === 0) {
   db.prepare(
     `INSERT INTO users (name, email, password, role, phone, address)
      VALUES (?, ?, ?, 'user', ?, ?)`
-  ).run('Demo User', 'user@medishop.com', hash, '8888888888', '123 Health Street');
+  ).run('Demo User', 'user@shubhsurgical.com', hash, '8888888888', '123 Health Street');
 }
 
 const medCount = db.prepare('SELECT COUNT(*) AS c FROM medicines').get().c;
@@ -146,6 +149,19 @@ if (medCount === 0) {
   if (!cols.some((c) => c.name === 'status')) {
     db.exec(`ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'allowed'`);
   }
+  if (!cols.some((c) => c.name === 'client_group')) {
+    db.exec(`ALTER TABLE users ADD COLUMN client_group TEXT NOT NULL DEFAULT 'retail'`);
+  }
+  if (!cols.some((c) => c.name === 'notes')) {
+    db.exec(`ALTER TABLE users ADD COLUMN notes TEXT DEFAULT ''`);
+  }
+})();
+
+(() => {
+  const cols = db.prepare(`PRAGMA table_info(medicines)`).all();
+  if (!cols.some((c) => c.name === 'wholesale_price')) {
+    db.exec(`ALTER TABLE medicines ADD COLUMN wholesale_price REAL`);
+  }
 })();
 
 // Migrate existing DBs to allow 'rejected' status (SQLite cannot ALTER CHECK)
@@ -181,5 +197,10 @@ if (medCount === 0) {
     `);
   }
 })();
+
+db.prepare(
+  `UPDATE users SET email = replace(email, '@medishop.com', '@shubhsurgical.com')
+   WHERE email LIKE '%@medishop.com'`
+).run();
 
 module.exports = db;

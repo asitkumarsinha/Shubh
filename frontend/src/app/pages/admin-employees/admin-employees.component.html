@@ -14,7 +14,6 @@
     </div>
   </header>
 
-  @if (message) { <div class="toast ok">{{ message }}</div> }
   @if (error) { <div class="toast bad">{{ error }}</div> }
 
   @if (mode === 'form') {
@@ -52,7 +51,7 @@
       </label>
       <div class="actions">
         <button class="btn primary" type="submit" [disabled]="loading">
-          {{ loading ? 'Saving…' : editingId ? 'Update' : 'Add employee' }}
+          {{ saveButtonLabel(savePhase, editingId ? 'Update' : 'Add employee') }}
         </button>
         @if (editingId) {
           <button class="btn ghost" type="button" (click)="resetForm()">Cancel edit</button>

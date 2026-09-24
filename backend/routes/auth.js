@@ -47,6 +47,7 @@ router.post('/login', (req, res) => {
     role: row.role,
     phone: row.phone,
     address: row.address,
+    client_group: row.client_group === 'wholesale' ? 'wholesale' : 'retail',
   };
   const token = jwt.sign(
     { id: user.id, name: user.name, email: user.email, role: user.role },
@@ -58,7 +59,7 @@ router.post('/login', (req, res) => {
 
 router.get('/me', authenticate, (req, res) => {
   const row = db
-    .prepare('SELECT id, name, email, role, phone, address FROM users WHERE id = ?')
+    .prepare('SELECT id, name, email, role, phone, address, client_group FROM users WHERE id = ?')
     .get(req.user.id);
   if (!row) return res.status(404).json({ message: 'User not found' });
   res.json(row);

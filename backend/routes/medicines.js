@@ -4,7 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const { authenticate, requireAdmin, optionalUser } = require('../middleware/auth');
+const { decorateMedicine } = require('../pricing');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -28,34 +29,39 @@ const upload = multer({
   },
 });
 
-router.get('/', (_req, res) => {
+router.get('/', (req, res) => {
+  const user = optionalUser(req);
   const medicines = db
     .prepare('SELECT * FROM medicines ORDER BY created_at DESC')
-    .all();
+    .all()
+    .map((m) => decorateMedicine(m, user));
   res.json(medicines);
 });
 
 router.get('/:id', (req, res) => {
   const medicine = db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id);
   if (!medicine) return res.status(404).json({ message: 'Medicine not found' });
-  res.json(medicine);
+  res.json(decorateMedicine(medicine, optionalUser(req)));
 });
 
 router.post('/', authenticate, requireAdmin, upload.single('image'), (req, res) => {
-  const { name, description, price, stock } = req.body;
+  const { name, description, price, wholesale_price, stock } = req.body;
   if (!name || price === undefined) {
     return res.status(400).json({ message: 'Name and price are required' });
   }
   const image = req.file ? `/uploads/${req.file.filename}` : null;
+  const wholesale =
+    wholesale_price === undefined || wholesale_price === '' ? null : Number(wholesale_price);
   const result = db
     .prepare(
-      `INSERT INTO medicines (name, description, price, image, stock, created_by)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO medicines (name, description, price, wholesale_price, image, stock, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       name,
       description || '',
       Number(price),
+      wholesale,
       image,
       Number(stock || 0),
       req.user.id
@@ -68,7 +74,7 @@ router.put('/:id', authenticate, requireAdmin, upload.single('image'), (req, res
   const existing = db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ message: 'Medicine not found' });
 
-  const { name, description, price, stock } = req.body;
+  const { name, description, price, wholesale_price, stock } = req.body;
   let image = existing.image;
   if (req.file) {
     if (existing.image) {
@@ -78,18 +84,35 @@ router.put('/:id', authenticate, requireAdmin, upload.single('image'), (req, res
     image = `/uploads/${req.file.filename}`;
   }
 
+  let wholesale = existing.wholesale_price;
+  if (wholesale_price !== undefined) {
+    wholesale = wholesale_price === '' ? null : Number(wholesale_price);
+  }
+
   db.prepare(
-    `UPDATE medicines SET name = ?, description = ?, price = ?, image = ?, stock = ?
+    `UPDATE medicines SET name = ?, description = ?, price = ?, wholesale_price = ?, image = ?, stock = ?
      WHERE id = ?`
   ).run(
     name || existing.name,
     description !== undefined ? description : existing.description,
     price !== undefined ? Number(price) : existing.price,
+    wholesale,
     image,
     stock !== undefined ? Number(stock) : existing.stock,
     req.params.id
   );
 
+  res.json(db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id));
+});
+
+router.patch('/:id/restock', authenticate, requireAdmin, (req, res) => {
+  const existing = db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Medicine not found' });
+  const quantity = Number(req.body?.quantity);
+  if (!quantity || quantity < 1) {
+    return res.status(400).json({ message: 'Restock quantity must be at least 1' });
+  }
+  db.prepare('UPDATE medicines SET stock = stock + ? WHERE id = ?').run(quantity, req.params.id);
   res.json(db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id));
 });
 

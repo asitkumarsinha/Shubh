@@ -2,6 +2,7 @@ const express = require('express');
 const QRCode = require('qrcode');
 const db = require('../db');
 const { authenticate, requireAdmin } = require('../middleware/auth');
+const { unitPrice } = require('../pricing');
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.post('/checkout', authenticate, async (req, res) => {
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
+    const buyer = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
     const lineItems = [];
     let total = 0;
 
@@ -51,9 +53,10 @@ router.post('/checkout', authenticate, async (req, res) => {
           message: `Insufficient stock for ${medicine.name}. Available: ${medicine.stock}`,
         });
       }
-      const lineTotal = medicine.price * qty;
+      const unit = unitPrice(medicine, buyer);
+      const lineTotal = unit * qty;
       total += lineTotal;
-      lineItems.push({ medicine, qty, lineTotal });
+      lineItems.push({ medicine, qty, unit, lineTotal });
     }
 
     const billNumber = generateBillNumber();
@@ -88,7 +91,7 @@ router.post('/checkout', authenticate, async (req, res) => {
           line.medicine.name,
           line.medicine.image,
           line.qty,
-          line.medicine.price
+          line.unit
         );
         reduceStock.run(line.qty, line.medicine.id);
       }

@@ -23,7 +23,6 @@
       }
     </ol>
 
-    @if (message) { <div class="toast ok">{{ message }}</div> }
     @if (error) { <div class="toast bad">{{ error }}</div> }
 
     <div class="bill-layout">
@@ -67,11 +66,15 @@
         @if (auth.isAdmin()) {
           <div class="admin-actions">
             @if (order.status === 'pending') {
-              <button class="btn primary" [disabled]="acting" (click)="approve()">Approve &amp; generate PO</button>
+              <button class="btn primary" [disabled]="acting" (click)="approve()">
+                {{ actLabel || 'Approve & generate PO' }}
+              </button>
               <button class="btn danger" [disabled]="acting" (click)="reject()">Reject order</button>
             }
             @if (order.status === 'approved') {
-              <button class="btn primary" [disabled]="acting" (click)="dispatch()">Mark ready to dispatch</button>
+              <button class="btn primary" [disabled]="acting" (click)="dispatch()">
+                {{ actLabel || 'Mark ready to dispatch' }}
+              </button>
               <button class="btn danger" [disabled]="acting" (click)="cancel()">Cancel order</button>
             }
           </div>

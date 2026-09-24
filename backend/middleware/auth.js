@@ -4,6 +4,17 @@ const db = require('../db');
 const JWT_SECRET = process.env.JWT_SECRET || 'medishop-secret-key-2026';
 const BLOCKED_MESSAGE = 'User is blocked now, please contact to admin';
 
+function optionalUser(req) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) return null;
+  try {
+    const payload = jwt.verify(header.slice(7), JWT_SECRET);
+    return db.prepare('SELECT * FROM users WHERE id = ?').get(payload.id) || null;
+  } catch {
+    return null;
+  }
+}
+
 function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
@@ -31,4 +42,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { authenticate, requireAdmin, JWT_SECRET, BLOCKED_MESSAGE };
+module.exports = { authenticate, requireAdmin, JWT_SECRET, BLOCKED_MESSAGE, optionalUser };

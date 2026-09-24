@@ -26,7 +26,7 @@ export class LoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: (res) => {
         this.loading = false;
-        this.router.navigate([res.user.role === 'admin' ? '/admin/medicines' : '/medicines']);
+        this.router.navigate([res.user.role === 'admin' ? '/admin' : '/medicines']);
       },
       error: (err) => {
         this.loading = false;
@@ -37,10 +37,10 @@ export class LoginComponent {
 
   fillDemo(role: 'admin' | 'user'): void {
     if (role === 'admin') {
-      this.email = 'admin@medishop.com';
+      this.email = 'admin@shubhsurgical.com';
       this.password = 'admin123';
     } else {
-      this.email = 'user@medishop.com';
+      this.email = 'user@shubhsurgical.com';
       this.password = 'user123';
     }
   }

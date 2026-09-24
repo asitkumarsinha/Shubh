@@ -19,6 +19,9 @@ export class AuthService {
   readonly user = signal<User | null>(this.readUser());
   readonly isLoggedIn = computed(() => !!this.user());
   readonly isAdmin = computed(() => this.user()?.role === 'admin');
+  readonly isWholesale = computed(
+    () => this.user()?.role === 'user' && this.user()?.client_group === 'wholesale'
+  );
 
   constructor(private http: HttpClient, private router: Router) {}
 

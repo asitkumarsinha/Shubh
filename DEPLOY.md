@@ -32,8 +32,8 @@ Set these exactly on Render / Railway / Azure / any Node portal:
 3. Create service and wait for **Live**
 
 Demo logins:
-- Admin: `admin@medishop.com` / `admin123`
-- User: `user@medishop.com` / `user123`
+- Admin: `admin@shubhsurgical.com` / `admin123`
+- User: `user@shubhsurgical.com` / `user123`
 
 ---
 

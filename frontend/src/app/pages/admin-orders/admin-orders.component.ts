@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../core/order.service';
 import { Order } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
 
 type ActionStatus = 'pending' | 'approved' | 'dispatched' | 'rejected';
 
@@ -17,7 +18,6 @@ type ActionStatus = 'pending' | 'approved' | 'dispatched' | 'rejected';
 export class AdminOrdersComponent implements OnInit {
   orders: Order[] = [];
   filter = '';
-  message = '';
   error = '';
   loading = true;
   updatingId: number | null = null;
@@ -29,7 +29,7 @@ export class AdminOrdersComponent implements OnInit {
     { value: 'rejected', label: 'Reject' },
   ];
 
-  constructor(private orderService: OrderService) {}
+  constructor(private orderService: OrderService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.reload();
@@ -60,16 +60,18 @@ export class AdminOrdersComponent implements OnInit {
     if (!status || status === o.status) return;
     this.updatingId = o.id;
     this.error = '';
-    this.message = '';
+    this.toast.beginSave();
     this.orderService.setStatus(o.id, status).subscribe({
       next: (updated) => {
         this.updatingId = null;
-        this.message = `${updated.bill_number} status changed to ${updated.status}`;
+        this.toast.success(`${updated.bill_number} status changed to ${updated.status}`);
         this.reload();
       },
       error: (err) => {
         this.updatingId = null;
-        this.error = err.error?.message || 'Failed to update status';
+        const msg = err.error?.message || 'Failed to update status';
+        this.error = msg;
+        this.toast.error(msg);
         this.reload();
       },
     });

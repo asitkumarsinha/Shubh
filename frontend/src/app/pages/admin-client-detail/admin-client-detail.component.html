@@ -1,0 +1,104 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>{{ client?.name || 'Client' }}</h1>
+      <p>Order history, spend, notes, and pricing group.</p>
+    </div>
+    <a routerLink="/admin/users" class="btn ghost">Back to clients</a>
+  </header>
+
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  @if (loading) {
+    <p class="muted">Loading client…</p>
+  } @else if (data && client) {
+    <div class="stats">
+      <div><span>Orders</span><strong>{{ client.orderCount }}</strong></div>
+      <div><span>Total spend</span><strong>₹{{ client.totalSpent | number: '1.2-2' }}</strong></div>
+      <div><span>Group</span><strong>{{ client.client_group }}</strong></div>
+      <div><span>Access</span><strong>{{ client.status }}</strong></div>
+    </div>
+
+    <div class="layout">
+      <article class="panel">
+        <h2>Profile</h2>
+        <dl>
+          <div><dt>Email</dt><dd>{{ client.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ client.phone || '—' }}</dd></div>
+          <div><dt>Address</dt><dd>{{ client.address || '—' }}</dd></div>
+          <div><dt>Joined</dt><dd>{{ client.created_at ? (client.created_at | date: 'mediumDate') : '—' }}</dd></div>
+          <div><dt>Last order</dt><dd>{{ client.lastOrderAt ? (client.lastOrderAt | date: 'mediumDate') : '—' }}</dd></div>
+        </dl>
+
+        <form (ngSubmit)="save()">
+          <label>Client group
+            <select class="action-select" [(ngModel)]="group" name="group">
+              <option value="retail">Retail</option>
+              <option value="wholesale">Wholesale</option>
+            </select>
+          </label>
+          <label>Notes
+            <textarea [(ngModel)]="notes" name="notes" rows="4" placeholder="Internal notes about this client"></textarea>
+          </label>
+          <label>Login password
+            <div class="pwd-row">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                name="password"
+                minlength="6"
+                placeholder="Enter a new password to change it"
+              />
+              <button class="btn ghost" type="button" (click)="showPassword = !showPassword">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+          </label>
+          <p class="hint">Current login password cannot be recovered (it is encrypted). Type a new password here to change it. Use Show to view what you are setting.</p>
+          <button class="btn primary" type="submit" [disabled]="saving">
+            {{ saveButtonLabel(savePhase, 'Save notes, group & password') }}
+          </button>
+          @if (savePhase !== 'idle') {
+            <p class="hint" [class.ok]="savePhase === 'saved'">
+              {{ savePhase === 'saving' ? 'Saving…' : savePhase === 'saved' ? 'Saved successfully' : 'Save failed' }}
+            </p>
+          }
+        </form>
+      </article>
+
+      <article class="panel">
+        <h2>Order history</h2>
+        @if (data.orders.length === 0) {
+          <p class="muted">No orders yet.</p>
+        } @else {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bill</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>PO</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (o of data.orders; track o.id) {
+                  <tr>
+                    <td>{{ o.bill_number }}</td>
+                    <td>{{ o.created_at | date: 'mediumDate' }}</td>
+                    <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
+                    <td>{{ o.po_number || '—' }}</td>
+                    <td>₹{{ o.total | number: '1.2-2' }}</td>
+                    <td><a class="btn ghost" [routerLink]="['/orders', o.id]">View</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+    </div>
+  }
+</section>

@@ -11,6 +11,7 @@ const orderRoutes = require('./routes/orders');
 const reportRoutes = require('./routes/reports');
 const userRoutes = require('./routes/users');
 const employeeRoutes = require('./routes/employees');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -29,6 +30,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 function resolveDistPath() {
   const candidates = [
@@ -80,6 +82,6 @@ app.listen(PORT, HOST, () => {
   console.log(`Shubh Surgical listening on http://${HOST}:${PORT}`);
   if (distPath) console.log(`Serving frontend from ${distPath}`);
   else console.warn('WARNING: frontend build missing — site will show 404 until you run the full build + copy-frontend step');
-  console.log('Default admin: admin@medishop.com / admin123');
-  console.log('Default user:  user@medishop.com / user123');
+  console.log('Default admin: admin@shubhsurgical.com / admin123');
+  console.log('Default user:  user@shubhsurgical.com / user123');
 });

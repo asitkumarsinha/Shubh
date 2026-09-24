@@ -28,4 +28,8 @@ export class MedicineService {
   remove(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.api}/${id}`);
   }
+
+  restock(id: number, quantity: number): Observable<Medicine> {
+    return this.http.patch<Medicine>(`${this.api}/${id}/restock`, { quantity });
+  }
 }

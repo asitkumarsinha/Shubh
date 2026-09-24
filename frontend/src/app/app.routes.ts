@@ -37,6 +37,14 @@ export const routes: Routes = [
       import('./pages/order-detail/order-detail.component').then((m) => m.OrderDetailComponent),
   },
   {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-dashboard/admin-dashboard.component').then(
+        (m) => m.AdminDashboardComponent
+      ),
+  },
+  {
     path: 'admin/medicines',
     canActivate: [adminGuard],
     loadComponent: () =>
@@ -55,6 +63,14 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () =>
       import('./pages/admin-users/admin-users.component').then((m) => m.AdminUsersComponent),
+  },
+  {
+    path: 'admin/users/:id',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin-client-detail/admin-client-detail.component').then(
+        (m) => m.AdminClientDetailComponent
+      ),
   },
   {
     path: 'admin/employees',
