@@ -10,10 +10,11 @@
   <form class="auth-card" (ngSubmit)="submit()">
     <h2>Sign in</h2>
     <p class="muted">Dispensary desk access for admin or customer</p>
+    <app-public-cta />
 
     <label>
       Email
-      <input type="email" [(ngModel)]="email" name="email" required autocomplete="username" />
+      <input type="email" [(ngModel)]="email" (ngModelChange)="loadCustomerBranding()" name="email" required autocomplete="username" />
     </label>
     <label>
       Password

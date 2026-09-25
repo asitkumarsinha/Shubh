@@ -1,0 +1,19 @@
+<div class="public-cta">
+  <div class="cta-row">
+    <a routerLink="/demo" class="btn primary">Demo</a>
+    <button class="btn ghost" type="button" (click)="openFeedback()">Feedback</button>
+  </div>
+
+  @if (showFeedback) {
+    <form class="feedback-form" (ngSubmit)="send()">
+      <h3>Website feedback</h3>
+      <label>Name <input [(ngModel)]="name" name="ctaName" /></label>
+      <label>Email <input type="email" [(ngModel)]="email" name="ctaEmail" /></label>
+      <label>Feedback <textarea [(ngModel)]="message" name="ctaMessage" required rows="3" minlength="8"></textarea></label>
+      <div class="cta-row">
+        <button class="btn primary" type="submit" [disabled]="sending">{{ sending ? 'Sending…' : 'Send feedback' }}</button>
+        <button class="btn ghost" type="button" (click)="showFeedback = false">Cancel</button>
+      </div>
+    </form>
+  }
+</div>

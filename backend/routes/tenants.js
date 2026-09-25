@@ -77,8 +77,9 @@ router.post('/', (req, res) => {
          (name, slug, plan, billing_cycle, price, trial_end, renewal_date, payment_status,
           contact_name, contact_email, contact_phone, gst_number, address, domain,
           theme_color, font_family, login_banner, homepage_text, language, modules,
+          login_initial,
           max_users, max_employees, max_orders, max_medicines, storage_limit_mb)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         name,
@@ -101,6 +102,7 @@ router.post('/', (req, res) => {
         body.homepage_text || '',
         body.language === 'hi' ? 'hi' : 'en',
         JSON.stringify(modules),
+        String(body.login_initial || '').trim().toLowerCase(),
         Number(body.max_users || 50),
         Number(body.max_employees || 50),
         Number(body.max_orders || 10000),
@@ -154,7 +156,7 @@ router.patch('/:id', (req, res) => {
        name = ?, status = ?, plan = ?, billing_cycle = ?, price = ?, trial_end = ?, renewal_date = ?,
        payment_status = ?, contact_name = ?, contact_email = ?, contact_phone = ?, gst_number = ?,
        address = ?, domain = ?, theme_color = ?, font_family = ?, login_banner = ?, homepage_text = ?,
-       language = ?, modules = ?, max_users = ?, max_employees = ?, max_orders = ?, max_medicines = ?,
+       language = ?, modules = ?, login_initial = ?, max_users = ?, max_employees = ?, max_orders = ?, max_medicines = ?,
        storage_limit_mb = ?, updated_at = datetime('now')
      WHERE id = ?`
   ).run(
@@ -167,7 +169,8 @@ router.patch('/:id', (req, res) => {
     body.address ?? current.address, body.domain ?? current.domain, body.theme_color ?? current.theme_color,
     body.font_family ?? current.font_family, body.login_banner ?? current.login_banner,
     body.homepage_text ?? current.homepage_text, body.language === 'hi' ? 'hi' : body.language === 'en' ? 'en' : current.language,
-    modules, Number(body.max_users ?? current.max_users), Number(body.max_employees ?? current.max_employees),
+    modules, body.login_initial != null ? String(body.login_initial).trim().toLowerCase() : current.login_initial,
+    Number(body.max_users ?? current.max_users), Number(body.max_employees ?? current.max_employees),
     Number(body.max_orders ?? current.max_orders), Number(body.max_medicines ?? current.max_medicines),
     Number(body.storage_limit_mb ?? current.storage_limit_mb), id
   );

@@ -27,13 +27,25 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.75rem 0.9rem;
   font: inherit;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+}
+
+.theme-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+input[type='color'] {
+  min-height: 2.75rem;
+  padding: 0.25rem;
 }
 
 .hint {
@@ -62,6 +74,29 @@ textarea {
   color: var(--muted);
 }
 
+.hit-card {
+  min-width: 9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass);
+  text-align: right;
+}
+
+.hit-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hit-card strong {
+  color: #fff;
+  font-size: 1.7rem;
+}
+
 .qr-preview {
   display: grid;
   justify-items: center;
@@ -85,4 +120,5 @@ textarea {
 
 @media (max-width: 800px) {
   .settings-layout { grid-template-columns: 1fr; }
+  .theme-row { grid-template-columns: 1fr; }
 }

@@ -245,7 +245,7 @@ const html = `<!doctype html>
         <tr><td><strong>Purpose</strong></td><td>Staff, admin, and customer training</td></tr>
         <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / live host URL</td></tr>
         <tr><td><strong>Audience</strong></td><td>Customers, store administrators, and Super Admin</td></tr>
-        <tr><td><strong>Version</strong></td><td>3.0 — ${today}</td></tr>
+        <tr><td><strong>Version</strong></td><td>3.3 — ${today}</td></tr>
         <tr><td><strong>Help Center</strong></td><td>Admin or Super Admin login → Help Center (opens this PDF)</td></tr>
       </table>
     </div>
@@ -255,7 +255,7 @@ const html = `<!doctype html>
     <h2>Contents</h2>
     <ol>
       <li>What this website does</li>
-      <li>Demo / training logins</li>
+      <li>Website features and access roles</li>
       <li>Register</li>
       <li>Sign in</li>
       <li>Browse catalogue and shop</li>
@@ -294,15 +294,15 @@ const html = `<!doctype html>
   </section>
 
   <section class="chapter">
-    <h2>2. Demo / training logins</h2>
-    <p class="summary">Use these accounts in classroom or UAT. Do not use them as real customer credentials in production.</p>
+    <h2>2. Website features and access roles</h2>
+    <p class="summary">The website separates shopping, store operations, and platform management. Accounts and credentials are issued by the business; this manual intentionally does not list passwords.</p>
     <table style="width:100%;border-collapse:collapse;margin:8px 0 12px">
-      <tr style="background:#0f3d4c;color:#fff"><th style="text-align:left;padding:8px">Role</th><th style="text-align:left;padding:8px">Email</th><th style="text-align:left;padding:8px">Password</th></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Store admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin@shubhsurgical.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin123</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user@shubhsurgical.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user123</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">asitkumarsinha@gmail.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shivansh2026</td></tr>
+      <tr style="background:#0f3d4c;color:#fff"><th style="text-align:left;padding:8px">Role</th><th style="text-align:left;padding:8px">Main features</th><th style="text-align:left;padding:8px">Where they start</th></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Browse medicines, choose retail/wholesale prices, cart, QR bill, and order tracking</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Store admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard, stock, orders, clients, employees, reports, and customer-specific operations</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Provision customer businesses, choose modules and plans, customise each customer, and export backups</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td></tr>
     </table>
-    <p class="note">On Sign in you can tap <strong>Admin demo</strong> or <strong>User demo</strong> to fill these values automatically.</p>
+    <p class="note">A customer business is isolated: its branding, Checkout QR, catalogue, users, employees, and orders are separate from other customer businesses.</p>
   </section>
 
   ${section(
@@ -475,12 +475,14 @@ const html = `<!doctype html>
 
   ${section(
     '17. Super Admin: Settings',
-    'Super Admin is the platform owner. After login, Settings lets you change the default website title, slogan, logo, and Checkout QR used on the primary store.',
+    'Super Admin is the platform owner. Settings works customer by customer: choose a customer first, then customise only that customer’s Login Initial, title, slogan, logo, Checkout QR, theme colour, and heading font.',
     [
-      'Sign in as Super Admin (asitkumarsinha@gmail.com). You land on <strong>Settings</strong>.',
+      'Sign in as Super Admin. You land on <strong>Settings</strong>.',
+      'Choose the target customer from the <strong>Customer</strong> selector. Its current branding is loaded into the form.',
+      'Set <strong>Login Initial</strong>, for example <strong>@shubhsurgical</strong>. When a visitor enters an email containing that text on Sign in, this customer’s branding and theme load before login.',
       'Change website title and slogan.',
-      'Optionally upload a new logo and Checkout QR image.',
-      'Click <strong>Save website settings</strong>. The top bar, login page, shop hero, and bill QR update.',
+      'Optionally upload a new logo and Checkout QR image, then choose a theme colour and heading font.',
+      'Click <strong>Save customer settings</strong>. The selected customer’s top bar, login page, shop appearance, and bill QR update without changing another customer.',
     ],
     'super-settings'
   )}
@@ -490,9 +492,9 @@ const html = `<!doctype html>
     'Customers creates isolated businesses you can sell. Each customer gets its own admin login, catalogue, orders, and plan modules. Do not confuse this with store-level Clients (shoppers).',
     [
       'Open <strong>Customers</strong>.',
-      'Fill Create customer business: name, slug, first administrator name/email/password, plan, modules, and optional starter catalogue.',
-      'Click <strong>Create customer</strong>, then give that admin their login.',
-      'On a customer card: change Active/Suspended/Archived, save plan and feature configuration, reset admin password, export backup, or archive after typing the exact name.',
+      'Fill Create customer business: name, slug, first administrator details, plan, modules, and optional starter catalogue.',
+      'Click <strong>Create customer</strong>, then securely give that admin their login.',
+      'On a customer card: change Active/Suspended/Archived, save plan and feature configuration, set the store theme/language, export backup, or archive after typing the exact name.',
     ],
     'super-tenants'
   )}
@@ -520,7 +522,7 @@ const html = `<!doctype html>
         <th style="text-align:left;padding:8px">Menu</th>
         <th style="text-align:left;padding:8px">What it does</th>
       </tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Browse stock; create or open an account</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Demo, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Public title Surgical Solution; feature demo; feedback; browse stock</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop, Cart, My orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order medicines, pay by QR, track status</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Today’s orders, revenue, low stock, quick actions</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete catalogue; retail/wholesale price</td></tr>
@@ -529,7 +531,8 @@ const html = `<!doctype html>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Employee</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add, view, update, remove staff with photo</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Reports</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Sales stats and email report</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin / Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Help Center</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Opens this training PDF</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Website title, slogan, logo, Checkout QR</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Per-customer branding plus website hit count</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Feedback</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Read all Demo-page feedback</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customers</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Create tenant businesses, plans, modules, backup</td></tr>
     </table>
   </section>
@@ -545,10 +548,10 @@ const html = `<!doctype html>
       <li>Open a client with <strong>View</strong>, add a note, and set a new password (old password cannot be shown).</li>
       <li>Open <strong>Employee</strong>, add a staff record with photo, View the list, Update, then practise Remove if needed.</li>
       <li>Open Reports and practise Email report (outbox is acceptable in training).</li>
-      <li>Log in as Super Admin, change Settings, then open Customers and review tenant cards.</li>
+      <li>Log in as Super Admin, check website hits on Settings, then open Feedback.</li>
       <li>Click <strong>Help Center</strong> next to Logout and confirm this latest PDF opens.</li>
     </ol>
-    <p class="footer-note">End of training manual — Shubh Surgical. Version 3.0 — ${today}.</p>
+    <p class="footer-note">End of training manual — Shubh Surgical. Version 3.3 — ${today}.</p>
   </section>
 </body>
 </html>`;

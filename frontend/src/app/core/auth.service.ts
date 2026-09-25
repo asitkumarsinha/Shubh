@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { User } from './models';
+import { SettingsService } from './settings.service';
 
 interface AuthResponse {
   token: string;
@@ -24,7 +25,7 @@ export class AuthService {
     () => this.user()?.role === 'user' && this.user()?.client_group === 'wholesale'
   );
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private settings: SettingsService) {}
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.api}/login`, { email, password }).pipe(
@@ -48,6 +49,7 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.user.set(null);
+    this.settings.load();
     this.router.navigate(['/login']);
   }
 

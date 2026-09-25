@@ -6,10 +6,12 @@ import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
 import { SettingsService } from '../../core/settings.service';
 
+import { PublicCtaComponent } from '../../shared/public-cta/public-cta.component';
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -18,6 +20,7 @@ export class LoginComponent {
   password = '';
   error = '';
   loading = false;
+  private loginInitialTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private auth: AuthService,
@@ -31,6 +34,7 @@ export class LoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: (res) => {
         this.loading = false;
+        this.settings.load();
         this.router.navigate([
           res.user.role === 'super_admin' ? '/settings' : res.user.role === 'admin' ? '/admin' : '/medicines',
         ]);
@@ -42,6 +46,13 @@ export class LoginComponent {
     });
   }
 
+  loadCustomerBranding(): void {
+    clearTimeout(this.loginInitialTimer);
+    const email = this.email.trim().toLowerCase();
+    if (!email.includes('@')) return;
+    this.loginInitialTimer = setTimeout(() => this.settings.loadForLoginEmail(email), 250);
+  }
+
   fillDemo(role: 'admin' | 'user'): void {
     if (role === 'admin') {
       this.email = 'admin@shubhsurgical.com';
@@ -50,5 +61,6 @@ export class LoginComponent {
       this.email = 'user@shubhsurgical.com';
       this.password = 'user123';
     }
+    this.loadCustomerBranding();
   }
 }

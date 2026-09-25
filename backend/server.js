@@ -14,6 +14,7 @@ const employeeRoutes = require('./routes/employees');
 const dashboardRoutes = require('./routes/dashboard');
 const settingsRoutes = require('./routes/settings');
 const tenantRoutes = require('./routes/tenants');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -35,6 +36,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/tenants', tenantRoutes);
+app.use('/api', publicRoutes);
 
 function resolveDistPath() {
   const candidates = [

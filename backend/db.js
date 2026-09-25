@@ -126,7 +126,7 @@ db.exec(`
 `);
 db.prepare(
   `INSERT OR IGNORE INTO site_settings (id, title, slogan, logo, qr_code)
-   VALUES (1, 'Shubh Surgical', 'Your Trusted Partner in Health and Wellness.',
+   VALUES (1, 'Surgical Solution', 'Your Trusted Partner in Health and Wellness.',
    '/assets/shubh-surgical-logo.svg', '/assets/QR.jpeg')`
 ).run();
 
@@ -153,6 +153,7 @@ db.exec(`
     login_banner TEXT DEFAULT '',
     homepage_text TEXT DEFAULT '',
     language TEXT DEFAULT 'en',
+    login_initial TEXT DEFAULT '',
     modules TEXT NOT NULL DEFAULT '{"wholesale":true,"employees":true,"reports":true,"qrCheckout":true,"coupons":false,"prescriptions":false}',
     max_users INTEGER NOT NULL DEFAULT 50,
     max_employees INTEGER NOT NULL DEFAULT 50,
@@ -200,6 +201,30 @@ db.prepare(
   `INSERT OR IGNORE INTO tenant_settings (tenant_id, title, slogan, logo, qr_code)
    SELECT 1, title, slogan, logo, qr_code FROM site_settings WHERE id = 1`
 ).run();
+db.prepare(
+  `UPDATE site_settings SET title = 'Surgical Solution'
+   WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution')`
+).run();
+db.prepare(
+  `UPDATE tenant_settings SET title = 'Shubh Surgical'
+   WHERE tenant_id = 1 AND title IN ('Surgical Solution', 'Shubh Surgical')`
+).run();
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS site_hits (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    count INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS site_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    message TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+`);
+db.prepare(`INSERT OR IGNORE INTO site_hits (id, count) VALUES (1, 0)`).run();
 
 for (const table of ['users', 'medicines', 'orders', 'employees']) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all();
@@ -207,6 +232,16 @@ for (const table of ['users', 'medicines', 'orders', 'employees']) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN tenant_id INTEGER NOT NULL DEFAULT 1`);
   }
 }
+
+// Customer login initials select the correct public branding before sign-in,
+// e.g. an email containing "@shubhsurgical" loads the Shubh Surgical theme.
+(() => {
+  const columns = db.prepare('PRAGMA table_info(tenants)').all();
+  if (!columns.some((column) => column.name === 'login_initial')) {
+    db.exec(`ALTER TABLE tenants ADD COLUMN login_initial TEXT DEFAULT ''`);
+  }
+  db.prepare(`UPDATE tenants SET login_initial = '@shubhsurgical' WHERE id = 1 AND (login_initial IS NULL OR login_initial = '')`).run();
+})();
 
 const superAdmin = db
   .prepare('SELECT id FROM users WHERE email = ?')

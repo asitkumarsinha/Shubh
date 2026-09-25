@@ -10,6 +10,7 @@
         @if (auth.isSuperAdmin()) {
           <a routerLink="/settings" routerLinkActive="active">Settings</a>
           <a routerLink="/tenants" routerLinkActive="active">Customers</a>
+          <a routerLink="/feedback" routerLinkActive="active">Feedback</a>
         } @else if (auth.isAdmin()) {
           <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
           <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>

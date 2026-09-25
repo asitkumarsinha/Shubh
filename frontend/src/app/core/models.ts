@@ -13,6 +13,9 @@ export interface SiteSettings {
   slogan: string;
   logo: string;
   qr_code: string;
+  theme_color: string;
+  font_family: 'Syne' | 'IBM Plex Sans' | 'System UI';
+  login_initial: string;
 }
 
 export interface TenantModules {
@@ -46,6 +49,7 @@ export interface Tenant {
   login_banner: string;
   homepage_text: string;
   language: 'en' | 'hi';
+  login_initial: string;
   modules: TenantModules;
   max_users: number;
   max_employees: number;

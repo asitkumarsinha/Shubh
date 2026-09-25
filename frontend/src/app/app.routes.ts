@@ -15,6 +15,10 @@ export const routes: Routes = [
       import('./pages/register/register.component').then((m) => m.RegisterComponent),
   },
   {
+    path: 'demo',
+    loadComponent: () => import('./pages/demo/demo.component').then((m) => m.DemoComponent),
+  },
+  {
     path: 'settings',
     canActivate: [superAdminGuard],
     loadComponent: () =>
@@ -28,6 +32,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/super-admin-tenants/super-admin-tenants.component').then(
         (m) => m.SuperAdminTenantsComponent
+      ),
+  },
+  {
+    path: 'feedback',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/super-admin-feedback/super-admin-feedback.component').then(
+        (m) => m.SuperAdminFeedbackComponent
       ),
   },
   {

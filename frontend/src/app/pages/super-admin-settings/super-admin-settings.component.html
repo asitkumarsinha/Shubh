@@ -3,7 +3,11 @@
     <div>
       <p class="eyebrow">Super Admin</p>
       <h1>Website settings</h1>
-      <p>Set the brand details customers see across the website and checkout.</p>
+      <p>Choose a customer, then set the brand, checkout QR, and visual theme for that customer only.</p>
+    </div>
+    <div class="hit-card">
+      <span>Website hits</span>
+      <strong>{{ hits }}</strong>
     </div>
   </header>
 
@@ -12,7 +16,16 @@
 
   <div class="settings-layout">
     <form class="panel" (ngSubmit)="save()">
-      <h2>Brand customization</h2>
+      <h2>Customer customization</h2>
+      <label>
+        Customer
+        <select [(ngModel)]="selectedTenantId" name="selectedTenantId" (ngModelChange)="loadCustomerSettings()">
+          @for (tenant of tenants; track tenant.id) {
+            <option [ngValue]="tenant.id">{{ tenant.name }} · {{ tenant.slug }}</option>
+          }
+        </select>
+        <span class="hint">Each customer has separate branding, checkout QR, and theme.</span>
+      </label>
       <label>
         Website title
         <input [(ngModel)]="title" name="title" required maxlength="80" />
@@ -20,6 +33,11 @@
       <label>
         Website slogan
         <textarea [(ngModel)]="slogan" name="slogan" required rows="3" maxlength="180"></textarea>
+      </label>
+      <label>
+        Login Initial
+        <input [(ngModel)]="loginInitial" name="loginInitial" placeholder="@shubhsurgical" pattern="@[a-zA-Z0-9.-]+" />
+        <span class="hint">When an email contains this text, this customer’s branding and theme load on the Sign in page.</span>
       </label>
       <label>
         Website logo
@@ -31,8 +49,22 @@
         <input type="file" accept="image/*" (change)="selectFile($event, 'qrCode')" />
         <span class="hint">{{ qrCode ? qrCode.name : 'Upload the QR image shown on checkout bills.' }}</span>
       </label>
+      <div class="theme-row">
+        <label>
+          Theme colour
+          <input type="color" [(ngModel)]="themeColor" name="themeColor" />
+        </label>
+        <label>
+          Heading font
+          <select [(ngModel)]="fontFamily" name="fontFamily">
+            <option value="Syne">Syne</option>
+            <option value="IBM Plex Sans">IBM Plex Sans</option>
+            <option value="System UI">System UI</option>
+          </select>
+        </label>
+      </div>
       <button class="btn primary" type="submit" [disabled]="saving">
-        {{ saving ? 'Saving…' : 'Save website settings' }}
+        {{ saving ? 'Saving…' : 'Save customer settings' }}
       </button>
     </form>
 
