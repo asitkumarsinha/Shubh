@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard } from './core/auth.guard';
+import { authGuard, adminGuard, superAdminGuard, guestGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'medicines' },
@@ -13,6 +13,22 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () =>
       import('./pages/register/register.component').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'settings',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/super-admin-settings/super-admin-settings.component').then(
+        (m) => m.SuperAdminSettingsComponent
+      ),
+  },
+  {
+    path: 'tenants',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/super-admin-tenants/super-admin-tenants.component').then(
+        (m) => m.SuperAdminTenantsComponent
+      ),
   },
   {
     path: 'medicines',

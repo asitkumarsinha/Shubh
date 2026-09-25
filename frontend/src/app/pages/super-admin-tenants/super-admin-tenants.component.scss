@@ -1,0 +1,88 @@
+.panel {
+  padding: 1.25rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.8rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+input, select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+select option { color: #1f242c; }
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.2rem;
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+fieldset label, .feature-row label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.inline {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.tenant-card header, .actions, .usage, .feature-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.tenant-card header { justify-content: space-between; }
+.tenant-card h3 { margin: 0; color: #fff; }
+.tenant-card p { margin: 0.25rem 0; color: var(--muted); }
+
+.usage {
+  margin: 1rem 0;
+}
+
+.usage span {
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.usage strong { color: #fff; }
+details { margin: 1rem 0; }
+summary { cursor: pointer; color: #fff; font-weight: 700; margin-bottom: 1rem; }
+.config { margin: 0.85rem 0; }
+.feature-row { margin: 0.9rem 0; }
+
+@media (max-width: 650px) {
+  .tenant-card header { align-items: flex-start; flex-direction: column; }
+}

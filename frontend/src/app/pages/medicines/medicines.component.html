@@ -1,10 +1,10 @@
 <section class="page">
   <section class="hero glass-card" aria-label="Shubh Surgical">
-    <img class="hero-logo" src="assets/shubh-surgical-logo.svg" alt="Shubh Surgical logo" width="88" height="88" />
+    <img class="hero-logo" [src]="settings.current().logo" [alt]="settings.current().title + ' logo'" width="88" height="88" />
     <div class="hero-copy">
       <p class="eyebrow">Trusted medical supply</p>
-      <h1>Shubh Surgical</h1>
-      <p>Quality medicines and surgical care essentials — browse, order, and track with confidence.</p>
+      <h1>{{ settings.current().title }}</h1>
+      <p>{{ settings.current().slogan }}</p>
     </div>
   </section>
 

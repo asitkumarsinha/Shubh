@@ -5,6 +5,7 @@ import { OrderService } from '../../core/order.service';
 import { AuthService } from '../../core/auth.service';
 import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { SettingsService } from '../../core/settings.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -24,7 +25,8 @@ export class OrderDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private orders: OrderService,
     public auth: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    public settings: SettingsService
   ) {}
 
   ngOnInit(): void {

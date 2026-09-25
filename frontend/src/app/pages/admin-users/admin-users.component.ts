@@ -24,6 +24,13 @@ export class AdminUsersComponent implements OnInit {
   loading = true;
   updatingId: number | null = null;
   exporting = false;
+  creating = false;
+  newName = '';
+  newEmail = '';
+  newPassword = '';
+  newPhone = '';
+  newAddress = '';
+  newGroup: ClientGroup = 'retail';
 
   readonly accessOptions: Array<{ value: AccessStatus; label: string }> = [
     { value: 'allowed', label: 'Allow' },
@@ -59,6 +66,45 @@ export class AdminUsersComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  addClient(): void {
+    if (!this.newName.trim() || !this.newEmail.trim() || this.newPassword.length < 6) {
+      this.error = 'Name, email, and a password of at least 6 characters are required';
+      this.toast.error(this.error);
+      return;
+    }
+    this.creating = true;
+    this.error = '';
+    this.toast.beginSave();
+    this.userService
+      .create({
+        name: this.newName.trim(),
+        email: this.newEmail.trim(),
+        password: this.newPassword,
+        phone: this.newPhone.trim(),
+        address: this.newAddress.trim(),
+        client_group: this.newGroup,
+      })
+      .subscribe({
+        next: (created) => {
+          this.creating = false;
+          this.newName = '';
+          this.newEmail = '';
+          this.newPassword = '';
+          this.newPhone = '';
+          this.newAddress = '';
+          this.newGroup = 'retail';
+          this.toast.success(`${created.name} added as a client`);
+          this.reload();
+        },
+        error: (err) => {
+          this.creating = false;
+          const msg = err.error?.message || 'Could not add client';
+          this.error = msg;
+          this.toast.error(msg);
+        },
+      });
   }
 
   onStatusChange(user: AdminUserDetail, status: AccessStatus): void {

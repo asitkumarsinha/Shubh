@@ -72,7 +72,7 @@ await shot(page, 'register');
 await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
 await shot(page, 'login');
 
-await login(page, 'user@medishop.com', 'user123');
+await login(page, 'user@shubhsurgical.com', 'user123');
 await page.goto(`${BASE}/medicines`, { waitUntil: 'networkidle' });
 await page.waitForSelector('.medicine-item');
 await shot(page, 'shop');
@@ -110,7 +110,10 @@ if (page.url().includes('/orders/')) {
 await page.goto(`${BASE}/orders`, { waitUntil: 'networkidle' });
 await shot(page, 'my-orders');
 
-await login(page, 'admin@medishop.com', 'admin123');
+await login(page, 'admin@shubhsurgical.com', 'admin123');
+await page.goto(`${BASE}/admin`, { waitUntil: 'networkidle' });
+await shot(page, 'admin-dashboard');
+
 await page.goto(`${BASE}/admin/medicines`, { waitUntil: 'networkidle' });
 await shot(page, 'admin-medicines');
 
@@ -146,6 +149,13 @@ await shot(page, 'admin-employees-view');
 await page.goto(`${BASE}/admin/reports`, { waitUntil: 'networkidle' });
 await shot(page, 'admin-reports');
 
+await login(page, 'asitkumarsinha@gmail.com', 'Shivansh2026');
+await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' });
+await shot(page, 'super-settings');
+
+await page.goto(`${BASE}/tenants`, { waitUntil: 'networkidle' });
+await shot(page, 'super-tenants');
+
 await browser.close();
 
 const required = [
@@ -156,12 +166,15 @@ const required = [
   'cart',
   'bill',
   'my-orders',
+  'admin-dashboard',
   'admin-medicines',
   'admin-orders',
   'admin-clients',
   'admin-employees-add',
   'admin-employees-view',
   'admin-reports',
+  'super-settings',
+  'super-tenants',
 ];
 const missing = required.filter((k) => !existsSync(shots[k]));
 if (missing.length) {
@@ -231,9 +244,9 @@ const html = `<!doctype html>
       <table>
         <tr><td><strong>Purpose</strong></td><td>Staff, admin, and customer training</td></tr>
         <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / live host URL</td></tr>
-        <tr><td><strong>Audience</strong></td><td>Customers and Administrators</td></tr>
-        <tr><td><strong>Version</strong></td><td>2.0 — ${today}</td></tr>
-        <tr><td><strong>Help Center</strong></td><td>Admin login → Help Center (opens this PDF)</td></tr>
+        <tr><td><strong>Audience</strong></td><td>Customers, store administrators, and Super Admin</td></tr>
+        <tr><td><strong>Version</strong></td><td>3.0 — ${today}</td></tr>
+        <tr><td><strong>Help Center</strong></td><td>Admin or Super Admin login → Help Center (opens this PDF)</td></tr>
       </table>
     </div>
   </div>
@@ -250,12 +263,16 @@ const html = `<!doctype html>
       <li>Bill and Checkout QR</li>
       <li>My Orders</li>
       <li>Admin: Help Center</li>
+      <li>Admin: Dashboard</li>
       <li>Admin: manage medicines</li>
       <li>Admin: orders desk</li>
-      <li>Admin: Clients (block / allow)</li>
+      <li>Admin: Clients (add, view, block / allow)</li>
       <li>Admin: Employee (add, view, update, remove)</li>
       <li>Admin: reports</li>
+      <li>Super Admin: Settings</li>
+      <li>Super Admin: Customers (tenants)</li>
       <li>Order status meaning</li>
+      <li>Feature map</li>
       <li>Training checklist</li>
     </ol>
     <p class="footer-note">Screenshots were taken from the live application. Open this file from admin <strong>Help Center</strong> to always use the latest copy.</p>
@@ -263,7 +280,7 @@ const html = `<!doctype html>
 
   <section class="chapter">
     <h2>1. What this website does</h2>
-    <p class="summary">Shubh Surgical is an online medicine store. Customers browse stock, add items to a cart, and place an order. The system creates a bill with a checkout QR. An administrator verifies payment, approves the order (this creates a Purchase Order), then marks it dispatched when ready. Admins also manage the catalogue, clients, employees, and reports.</p>
+    <p class="summary">Shubh Surgical is an online medicine store that can also be sold to multiple customer businesses. Shoppers browse stock, add items to a cart, and place an order. The system creates a bill with a checkout QR. A store administrator verifies payment, approves the order (this creates a Purchase Order), then marks it dispatched. Super Admin customises branding and provisions isolated customer stores.</p>
     <h3>End-to-end flow</h3>
     <ol>
       <li>Customer registers or signs in.</li>
@@ -273,6 +290,7 @@ const html = `<!doctype html>
       <li>Admin opens <strong>Orders</strong>, confirms payment, and chooses <strong>Approve</strong> (PO generated) or <strong>Reject</strong>.</li>
       <li>When stock is packed, admin marks the order <strong>Dispatch</strong>.</li>
     </ol>
+    <p class="note">After any successful save (settings, client, employee, medicine, tenant, and similar forms), the site shows a short toast and a save status so staff know the change was stored.</p>
   </section>
 
   <section class="chapter">
@@ -280,8 +298,9 @@ const html = `<!doctype html>
     <p class="summary">Use these accounts in classroom or UAT. Do not use them as real customer credentials in production.</p>
     <table style="width:100%;border-collapse:collapse;margin:8px 0 12px">
       <tr style="background:#0f3d4c;color:#fff"><th style="text-align:left;padding:8px">Role</th><th style="text-align:left;padding:8px">Email</th><th style="text-align:left;padding:8px">Password</th></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin@medishop.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin123</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user@medishop.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user123</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Store admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin@shubhsurgical.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">admin123</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user@shubhsurgical.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">user123</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">asitkumarsinha@gmail.com</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shivansh2026</td></tr>
     </table>
     <p class="note">On Sign in you can tap <strong>Admin demo</strong> or <strong>User demo</strong> to fill these values automatically.</p>
   </section>
@@ -300,7 +319,7 @@ const html = `<!doctype html>
 
   ${section(
     '4. Sign in',
-    'Returning customers and admins use the same Sign in screen. Admins land on the admin desk. A blocked customer cannot sign in.',
+    'Returning customers, store admins, and Super Admin use the same Sign in screen. Store admins land on Dashboard. Super Admin lands on Settings. A blocked customer cannot sign in.',
     [
       'Click <strong>Login</strong> in the top bar.',
       'Enter email and password, then click <strong>Sign in</strong>.',
@@ -359,22 +378,34 @@ const html = `<!doctype html>
 
   ${section(
     '9. Admin: Help Center',
-    'After admin login, Help Center sits next to Logout. It opens this training PDF in a new tab so staff always have the latest manual.',
+    'After admin or Super Admin login, Help Center sits next to Logout. It opens this training PDF in a new tab so staff always have the latest manual.',
     [
-      'Sign in as admin.',
+      'Sign in as store admin or Super Admin.',
       'In the top-right, next to Logout, click <strong>Help Center</strong> (question-mark icon).',
       'The latest user manual PDF opens in a new browser tab.',
       'Use it for classroom training and for looking up any screen in this document.',
     ],
-    'admin-medicines'
+    'admin-dashboard'
   )}
 
   ${section(
-    '10. Admin: manage medicines',
-    'Administrators maintain the catalogue: name, description, price, stock, and pack image. Admins do not shop or checkout.',
+    '10. Admin: Dashboard',
+    'Dashboard is the store admin landing page. Cards show today’s orders, pending approvals, revenue, low stock, and new clients, with quick actions to approve, restock, or add an employee.',
+    [
+      'Sign in as store admin. Dashboard opens automatically.',
+      'Read the summary cards, then use a pending-order <strong>Approve</strong> action if needed.',
+      'Restock a low-stock item from the list, or add an employee from the quick form.',
+      'Use the top nav to open Medicines, Orders, Clients, Employee, or Reports.',
+    ],
+    'admin-dashboard'
+  )}
+
+  ${section(
+    '11. Admin: manage medicines',
+    'Administrators maintain the catalogue: name, description, retail price, optional wholesale price, stock, and pack image. Admins do not shop or checkout.',
     [
       'Sign in as admin. Open <strong>Medicines</strong>.',
-      'Fill Upload medicine: name, description, price, stock, and image file.',
+      'Fill Upload medicine: name, description, retail price, optional wholesale price, stock, and image file.',
       'Click <strong>Upload</strong>. The item appears on the customer Shop page.',
       'Use <strong>Edit</strong> to change details, or <strong>Delete</strong> to remove a product.',
     ],
@@ -382,7 +413,7 @@ const html = `<!doctype html>
   )}
 
   ${section(
-    '11. Admin: orders desk',
+    '12. Admin: orders desk',
     'This is the dispensary desk. Filter by status, open the bill, and change the order action after payment is verified.',
     [
       'Open <strong>Orders</strong>. Use filters: All, Pending, Approved, Dispatched, Rejected, Cancelled.',
@@ -395,19 +426,20 @@ const html = `<!doctype html>
   )}
 
   ${section(
-    '12. Admin: Clients',
-    'Clients (formerly Users detail) lists every registered shop account, contact fields, order ranking, and access. Passwords are encrypted and cannot be shown in plain text.',
+    '13. Admin: Clients',
+    'Clients lists shopper accounts for this store. Admins can add a client, set retail or wholesale, block or allow login, export CSV, and open a client page for notes, spend, order history, and a new password (the old password cannot be viewed).',
     [
-      'Open <strong>Clients</strong> in the admin nav (before Employee / Reports).',
-      'Review Top users by orders and the full client table (name, email, phone, address, role, joined date, orders, spend).',
-      'For a shop client, set the Access dropdown to <strong>Block</strong> or <strong>Allow</strong>.',
-      'A blocked client cannot sign in until an admin allows them again. Admin accounts cannot be blocked.',
+      'Open <strong>Clients</strong> in the admin nav.',
+      'Use <strong>Add client</strong>: name, email, password (at least 6 characters), optional phone and address, and Retail or Wholesale. Click <strong>Add client</strong>.',
+      'Share the password you typed with the client. It is stored encrypted and cannot be recovered later.',
+      'In the table, set Group (retail/wholesale) and Access (Allow/Block). Click <strong>View</strong> for history, notes, and to set a replacement password.',
+      'Use <strong>Export client list</strong> to download a CSV.',
     ],
     'admin-clients'
   )}
 
   ${section(
-    '13. Admin: Employee — add',
+    '14. Admin: Employee — add',
     'Employee sits in the admin nav before Reports. Required fields are name, email, phone, and designation. You may also add department, joining date, address, and a photo.',
     [
       'Open <strong>Employee</strong>.',
@@ -419,7 +451,7 @@ const html = `<!doctype html>
   )}
 
   ${section(
-    '14. Admin: Employee — view, update, remove',
+    '15. Admin: Employee — view, update, remove',
     'View shows every employee in a table with photo and details. Update loads the form; Remove deletes the record.',
     [
       'Click <strong>View</strong> to see the full employee list.',
@@ -430,7 +462,7 @@ const html = `<!doctype html>
   )}
 
   ${section(
-    '15. Admin: reports',
+    '16. Admin: reports',
     'Reports summarise buyers, revenue, and order statuses. Email report saves or sends a copy for management.',
     [
       'Open <strong>Reports</strong>.',
@@ -441,8 +473,32 @@ const html = `<!doctype html>
     'admin-reports'
   )}
 
+  ${section(
+    '17. Super Admin: Settings',
+    'Super Admin is the platform owner. After login, Settings lets you change the default website title, slogan, logo, and Checkout QR used on the primary store.',
+    [
+      'Sign in as Super Admin (asitkumarsinha@gmail.com). You land on <strong>Settings</strong>.',
+      'Change website title and slogan.',
+      'Optionally upload a new logo and Checkout QR image.',
+      'Click <strong>Save website settings</strong>. The top bar, login page, shop hero, and bill QR update.',
+    ],
+    'super-settings'
+  )}
+
+  ${section(
+    '18. Super Admin: Customers (tenants)',
+    'Customers creates isolated businesses you can sell. Each customer gets its own admin login, catalogue, orders, and plan modules. Do not confuse this with store-level Clients (shoppers).',
+    [
+      'Open <strong>Customers</strong>.',
+      'Fill Create customer business: name, slug, first administrator name/email/password, plan, modules, and optional starter catalogue.',
+      'Click <strong>Create customer</strong>, then give that admin their login.',
+      'On a customer card: change Active/Suspended/Archived, save plan and feature configuration, reset admin password, export backup, or archive after typing the exact name.',
+    ],
+    'super-tenants'
+  )}
+
   <section class="chapter">
-    <h2>16. Order status meaning (quick reference)</h2>
+    <h2>19. Order status meaning (quick reference)</h2>
     <table style="width:100%;border-collapse:collapse">
       <tr style="background:#0f3d4c;color:#fff">
         <th style="text-align:left;padding:8px">Status</th>
@@ -457,7 +513,7 @@ const html = `<!doctype html>
   </section>
 
   <section class="chapter">
-    <h2>17. Feature map (all screens)</h2>
+    <h2>20. Feature map (all screens)</h2>
     <table style="width:100%;border-collapse:collapse">
       <tr style="background:#0f3d4c;color:#fff">
         <th style="text-align:left;padding:8px">Who</th>
@@ -466,28 +522,33 @@ const html = `<!doctype html>
       </tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Browse stock; create or open an account</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop, Cart, My orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order medicines, pay by QR, track status</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete catalogue items</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Today’s orders, revenue, low stock, quick actions</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete catalogue; retail/wholesale price</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Approve, reject, dispatch bills</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Clients</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">View customer details; block or allow login</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Clients</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add shoppers; retail/wholesale; block/allow; notes; password reset; CSV</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Employee</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add, view, update, remove staff with photo</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Reports</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Sales stats and email report</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Help Center</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Opens this training PDF</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin / Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Help Center</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Opens this training PDF</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Website title, slogan, logo, Checkout QR</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customers</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Create tenant businesses, plans, modules, backup</td></tr>
     </table>
   </section>
 
   <section class="chapter">
-    <h2>18. Training checklist</h2>
+    <h2>21. Training checklist</h2>
     <ol>
       <li>Open Register and Sign in and confirm matching left branding plus the slogan.</li>
       <li>Register a new customer and confirm Shop + Cart appear (not admin links).</li>
       <li>Add two medicines, change quantity, place order, scan/view Checkout QR.</li>
-      <li>Log in as admin, find the pending bill, approve it, note the PO, then dispatch.</li>
-      <li>Open <strong>Clients</strong>, block the demo customer, confirm the blocked login message, then Allow again.</li>
+      <li>Log in as store admin, review Dashboard, find the pending bill, approve it, note the PO, then dispatch.</li>
+      <li>Open <strong>Clients</strong>, add a client from the form, block that client, confirm the blocked login message, then Allow again.</li>
+      <li>Open a client with <strong>View</strong>, add a note, and set a new password (old password cannot be shown).</li>
       <li>Open <strong>Employee</strong>, add a staff record with photo, View the list, Update, then practise Remove if needed.</li>
       <li>Open Reports and practise Email report (outbox is acceptable in training).</li>
+      <li>Log in as Super Admin, change Settings, then open Customers and review tenant cards.</li>
       <li>Click <strong>Help Center</strong> next to Logout and confirm this latest PDF opens.</li>
     </ol>
-    <p class="footer-note">End of training manual — Shubh Surgical. Version 2.0 — ${today}.</p>
+    <p class="footer-note">End of training manual — Shubh Surgical. Version 3.0 — ${today}.</p>
   </section>
 </body>
 </html>`;

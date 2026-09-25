@@ -1,0 +1,50 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Super Admin</p>
+      <h1>Website settings</h1>
+      <p>Set the brand details customers see across the website and checkout.</p>
+    </div>
+  </header>
+
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+  @if (message) { <div class="toast ok">{{ message }}</div> }
+
+  <div class="settings-layout">
+    <form class="panel" (ngSubmit)="save()">
+      <h2>Brand customization</h2>
+      <label>
+        Website title
+        <input [(ngModel)]="title" name="title" required maxlength="80" />
+      </label>
+      <label>
+        Website slogan
+        <textarea [(ngModel)]="slogan" name="slogan" required rows="3" maxlength="180"></textarea>
+      </label>
+      <label>
+        Website logo
+        <input type="file" accept="image/*" (change)="selectFile($event, 'logo')" />
+        <span class="hint">{{ logo ? logo.name : 'Upload a PNG, JPG, SVG, or WebP logo.' }}</span>
+      </label>
+      <label>
+        Checkout QR code
+        <input type="file" accept="image/*" (change)="selectFile($event, 'qrCode')" />
+        <span class="hint">{{ qrCode ? qrCode.name : 'Upload the QR image shown on checkout bills.' }}</span>
+      </label>
+      <button class="btn primary" type="submit" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Save website settings' }}
+      </button>
+    </form>
+
+    <aside class="panel preview">
+      <h2>Current preview</h2>
+      <img [src]="settings.current().logo" [alt]="settings.current().title + ' logo'" class="brand-preview" />
+      <h3>{{ settings.current().title }}</h3>
+      <p>{{ settings.current().slogan }}</p>
+      <div class="qr-preview">
+        <span>Checkout QR</span>
+        <img [src]="settings.current().qr_code" alt="Current checkout QR code" />
+      </div>
+    </aside>
+  </div>
+</section>

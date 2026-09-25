@@ -1,0 +1,101 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Super Admin</p>
+      <h1>Customers &amp; tenants</h1>
+      <p>Provision isolated customer stores, plans, modules, limits, billing, and backup access.</p>
+    </div>
+  </header>
+
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  <form class="panel create-form" (ngSubmit)="create()">
+    <h2>Create customer business</h2>
+    <div class="grid">
+      <label>Business name <input [(ngModel)]="name" name="name" required /></label>
+      <label>Tenant slug / subdomain <input [(ngModel)]="slug" name="slug" placeholder="acme-medical" /></label>
+      <label>First administrator <input [(ngModel)]="adminName" name="adminName" required /></label>
+      <label>Administrator email <input type="email" [(ngModel)]="adminEmail" name="adminEmail" required /></label>
+      <label>Administrator password <input type="password" [(ngModel)]="adminPassword" name="adminPassword" required minlength="6" /></label>
+      <label>Contact phone <input [(ngModel)]="contactPhone" name="contactPhone" /></label>
+      <label>Plan
+        <select [(ngModel)]="plan" name="plan"><option>Basic</option><option>Professional</option><option>Enterprise</option></select>
+      </label>
+      <label>Billing cycle
+        <select [(ngModel)]="billingCycle" name="billingCycle"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select>
+      </label>
+      <label>Plan price <input type="number" min="0" [(ngModel)]="price" name="price" /></label>
+      <label>Renewal date <input type="date" [(ngModel)]="renewalDate" name="renewalDate" /></label>
+      <label>Custom domain <input [(ngModel)]="domain" name="domain" placeholder="shop.customer.com" /></label>
+    </div>
+    <fieldset>
+      <legend>Included modules</legend>
+      <label><input type="checkbox" [(ngModel)]="modules.wholesale" name="wholesale" /> Wholesale pricing</label>
+      <label><input type="checkbox" [(ngModel)]="modules.employees" name="employees" /> Employees</label>
+      <label><input type="checkbox" [(ngModel)]="modules.reports" name="reports" /> Reports</label>
+      <label><input type="checkbox" [(ngModel)]="modules.qrCheckout" name="qrCheckout" /> QR checkout</label>
+      <label><input type="checkbox" [(ngModel)]="modules.coupons" name="coupons" /> Coupons</label>
+      <label><input type="checkbox" [(ngModel)]="modules.prescriptions" name="prescriptions" /> Prescription upload</label>
+    </fieldset>
+    <label class="inline"><input type="checkbox" [(ngModel)]="seedSampleData" name="seedSampleData" /> Copy the reusable starter catalogue template</label>
+    <button class="btn primary" type="submit" [disabled]="saving">{{ saving ? 'Creating…' : 'Create customer' }}</button>
+  </form>
+
+  <h2 class="section-title">Customer businesses</h2>
+  @if (loading) {
+    <p class="muted">Loading customers…</p>
+  } @else {
+    <div class="tenant-list">
+      @for (tenant of tenants; track tenant.id) {
+        <article class="panel tenant-card">
+          <header>
+            <div>
+              <h3>{{ tenant.name }}</h3>
+              <p>{{ tenant.slug }} · {{ tenant.plan }} · {{ tenant.billing_cycle }} · ₹{{ tenant.price }}</p>
+            </div>
+            <select [ngModel]="tenant.status" (ngModelChange)="updateStatus(tenant, $event)" [name]="'status' + tenant.id">
+              <option value="active">Active</option><option value="suspended">Suspended</option><option value="archived">Archived</option>
+            </select>
+          </header>
+          <div class="usage">
+            <span>Users <strong>{{ tenant.usage.users }}/{{ tenant.max_users }}</strong></span>
+            <span>Employees <strong>{{ tenant.usage.employees }}/{{ tenant.max_employees }}</strong></span>
+            <span>Medicines <strong>{{ tenant.usage.medicines }}/{{ tenant.max_medicines }}</strong></span>
+            <span>Orders <strong>{{ tenant.usage.orders }}/{{ tenant.max_orders }}</strong></span>
+          </div>
+          <details>
+            <summary>Subscription, store, and feature configuration</summary>
+            <div class="grid config">
+              <label>Plan <input [(ngModel)]="tenant.plan" [name]="'plan' + tenant.id" /></label>
+              <label>Price <input type="number" [(ngModel)]="tenant.price" [name]="'price' + tenant.id" /></label>
+              <label>Payment
+                <select [(ngModel)]="tenant.payment_status" [name]="'payment' + tenant.id"><option>trial</option><option>paid</option><option>overdue</option><option>cancelled</option></select>
+              </label>
+              <label>Renewal <input type="date" [(ngModel)]="tenant.renewal_date" [name]="'renewal' + tenant.id" /></label>
+              <label>GST <input [(ngModel)]="tenant.gst_number" [name]="'gst' + tenant.id" /></label>
+              <label>Address <input [(ngModel)]="tenant.address" [name]="'address' + tenant.id" /></label>
+              <label>Theme color <input type="color" [(ngModel)]="tenant.theme_color" [name]="'color' + tenant.id" /></label>
+              <label>Language <select [(ngModel)]="tenant.language" [name]="'language' + tenant.id"><option value="en">English</option><option value="hi">Hindi</option></select></label>
+            </div>
+            <div class="feature-row">
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.wholesale" [name]="'wholesale' + tenant.id" /> Wholesale</label>
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.employees" [name]="'employees' + tenant.id" /> Employees</label>
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.reports" [name]="'reports' + tenant.id" /> Reports</label>
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.qrCheckout" [name]="'qr' + tenant.id" /> QR checkout</label>
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.coupons" [name]="'coupons' + tenant.id" /> Coupons</label>
+              <label><input type="checkbox" [(ngModel)]="tenant.modules.prescriptions" [name]="'rx' + tenant.id" /> Prescriptions</label>
+            </div>
+            <button class="btn primary" type="button" (click)="saveTenant(tenant, tenant)">Save configuration</button>
+          </details>
+          <div class="actions">
+            <button class="btn ghost" type="button" (click)="resetPassword(tenant)">Reset admin password</button>
+            <button class="btn ghost" type="button" (click)="exportBackup(tenant)">Export backup</button>
+            @if (tenant.id !== 1 && tenant.status !== 'archived') {
+              <button class="btn danger" type="button" (click)="archive(tenant)">Archive</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

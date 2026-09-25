@@ -19,6 +19,7 @@ export class AuthService {
   readonly user = signal<User | null>(this.readUser());
   readonly isLoggedIn = computed(() => !!this.user());
   readonly isAdmin = computed(() => this.user()?.role === 'admin');
+  readonly isSuperAdmin = computed(() => this.user()?.role === 'super_admin');
   readonly isWholesale = computed(
     () => this.user()?.role === 'user' && this.user()?.client_group === 'wholesale'
   );

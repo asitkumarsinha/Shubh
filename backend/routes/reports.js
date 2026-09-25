@@ -1,11 +1,11 @@
 const express = require('express');
 const db = require('../db');
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const { authenticate, requireAdmin, requireModule } = require('../middleware/auth');
 const { sendReportEmail, listOutbox, getOutboxHtml, hasSmtpConfig } = require('../mail');
 
 const router = express.Router();
 
-function buildReport() {
+function buildReport(tenantId) {
   const summary = db
     .prepare(
       `SELECT
@@ -17,9 +17,9 @@ function buildReport() {
          SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected,
          SUM(CASE WHEN status = 'dispatched' THEN 1 ELSE 0 END) AS dispatched,
          COUNT(DISTINCT user_id) AS uniqueBuyers
-       FROM orders`
+       FROM orders WHERE tenant_id = ?`
     )
-    .get();
+    .get(tenantId);
 
   const buyers = db
     .prepare(
@@ -28,11 +28,11 @@ function buildReport() {
               COALESCE(SUM(o.total), 0) AS totalSpent
        FROM users u
        INNER JOIN orders o ON o.user_id = u.id
-       WHERE u.role = 'user'
+       WHERE u.role = 'user' AND u.tenant_id = ?
        GROUP BY u.id
        ORDER BY totalSpent DESC`
     )
-    .all();
+    .all(tenantId);
 
   const orders = db
     .prepare(
@@ -40,19 +40,22 @@ function buildReport() {
               u.name AS userName, u.email AS userEmail, u.phone AS userPhone
        FROM orders o
        JOIN users u ON u.id = o.user_id
+       WHERE o.tenant_id = ?
        ORDER BY o.created_at DESC`
     )
-    .all();
+    .all(tenantId);
 
   const topMedicines = db
     .prepare(
       `SELECT medicine_name, SUM(quantity) AS qtySold, SUM(quantity * price) AS revenue
-       FROM order_items
+       FROM order_items i
+       JOIN orders o ON o.id = i.order_id
+       WHERE o.tenant_id = ?
        GROUP BY medicine_name
        ORDER BY qtySold DESC
        LIMIT 10`
     )
-    .all();
+    .all(tenantId);
 
   return { summary, buyers, orders, topMedicines };
 }
@@ -88,31 +91,31 @@ function formatReportText(report) {
   return lines.join('\n');
 }
 
-router.get('/', authenticate, requireAdmin, (_req, res) => {
+router.get('/', authenticate, requireAdmin, requireModule('reports'), (req, res) => {
   res.json({
-    ...buildReport(),
+    ...buildReport(req.user.tenant_id),
     mailConfigured: hasSmtpConfig(),
   });
 });
 
-router.get('/outbox', authenticate, requireAdmin, (_req, res) => {
+router.get('/outbox', authenticate, requireAdmin, requireModule('reports'), (_req, res) => {
   res.json(listOutbox());
 });
 
-router.get('/outbox/:id', authenticate, requireAdmin, (req, res) => {
+router.get('/outbox/:id', authenticate, requireAdmin, requireModule('reports'), (req, res) => {
   const html = getOutboxHtml(req.params.id);
   if (!html) return res.status(404).send('Outbox email not found');
   res.type('html').send(html);
 });
 
-router.post('/email', authenticate, requireAdmin, async (req, res) => {
+router.post('/email', authenticate, requireAdmin, requireModule('reports'), async (req, res) => {
   const { email } = req.body;
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ message: 'Valid email id is required' });
   }
 
   try {
-    const report = buildReport();
+    const report = buildReport(req.user.tenant_id);
     const text = formatReportText(report);
     const result = await sendReportEmail({
       to: email,

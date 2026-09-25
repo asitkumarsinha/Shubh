@@ -5,45 +5,45 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const router = express.Router();
 const LOW_STOCK = 10;
 
-router.get('/', authenticate, requireAdmin, (_req, res) => {
+router.get('/', authenticate, requireAdmin, (req, res) => {
   const todayOrders = db
     .prepare(
-      `SELECT COUNT(*) AS c FROM orders WHERE date(created_at) = date('now')`
+      `SELECT COUNT(*) AS c FROM orders WHERE tenant_id = ? AND date(created_at) = date('now')`
     )
-    .get().c;
+    .get(req.user.tenant_id).c;
 
   const pendingApprovals = db
-    .prepare(`SELECT COUNT(*) AS c FROM orders WHERE status = 'pending'`)
-    .get().c;
+    .prepare(`SELECT COUNT(*) AS c FROM orders WHERE tenant_id = ? AND status = 'pending'`)
+    .get(req.user.tenant_id).c;
 
   const revenue = db
     .prepare(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM orders
-       WHERE status IN ('approved', 'dispatched')`
+       WHERE tenant_id = ? AND status IN ('approved', 'dispatched')`
     )
-    .get().total;
+    .get(req.user.tenant_id).total;
 
   const revenueToday = db
     .prepare(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM orders
-       WHERE status IN ('approved', 'dispatched')
+       WHERE tenant_id = ? AND status IN ('approved', 'dispatched')
          AND date(created_at) = date('now')`
     )
-    .get().total;
+    .get(req.user.tenant_id).total;
 
   const lowStock = db
-    .prepare(`SELECT COUNT(*) AS c FROM medicines WHERE stock < ?`)
-    .get(LOW_STOCK).c;
+    .prepare(`SELECT COUNT(*) AS c FROM medicines WHERE tenant_id = ? AND stock < ?`)
+    .get(req.user.tenant_id, LOW_STOCK).c;
 
   const newClients = db
     .prepare(
       `SELECT COUNT(*) AS c
        FROM users
-       WHERE role = 'user' AND date(created_at) = date('now')`
+       WHERE tenant_id = ? AND role = 'user' AND date(created_at) = date('now')`
     )
-    .get().c;
+    .get(req.user.tenant_id).c;
 
   const pendingOrders = db
     .prepare(
@@ -51,21 +51,21 @@ router.get('/', authenticate, requireAdmin, (_req, res) => {
               u.name AS userName, u.email AS userEmail
        FROM orders o
        JOIN users u ON u.id = o.user_id
-       WHERE o.status = 'pending'
+       WHERE o.tenant_id = ? AND o.status = 'pending'
        ORDER BY datetime(o.created_at) DESC
        LIMIT 8`
     )
-    .all();
+    .all(req.user.tenant_id);
 
   const lowStockItems = db
     .prepare(
       `SELECT id, name, stock, price, image
        FROM medicines
-       WHERE stock < ?
+       WHERE tenant_id = ? AND stock < ?
        ORDER BY stock ASC, name
        LIMIT 8`
     )
-    .all(LOW_STOCK);
+    .all(req.user.tenant_id, LOW_STOCK);
 
   res.json({
     summary: {

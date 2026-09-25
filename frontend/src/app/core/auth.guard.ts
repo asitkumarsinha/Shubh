@@ -17,9 +17,19 @@ export const adminGuard: CanActivateFn = () => {
   return router.createUrlTree(['/login']);
 };
 
+export const superAdminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isLoggedIn() && auth.isSuperAdmin()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree([auth.isAdmin() ? '/admin' : '/medicines']);
+  return router.createUrlTree(['/login']);
+};
+
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isLoggedIn()) return true;
-  return router.createUrlTree([auth.isAdmin() ? '/admin' : '/medicines']);
+  return router.createUrlTree([
+    auth.isSuperAdmin() ? '/settings' : auth.isAdmin() ? '/admin' : '/medicines',
+  ]);
 };

@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth.service';
 import { Medicine } from '../../core/models';
 import { apiErrorMessage } from '../../core/api-error';
 import { ToastService } from '../../core/toast.service';
+import { SettingsService } from '../../core/settings.service';
 
 @Component({
   selector: 'app-medicines',
@@ -23,6 +24,7 @@ export class MedicinesComponent implements OnInit {
     private medicineService: MedicineService,
     public cart: CartService,
     public auth: AuthService,
+    public settings: SettingsService,
     private toast: ToastService
   ) {}
 

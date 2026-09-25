@@ -18,12 +18,12 @@ router.post('/register', (req, res) => {
   const hash = bcrypt.hashSync(password, 10);
   const result = db
     .prepare(
-      `INSERT INTO users (name, email, password, role, phone, address)
-       VALUES (?, ?, ?, 'user', ?, ?)`
+      `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
+       VALUES (?, ?, ?, 'user', ?, ?, 1)`
     )
     .run(name, email.toLowerCase(), hash, phone || '', address || '');
 
-  const user = { id: result.lastInsertRowid, name, email: email.toLowerCase(), role: 'user' };
+  const user = { id: result.lastInsertRowid, name, email: email.toLowerCase(), role: 'user', tenant_id: 1 };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
   res.status(201).json({ token, user });
 });
@@ -47,10 +47,11 @@ router.post('/login', (req, res) => {
     role: row.role,
     phone: row.phone,
     address: row.address,
+    tenant_id: row.tenant_id,
     client_group: row.client_group === 'wholesale' ? 'wholesale' : 'retail',
   };
   const token = jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role },
+    { id: user.id, name: user.name, email: user.email, role: user.role, tenant_id: user.tenant_id },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -59,7 +60,7 @@ router.post('/login', (req, res) => {
 
 router.get('/me', authenticate, (req, res) => {
   const row = db
-    .prepare('SELECT id, name, email, role, phone, address, client_group FROM users WHERE id = ?')
+    .prepare('SELECT id, name, email, role, phone, address, client_group, tenant_id FROM users WHERE id = ?')
     .get(req.user.id);
   if (!row) return res.status(404).json({ message: 'User not found' });
   res.json(row);

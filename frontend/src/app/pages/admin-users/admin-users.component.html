@@ -13,6 +13,28 @@
     <div class="toast bad">{{ error }}</div>
   }
 
+  <form class="panel add-client" (ngSubmit)="addClient()">
+    <h2>Add client</h2>
+    <p class="note">Create a shopper account for this store. The password is stored encrypted; share the password you type here with the client.</p>
+    <div class="add-grid">
+      <label>Full name <input [(ngModel)]="newName" name="newName" required /></label>
+      <label>Email <input type="email" [(ngModel)]="newEmail" name="newEmail" required /></label>
+      <label>Password <input type="password" [(ngModel)]="newPassword" name="newPassword" required minlength="6" /></label>
+      <label>Phone <input [(ngModel)]="newPhone" name="newPhone" /></label>
+      <label>Address <input [(ngModel)]="newAddress" name="newAddress" /></label>
+      <label>Group
+        <select class="action-select" [(ngModel)]="newGroup" name="newGroup">
+          @for (opt of groupOptions; track opt.value) {
+            <option [ngValue]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    <button class="btn primary" type="submit" [disabled]="creating">
+      {{ creating ? 'Saving…' : 'Add client' }}
+    </button>
+  </form>
+
   @if (loading) {
     <p class="muted">Loading clients…</p>
   } @else if (summary) {

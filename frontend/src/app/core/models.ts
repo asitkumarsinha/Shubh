@@ -2,10 +2,58 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'super_admin' | 'admin' | 'user';
   phone?: string;
   address?: string;
   client_group?: 'retail' | 'wholesale';
+}
+
+export interface SiteSettings {
+  title: string;
+  slogan: string;
+  logo: string;
+  qr_code: string;
+}
+
+export interface TenantModules {
+  wholesale: boolean;
+  employees: boolean;
+  reports: boolean;
+  qrCheckout: boolean;
+  coupons: boolean;
+  prescriptions: boolean;
+}
+
+export interface Tenant {
+  id: number;
+  name: string;
+  slug: string;
+  status: 'active' | 'suspended' | 'archived';
+  plan: string;
+  billing_cycle: 'monthly' | 'yearly';
+  price: number;
+  trial_end: string | null;
+  renewal_date: string | null;
+  payment_status: 'trial' | 'paid' | 'overdue' | 'cancelled';
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  gst_number: string;
+  address: string;
+  domain: string;
+  theme_color: string;
+  font_family: string;
+  login_banner: string;
+  homepage_text: string;
+  language: 'en' | 'hi';
+  modules: TenantModules;
+  max_users: number;
+  max_employees: number;
+  max_orders: number;
+  max_medicines: number;
+  storage_limit_mb: number;
+  usage: { users: number; employees: number; medicines: number; orders: number };
+  created_at: string;
 }
 
 export interface AdminUserDetail extends User {

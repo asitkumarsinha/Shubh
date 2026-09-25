@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
+import { SettingsService } from '../../core/settings.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,11 @@ export class LoginComponent {
   error = '';
   loading = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    public settings: SettingsService
+  ) {}
 
   submit(): void {
     this.error = '';
@@ -26,7 +31,9 @@ export class LoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: (res) => {
         this.loading = false;
-        this.router.navigate([res.user.role === 'admin' ? '/admin' : '/medicines']);
+        this.router.navigate([
+          res.user.role === 'super_admin' ? '/settings' : res.user.role === 'admin' ? '/admin' : '/medicines',
+        ]);
       },
       error: (err) => {
         this.loading = false;

@@ -12,6 +12,8 @@ const reportRoutes = require('./routes/reports');
 const userRoutes = require('./routes/users');
 const employeeRoutes = require('./routes/employees');
 const dashboardRoutes = require('./routes/dashboard');
+const settingsRoutes = require('./routes/settings');
+const tenantRoutes = require('./routes/tenants');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -31,6 +33,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/tenants', tenantRoutes);
 
 function resolveDistPath() {
   const candidates = [
@@ -84,4 +88,5 @@ app.listen(PORT, HOST, () => {
   else console.warn('WARNING: frontend build missing — site will show 404 until you run the full build + copy-frontend step');
   console.log('Default admin: admin@shubhsurgical.com / admin123');
   console.log('Default user:  user@shubhsurgical.com / user123');
+  console.log('Super admin:   asitkumarsinha@gmail.com');
 });

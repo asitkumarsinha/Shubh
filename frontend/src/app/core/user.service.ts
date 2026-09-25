@@ -13,6 +13,17 @@ export class UserService {
     return this.http.get<AdminUsersResponse>(this.api);
   }
 
+  create(payload: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address?: string;
+    client_group?: 'retail' | 'wholesale';
+  }): Observable<AdminUserDetail> {
+    return this.http.post<AdminUserDetail>(this.api, payload);
+  }
+
   get(id: number): Observable<AdminClientDetail> {
     return this.http.get<AdminClientDetail>(`${this.api}/${id}`);
   }

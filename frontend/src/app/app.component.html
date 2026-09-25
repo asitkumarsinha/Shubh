@@ -1,13 +1,16 @@
 <div class="app-shell">
   <header class="topbar">
-    <a [routerLink]="auth.isAdmin() ? '/admin' : '/'" class="brand" aria-label="Shubh Surgical home">
-      <img class="brand-logo" src="assets/shubh-surgical-logo.svg" alt="" width="36" height="36" />
-      <span class="brand-text">Shubh Surgical</span>
+    <a [routerLink]="auth.isSuperAdmin() ? '/settings' : auth.isAdmin() ? '/admin' : '/'" class="brand" [attr.aria-label]="settings.current().title + ' home'">
+      <img class="brand-logo" [src]="settings.current().logo" alt="" width="36" height="36" />
+      <span class="brand-text">{{ settings.current().title }}</span>
     </a>
 
     <nav>
       @if (auth.isLoggedIn()) {
-        @if (auth.isAdmin()) {
+        @if (auth.isSuperAdmin()) {
+          <a routerLink="/settings" routerLinkActive="active">Settings</a>
+          <a routerLink="/tenants" routerLinkActive="active">Customers</a>
+        } @else if (auth.isAdmin()) {
           <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
           <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>
           <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
@@ -33,7 +36,7 @@
     <div class="user-chip">
       @if (auth.user(); as u) {
         <span>{{ u.name }} · {{ u.role }}</span>
-        @if (auth.isAdmin()) {
+        @if (auth.isAdmin() || auth.isSuperAdmin()) {
           <a
             class="help-link"
             href="{{ helpManualUrl }}"

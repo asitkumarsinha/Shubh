@@ -1,10 +1,10 @@
 <section class="auth-page">
   <div class="auth-visual" aria-hidden="true">
     <div class="orb">
-      <img class="auth-logo" src="assets/shubh-surgical-logo.svg" alt="" width="88" height="88" />
+      <img class="auth-logo" [src]="settings.current().logo" alt="" width="88" height="88" />
     </div>
-    <h1>Shubh Surgical</h1>
-    <p class="slogan">Your Trusted Partner in Health and Wellness.</p>
+    <h1>{{ settings.current().title }}</h1>
+    <p class="slogan">{{ settings.current().slogan }}</p>
   </div>
 
   <form class="auth-card" (ngSubmit)="submit()">
