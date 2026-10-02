@@ -65,6 +65,15 @@ fieldset label, .feature-row label {
 .tenant-card h3 { margin: 0; color: #fff; }
 .tenant-card p { margin: 0.25rem 0; color: var(--muted); }
 
+.admin-login {
+  color: #fff;
+}
+
+.admin-login strong {
+  color: #e0f2fe;
+  font-weight: 700;
+}
+
 .usage {
   margin: 1rem 0;
 }

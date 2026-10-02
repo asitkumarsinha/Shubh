@@ -28,6 +28,8 @@ export class SuperAdminSettingsComponent implements OnInit {
   message = '';
   error = '';
   hits = 0;
+  previewLogo = '';
+  previewQr = '';
 
   constructor(
     public settings: SettingsService,
@@ -52,16 +54,24 @@ export class SuperAdminSettingsComponent implements OnInit {
 
   loadCustomerSettings(): void {
     this.error = '';
-    this.settings.loadForTenant(this.selectedTenantId).subscribe({
+    this.settings.getForTenant(this.selectedTenantId).subscribe({
       next: (value) => {
         this.title = value.title;
         this.slogan = value.slogan;
         this.themeColor = value.theme_color;
         this.fontFamily = value.font_family;
         this.loginInitial = value.login_initial || '';
+        this.previewLogo = value.logo;
+        this.previewQr = value.qr_code;
       },
       error: (err) => this.error = err.error?.message || 'Could not load customer settings',
     });
+  }
+
+  get themeContrastWarning(): string {
+    const ratio = contrastRatio(this.themeColor, '#ffffff');
+    if (ratio >= 3) return '';
+    return `White text on ${this.themeColor} is hard to read (${ratio.toFixed(1)}:1). Choose a darker colour.`;
   }
 
   selectFile(event: Event, type: 'logo' | 'qrCode'): void {
@@ -92,7 +102,8 @@ export class SuperAdminSettingsComponent implements OnInit {
         this.saving = false;
         this.logo = null;
         this.qrCode = null;
-        this.settings.set(saved);
+        this.previewLogo = saved.logo;
+        this.previewQr = saved.qr_code;
         this.message = 'Website settings saved';
         this.toast.success(this.message);
       },
@@ -103,4 +114,19 @@ export class SuperAdminSettingsComponent implements OnInit {
       },
     });
   }
+}
+
+function channel(hex: string, start: number): number {
+  const value = parseInt(hex.slice(start, start + 2), 16) / 255;
+  return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const colors = [foreground, background].map((hex) => {
+    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#000000';
+    return 0.2126 * channel(normalized, 1) + 0.7152 * channel(normalized, 3) + 0.0722 * channel(normalized, 5);
+  });
+  const lighter = Math.max(...colors);
+  const darker = Math.min(...colors);
+  return (lighter + 0.05) / (darker + 0.05);
 }

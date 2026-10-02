@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MedicineService } from '../../core/medicine.service';
 import { Medicine } from '../../core/models';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
+import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-admin-medicines',
@@ -23,18 +24,46 @@ export class AdminMedicinesComponent implements OnInit {
   editingId: number | null = null;
   error = '';
   loading = false;
+  query = '';
+  page = 1;
+  pages = 1;
+  total = 0;
+  private searchTimer?: ReturnType<typeof setTimeout>;
   savePhase: SavePhase = 'idle';
   readonly saveButtonLabel = saveButtonLabel;
 
-  constructor(private medicineService: MedicineService, private toast: ToastService) {}
+  constructor(
+    private medicineService: MedicineService,
+    private toast: ToastService,
+    private dialog: DialogService
+  ) {}
 
   ngOnInit(): void {
     this.reload();
   }
 
+  onSearch(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.page = 1;
+      this.reload();
+    }, 300);
+  }
+
+  goTo(page: number): void {
+    if (page < 1 || page > this.pages || page === this.page) return;
+    this.page = page;
+    this.reload();
+  }
+
   reload(): void {
-    this.medicineService.list().subscribe({
-      next: (data) => (this.medicines = data),
+    this.medicineService.list({ q: this.query.trim(), page: this.page, limit: 10 }).subscribe({
+      next: (data) => {
+        this.medicines = data.items;
+        this.total = data.total;
+        this.pages = data.pages;
+        this.page = data.page;
+      },
     });
   }
 
@@ -92,7 +121,7 @@ export class AdminMedicinesComponent implements OnInit {
       next: () => {
         this.loading = false;
         this.savePhase = 'saved';
-        const msg = this.editingId ? 'Medicine updated' : 'Medicine uploaded';
+        const msg = this.editingId ? 'Product updated' : 'Product uploaded';
         this.toast.success(msg);
         this.resetForm();
         this.reload();
@@ -109,8 +138,9 @@ export class AdminMedicinesComponent implements OnInit {
     });
   }
 
-  remove(m: Medicine): void {
-    if (!confirm(`Delete ${m.name}?`)) return;
+  async remove(m: Medicine): Promise<void> {
+    const confirmed = await this.dialog.confirm(`Delete ${m.name}? This cannot be undone.`, 'Delete product');
+    if (!confirmed) return;
     this.toast.beginSave();
     this.medicineService.remove(m.id).subscribe({
       next: () => {

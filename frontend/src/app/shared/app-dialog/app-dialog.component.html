@@ -1,0 +1,23 @@
+@if (dialog.current(); as current) {
+  <div class="dialog-backdrop" (click)="cancel()">
+    <form class="dialog-card" role="dialog" aria-modal="true" [attr.aria-label]="current.title" (click)="$event.stopPropagation()" (ngSubmit)="confirm()">
+      <h2>{{ current.title }}</h2>
+      <p>{{ current.message }}</p>
+      @if (current.input) {
+        <input
+          [type]="current.input.type"
+          [(ngModel)]="draft"
+          name="dialogDraft"
+          [placeholder]="current.input.placeholder"
+          autofocus
+        />
+      }
+      <div class="dialog-actions">
+        <button class="btn ghost" type="button" (click)="cancel()">{{ current.cancelLabel }}</button>
+        <button class="btn" [class.danger]="current.danger" [class.primary]="!current.danger" type="submit">
+          {{ current.confirmLabel }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

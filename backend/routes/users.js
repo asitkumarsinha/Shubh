@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { authenticate, requireAdmin } = require('../middleware/auth');
+const { pageQuery } = require('../paging');
 
 const router = express.Router();
 
@@ -31,34 +32,65 @@ function mapUser(row) {
   };
 }
 
-const LIST_SQL = `SELECT u.id, u.name, u.email, u.role, u.phone, u.address, u.created_at, u.status,
+const LIST_SELECT = `SELECT u.id, u.name, u.email, u.role, u.phone, u.address, u.created_at, u.status,
                          u.client_group, u.notes,
                          COUNT(o.id) AS orderCount,
                          COALESCE(SUM(o.total), 0) AS totalSpent,
                          MAX(o.created_at) AS lastOrderAt
                   FROM users u
                   LEFT JOIN orders o ON o.user_id = u.id
-                  WHERE u.tenant_id = ?
-                  GROUP BY u.id`;
+                  WHERE u.tenant_id = ?`;
+const LIST_SQL = `${LIST_SELECT} GROUP BY u.id`;
 
 router.get('/', authenticate, requireAdmin, (req, res) => {
-  const users = db.prepare(`${LIST_SQL} ORDER BY datetime(u.created_at) DESC`).all(req.user.tenant_id).map(mapUser);
-  const clients = users.filter((u) => u.role === 'user');
-  const topUsers = [...clients]
-    .sort((a, b) => b.orderCount - a.orderCount || b.totalSpent - a.totalSpent)
-    .slice(0, 5)
-    .map((u, i) => ({ ...u, rank: i + 1 }));
+  const tenantId = req.user.tenant_id;
+  const { page, limit, offset, q, like } = pageQuery(req, 20);
+  const search = `(? = '' OR u.name LIKE ? COLLATE NOCASE OR u.email LIKE ? COLLATE NOCASE OR IFNULL(u.phone, '') LIKE ? COLLATE NOCASE)`;
+  const clientWhere = `u.tenant_id = ? AND u.role = 'user' AND ${search}`;
+  const total = db
+    .prepare(`SELECT COUNT(*) AS count FROM users u WHERE ${clientWhere}`)
+    .get(tenantId, q, like, like, like).count;
+  const users = db
+    .prepare(`${LIST_SELECT} AND u.role = 'user' AND ${search} GROUP BY u.id ORDER BY u.name COLLATE NOCASE LIMIT ? OFFSET ?`)
+    .all(tenantId, q, like, like, like, limit, offset)
+    .map(mapUser);
+  const topUsers = db
+    .prepare(`${LIST_SELECT} AND u.role = 'user' GROUP BY u.id ORDER BY orderCount DESC, totalSpent DESC LIMIT 5`)
+    .all(tenantId)
+    .map((row, index) => ({ ...mapUser(row), rank: index + 1 }));
+  const counts = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) AS totalUsers,
+         SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS totalAdmins,
+         SUM(CASE WHEN role = 'user' AND status = 'blocked' THEN 1 ELSE 0 END) AS blockedUsers,
+         SUM(CASE WHEN role = 'user' AND client_group = 'wholesale' THEN 1 ELSE 0 END) AS wholesaleClients,
+         SUM(CASE WHEN role = 'user' AND client_group != 'wholesale' THEN 1 ELSE 0 END) AS retailClients
+       FROM users WHERE tenant_id = ?`
+    )
+    .get(tenantId);
+  const usersWithOrders = db
+    .prepare(
+      `SELECT COUNT(DISTINCT u.id) AS count
+       FROM users u JOIN orders o ON o.user_id = u.id
+       WHERE u.tenant_id = ? AND u.role = 'user'`
+    )
+    .get(tenantId).count;
 
   res.json({
     users,
     topUsers,
+    total,
+    page,
+    limit,
+    pages: Math.max(1, Math.ceil(total / limit)),
     summary: {
-      totalUsers: clients.length,
-      totalAdmins: users.filter((u) => u.role === 'admin').length,
-      usersWithOrders: clients.filter((u) => u.orderCount > 0).length,
-      blockedUsers: clients.filter((u) => u.status === 'blocked').length,
-      retailClients: clients.filter((u) => u.client_group === 'retail').length,
-      wholesaleClients: clients.filter((u) => u.client_group === 'wholesale').length,
+      totalUsers: Number(counts.totalUsers) || 0,
+      totalAdmins: Number(counts.totalAdmins) || 0,
+      usersWithOrders,
+      blockedUsers: Number(counts.blockedUsers) || 0,
+      retailClients: Number(counts.retailClients) || 0,
+      wholesaleClients: Number(counts.wholesaleClients) || 0,
     },
   });
 });
@@ -148,9 +180,7 @@ router.post('/', authenticate, requireAdmin, (req, res) => {
     .run(name, email, bcrypt.hashSync(password, 10), phone, address, group, req.user.tenant_id);
 
   const created = db.prepare(`${LIST_SQL} HAVING u.id = ?`).get(req.user.tenant_id, result.lastInsertRowid);
-  const mapped = mapUser(created);
-  mapped.password = password;
-  res.status(201).json(mapped);
+  res.status(201).json(mapUser(created));
 });
 
 router.get('/:id', authenticate, requireAdmin, (req, res) => {
@@ -223,9 +253,7 @@ router.patch('/:id', authenticate, requireAdmin, (req, res) => {
     db.prepare('UPDATE users SET client_group = ?, notes = ? WHERE id = ?').run(group, notes, id);
   }
   const updated = db.prepare(`${LIST_SQL} HAVING u.id = ?`).get(req.user.tenant_id, id);
-  const mapped = mapUser(updated);
-  if (password) mapped.password = password;
-  res.json(mapped);
+  res.json(mapUser(updated));
 });
 
 module.exports = router;

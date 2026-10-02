@@ -1,7 +1,7 @@
 <section class="page">
   <header class="page-head">
     <div>
-      <h1>Manage medicines</h1>
+      <h1>Manage products</h1>
       <p>Upload pack images, set price and stock for the dispensary shelf.</p>
     </div>
   </header>
@@ -10,7 +10,7 @@
 
   <div class="admin-grid">
     <form class="panel" (ngSubmit)="save()">
-      <h2>{{ editingId ? 'Edit medicine' : 'Upload medicine' }}</h2>
+      <h2>{{ editingId ? 'Edit product' : 'Upload product' }}</h2>
       <label>Name
         <input [(ngModel)]="name" name="name" required />
       </label>
@@ -28,7 +28,7 @@
       <label>Stock
         <input type="number" [(ngModel)]="stock" name="stock" />
       </label>
-      <label>Medicine image
+      <label>Product image
         <input type="file" accept="image/*" (change)="onFile($event)" />
       </label>
       <div class="actions">
@@ -42,6 +42,15 @@
     </form>
 
     <div class="list">
+      <label class="list-tools">
+        Search products
+        <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="productSearch" placeholder="Name or description" />
+      </label>
+      @if (medicines.length === 0) {
+        <div class="empty-state glass-card">
+          <p>{{ query.trim() ? 'No products match this search.' : 'No products have been added yet.' }}</p>
+        </div>
+      }
       @for (m of medicines; track m.id) {
         <article class="row-item">
           <img [src]="imageUrl(m)" [alt]="m.name" />
@@ -54,6 +63,13 @@
             <button class="btn danger" (click)="remove(m)">Delete</button>
           </div>
         </article>
+      }
+      @if (pages > 1) {
+        <nav class="pager" aria-label="Product pages">
+          <button class="btn ghost" type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
+          <span>Page {{ page }} of {{ pages }} · {{ total }} products</span>
+          <button class="btn ghost" type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
+        </nav>
       }
     </div>
   </div>

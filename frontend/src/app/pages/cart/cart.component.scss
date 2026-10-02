@@ -160,6 +160,37 @@
 
 .linkish:hover { color: #fff; }
 
+.pay-methods {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 0.9rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+}
+
+.pay-methods legend {
+  padding: 0 0.3rem;
+  color: var(--muted);
+}
+
+.pay-methods label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coupon {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
+.coupon input {
+  width: 100%;
+}
+
 .order-card__foot {
   display: flex;
   justify-content: space-between;

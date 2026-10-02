@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const shotDir = join(__dirname, 'screenshots');
-const outPdf = join(__dirname, '..', 'Shubh-Surgical-Training-Manual.pdf');
-const helpPdf = join(__dirname, '..', '..', 'frontend', 'public', 'assets', 'help', 'Shubh-Surgical-Training-Manual.pdf');
+const outPdf = join(__dirname, '..', 'My-Store-Hub-Training-Manual.pdf');
+const helpPdf = join(__dirname, '..', '..', 'frontend', 'public', 'assets', 'help', 'My-Store-Hub-Training-Manual.pdf');
 const BASE = process.env.APP_URL || 'http://localhost:4200';
 
 mkdirSync(shotDir, { recursive: true });
@@ -187,7 +187,7 @@ const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Shubh Surgical — Training User Manual</title>
+  <title>My Store Hub — Training User Manual</title>
   <style>
     @page { size: A4; margin: 16mm 14mm 18mm; }
     * { box-sizing: border-box; }
@@ -238,8 +238,8 @@ const html = `<!doctype html>
 <body>
   <div class="cover">
     <p style="letter-spacing:0.18em;text-transform:uppercase;font-size:10pt;opacity:.8">Training document</p>
-    <h1>Shubh Surgical</h1>
-    <p class="tag">Your Trusted Partner in Health and Wellness.<br/>Complete website user manual</p>
+    <h1>My Store Hub</h1>
+    <p class="tag">Your name, your products, your customers.<br/>Complete website user manual</p>
     <div class="meta">
       <table>
         <tr><td><strong>Purpose</strong></td><td>Staff, admin, and customer training</td></tr>
@@ -264,7 +264,7 @@ const html = `<!doctype html>
       <li>My Orders</li>
       <li>Admin: Help Center</li>
       <li>Admin: Dashboard</li>
-      <li>Admin: manage medicines</li>
+      <li>Admin: manage products</li>
       <li>Admin: orders desk</li>
       <li>Admin: Clients (add, view, block / allow)</li>
       <li>Admin: Employee (add, view, update, remove)</li>
@@ -280,7 +280,7 @@ const html = `<!doctype html>
 
   <section class="chapter">
     <h2>1. What this website does</h2>
-    <p class="summary">Shubh Surgical is an online medicine store that can also be sold to multiple customer businesses. Shoppers browse stock, add items to a cart, and place an order. The system creates a bill with a checkout QR. A store administrator verifies payment, approves the order (this creates a Purchase Order), then marks it dispatched. Super Admin customises branding and provisions isolated customer stores.</p>
+    <p class="summary">My Store Hub is a multi-tenant commerce platform: shoppers browse stock, add items to a cart, and place an order. The system creates a bill with a checkout QR. A store administrator verifies payment, approves the order (this creates a Purchase Order), then marks it dispatched. Super Admin customises branding per customer and provisions isolated customer stores.</p>
     <h3>End-to-end flow</h3>
     <ol>
       <li>Customer registers or signs in.</li>
@@ -307,7 +307,7 @@ const html = `<!doctype html>
 
   ${section(
     '3. Register',
-    'The left panel matches Sign in: heart logo in a circle, brand name, and slogan Your Trusted Partner in Health and Wellness. New customers must register before checkout.',
+    'The Sign in page shows the brand logo, name, and slogan Your name, your products, your customers. New customers must register before checkout.',
     [
       'Click <strong>Register</strong> in the top bar.',
       'Enter full name, email, and a password of at least 6 characters.',
@@ -401,12 +401,12 @@ const html = `<!doctype html>
   )}
 
   ${section(
-    '11. Admin: manage medicines',
+    '11. Admin: manage products',
     'Administrators maintain the catalogue: name, description, retail price, optional wholesale price, stock, and pack image. Admins do not shop or checkout.',
     [
       'Sign in as admin. Open <strong>Medicines</strong>.',
-      'Fill Upload medicine: name, description, retail price, optional wholesale price, stock, and image file.',
-      'Click <strong>Upload</strong>. The item appears on the customer Shop page.',
+      'Fill Upload product: name, description, retail price, optional wholesale price, stock, and image file.',
+      'Click <strong>Upload</strong>. The item appears on the customer Catalogue page.',
       'Use <strong>Edit</strong> to change details, or <strong>Delete</strong> to remove a product.',
     ],
     'admin-medicines'
@@ -522,10 +522,10 @@ const html = `<!doctype html>
         <th style="text-align:left;padding:8px">Menu</th>
         <th style="text-align:left;padding:8px">What it does</th>
       </tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Demo, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Public title Surgical Solution; feature demo; feedback; browse stock</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Public title My Store Hub; Demo and Feedback appear once on the Sign in page; browse stock</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop, Cart, My orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order medicines, pay by QR, track status</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Today’s orders, revenue, low stock, quick actions</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete catalogue; retail/wholesale price</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete products; retail/wholesale price</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Approve, reject, dispatch bills</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Clients</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add shoppers; retail/wholesale; block/allow; notes; password reset; CSV</td></tr>
       <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Employee</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add, view, update, remove staff with photo</td></tr>
@@ -551,7 +551,7 @@ const html = `<!doctype html>
       <li>Log in as Super Admin, check website hits on Settings, then open Feedback.</li>
       <li>Click <strong>Help Center</strong> next to Logout and confirm this latest PDF opens.</li>
     </ol>
-    <p class="footer-note">End of training manual — Shubh Surgical. Version 3.3 — ${today}.</p>
+    <p class="footer-note">End of training manual — My Store Hub. Version 3.4 — ${today}.</p>
   </section>
 </body>
 </html>`;

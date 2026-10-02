@@ -1,27 +1,33 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/auth.service';
 import { CartService } from './core/cart.service';
 import { SettingsService } from './core/settings.service';
 import { PublicSiteService } from './core/public-site.service';
+import { AppDialogComponent } from './shared/app-dialog/app-dialog.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AppDialogComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  readonly helpManualUrl = 'assets/help/Shubh-Surgical-Training-Manual.pdf?v=7';
+  readonly helpManualUrl = 'assets/help/My-Store-Hub-Training-Manual.pdf?v=8';
 
   constructor(
     public auth: AuthService,
     public cart: CartService,
     public settings: SettingsService,
-    private publicSite: PublicSiteService
+    private publicSite: PublicSiteService,
+    private router: Router
   ) {}
+
+  onLoginPage(): boolean {
+    return this.router.url.split('?')[0] === '/login';
+  }
 
   ngOnInit(): void {
     this.settings.load();

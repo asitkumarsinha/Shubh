@@ -4,11 +4,11 @@ import { tap } from 'rxjs';
 import { SiteSettings } from './models';
 
 const defaults: SiteSettings = {
-  title: 'Surgical Solution',
-  slogan: 'Your Trusted Partner in Health and Wellness.',
-  logo: 'assets/shubh-surgical-logo.svg',
+  title: 'My Store Hub',
+  slogan: 'Your name, your products, your customers.',
+  logo: 'assets/MyStoreHub.jfif',
   qr_code: 'assets/QR.jpeg',
-  theme_color: '#1f242c',
+  theme_color: '#07131c',
   font_family: 'Syne',
   login_initial: '',
 };
@@ -29,6 +29,11 @@ export class SettingsService {
     return this.http.get<SiteSettings>(url).pipe(tap((settings) => this.set(settings)));
   }
 
+  /** Fetch a customer's settings for preview/editing without changing the live site brand. */
+  getForTenant(tenantId: number) {
+    return this.http.get<SiteSettings>(`${this.api}?tenantId=${tenantId}`);
+  }
+
   loadForLoginEmail(email: string): void {
     this.http.get<SiteSettings>(`${this.api}?email=${encodeURIComponent(email)}`).subscribe({
       next: (settings) => this.set(settings),
@@ -42,7 +47,7 @@ export class SettingsService {
 
   set(settings: SiteSettings): void {
     this.current.set(settings);
-    document.title = `${settings.title} | Online Medicine Store`;
+    document.title = settings.title;
     document.documentElement.style.setProperty('--tenant-theme', settings.theme_color);
     document.documentElement.style.setProperty('--tenant-font', `'${settings.font_family}', 'IBM Plex Sans', sans-serif`);
   }

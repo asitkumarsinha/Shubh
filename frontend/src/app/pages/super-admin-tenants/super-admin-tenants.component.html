@@ -43,7 +43,10 @@
 
   <h2 class="section-title">Customer businesses</h2>
   @if (loading) {
-    <p class="muted">Loading customers…</p>
+    <div class="skeleton-list" aria-label="Loading customers">
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+    </div>
   } @else {
     <div class="tenant-list">
       @for (tenant of tenants; track tenant.id) {
@@ -52,6 +55,7 @@
             <div>
               <h3>{{ tenant.name }}</h3>
               <p>{{ tenant.slug }} · {{ tenant.plan }} · {{ tenant.billing_cycle }} · ₹{{ tenant.price }}</p>
+              <p class="admin-login">Admin login <strong>{{ tenant.admin_email || 'No email yet' }}</strong></p>
             </div>
             <select [ngModel]="tenant.status" (ngModelChange)="updateStatus(tenant, $event)" [name]="'status' + tenant.id">
               <option value="active">Active</option><option value="suspended">Suspended</option><option value="archived">Archived</option>
@@ -66,6 +70,9 @@
           <details>
             <summary>Subscription, store, and feature configuration</summary>
             <div class="grid config">
+              <label>Admin email
+                <input type="email" [(ngModel)]="tenant.admin_email" [name]="'adminEmail' + tenant.id" required />
+              </label>
               <label>Plan <input [(ngModel)]="tenant.plan" [name]="'plan' + tenant.id" /></label>
               <label>Price <input type="number" [(ngModel)]="tenant.price" [name]="'price' + tenant.id" /></label>
               <label>Payment
@@ -92,6 +99,9 @@
             <button class="btn ghost" type="button" (click)="exportBackup(tenant)">Export backup</button>
             @if (tenant.id !== 1 && tenant.status !== 'archived') {
               <button class="btn danger" type="button" (click)="archive(tenant)">Archive</button>
+            }
+            @if (tenant.id !== 1) {
+              <button class="btn danger" type="button" (click)="remove(tenant)">Delete</button>
             }
           </div>
         </article>

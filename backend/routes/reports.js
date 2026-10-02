@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db');
+const logger = require('../logger');
 const { authenticate, requireAdmin, requireModule } = require('../middleware/auth');
 const { sendReportEmail, listOutbox, getOutboxHtml, hasSmtpConfig } = require('../mail');
 
@@ -134,7 +135,7 @@ router.post('/email', authenticate, requireAdmin, requireModule('reports'), asyn
       mailConfigured: hasSmtpConfig(),
     });
   } catch (err) {
-    console.error('Email error:', err);
+    logger.error('report email failed', { message: err.message });
     res.status(500).json({
       message: 'Failed to send report email',
       error: err.message,

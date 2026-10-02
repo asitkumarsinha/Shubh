@@ -27,6 +27,26 @@
   color: #1f242c;
 }
 
+.coupon-panel {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+}
+
+.coupon-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.coupon-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .action-select:disabled {
   opacity: 0.6;
   cursor: wait;

@@ -9,8 +9,12 @@ export class OrderService {
 
   constructor(private http: HttpClient) {}
 
-  checkout(items: Array<{ medicineId: number; quantity: number }>): Observable<Order> {
-    return this.http.post<Order>(`${this.api}/checkout`, { items });
+  checkout(
+    items: Array<{ medicineId: number; quantity: number }>,
+    paymentMethod: 'upi' | 'cod' | 'counter',
+    couponCode = ''
+  ): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/checkout`, { items, paymentMethod, couponCode });
   }
 
   myOrders(): Observable<Order[]> {
@@ -36,6 +40,22 @@ export class OrderService {
 
   cancel(id: number): Observable<Order> {
     return this.http.patch<Order>(`${this.api}/${id}/cancel`, {});
+  }
+
+  cancelOwn(id: number): Observable<Order> {
+    return this.http.patch<Order>(`${this.api}/${id}/cancel-own`, {});
+  }
+
+  coupons(): Observable<{ enabled: boolean; coupons: Array<{ id: number; code: string; kind: 'percent' | 'amount'; value: number; active: number }> }> {
+    return this.http.get<{ enabled: boolean; coupons: Array<{ id: number; code: string; kind: 'percent' | 'amount'; value: number; active: number }> }>(`${this.api}/coupons`);
+  }
+
+  createCoupon(code: string, kind: 'percent' | 'amount', value: number): Observable<{ id: number; code: string; kind: string; value: number }> {
+    return this.http.post<{ id: number; code: string; kind: string; value: number }>(`${this.api}/coupons`, { code, kind, value });
+  }
+
+  deleteCoupon(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.api}/coupons/${id}`);
   }
 
   dispatch(id: number): Observable<Order> {

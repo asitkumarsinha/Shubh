@@ -7,7 +7,10 @@
   </header>
 
   @if (loading) {
-    <p class="muted">Loading…</p>
+    <div class="skeleton-list" aria-label="Loading orders">
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+    </div>
   } @else if (orders.length === 0) {
     <div class="empty glass-card">
       <p>No orders yet.</p>
@@ -48,7 +51,12 @@
 
           <div class="order-card__foot">
             <div class="total">Total: ₹{{ o.total | number: '1.2-2' }}</div>
-            <a class="btn ghost" [routerLink]="['/orders', o.id]">View bill / QR</a>
+            <div class="row-actions">
+              @if (o.status === 'pending') {
+                <button class="btn danger" type="button" (click)="cancel(o)">Cancel</button>
+              }
+              <a class="btn ghost" [routerLink]="['/orders', o.id]">View bill / QR</a>
+            </div>
           </div>
         </article>
       }

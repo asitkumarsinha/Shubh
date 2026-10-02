@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth.service';
 import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { SettingsService } from '../../core/settings.service';
+import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -26,8 +27,25 @@ export class OrderDetailComponent implements OnInit {
     private orders: OrderService,
     public auth: AuthService,
     private toast: ToastService,
-    public settings: SettingsService
+    public settings: SettingsService,
+    private dialog: DialogService
   ) {}
+
+  paymentLabel(method: Order['payment_method']): string {
+    if (method === 'cod') return 'Cash on delivery';
+    if (method === 'counter') return 'Card or cash at counter';
+    return 'UPI QR';
+  }
+
+  async cancelOwn(): Promise<void> {
+    if (!this.order) return;
+    const confirmed = await this.dialog.confirm(
+      'Cancel this order? The items go back into stock. This is only possible before approval.',
+      'Cancel order'
+    );
+    if (!confirmed) return;
+    this.runAction('Saving…', this.orders.cancelOwn(this.order.id), () => 'Order cancelled');
+  }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));

@@ -33,4 +33,10 @@ export class TenantService {
       body: { confirmation, backupConfirmed: true },
     });
   }
+
+  remove(id: number, confirmation: string) {
+    return this.http.delete<{ message: string }>(`${this.api}/${id}`, {
+      body: { confirmation, permanent: true },
+    });
+  }
 }

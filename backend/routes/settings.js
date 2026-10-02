@@ -4,6 +4,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate, requireSuperAdmin, optionalUser } = require('../middleware/auth');
+const { imageFileFilter, safeImageExt } = require('../uploads');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -12,27 +13,21 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, uploadDir),
     filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase() || '.png';
-      cb(null, `${uuidv4()}${ext}`);
+      cb(null, `${uuidv4()}${safeImageExt(file.originalname)}`);
     },
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'));
-    }
-    cb(null, true);
-  },
+  fileFilter: imageFileFilter,
 });
 
 function platformSettings() {
   const row = db.prepare('SELECT title, slogan, logo, qr_code FROM site_settings WHERE id = 1').get();
   return {
-    title: row?.title || 'Surgical Solution',
-    slogan: row?.slogan || 'Your Trusted Partner in Health and Wellness.',
-    logo: row?.logo || '/assets/shubh-surgical-logo.svg',
+    title: row?.title || 'My Store Hub',
+    slogan: row?.slogan || 'Your name, your products, your customers.',
+    logo: row?.logo || '/assets/MyStoreHub.jfif',
     qr_code: row?.qr_code || '/assets/QR.jpeg',
-    theme_color: '#1f242c',
+    theme_color: '#07131c',
     font_family: 'Syne',
     login_initial: '',
   };

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Store Hub">
+  <rect width="120" height="120" rx="28" fill="#1e3a5f"/>
+  <path d="M22 52 L60 24 L98 52 V58 H22 Z" fill="#f4b942"/>
+  <rect x="34" y="58" width="52" height="38" rx="4" fill="#f7f4ee"/>
+  <rect x="52" y="74" width="16" height="22" rx="2" fill="#1e3a5f"/>
+  <rect x="40" y="66" width="10" height="8" rx="1" fill="#7eb6d9"/>
+  <rect x="70" y="66" width="10" height="8" rx="1" fill="#7eb6d9"/>
+</svg>

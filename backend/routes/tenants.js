@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
+const logger = require('../logger');
 const { authenticate, requireSuperAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -17,11 +18,21 @@ function log(tenantId, actorId, action, details = '') {
   db.prepare(
     'INSERT INTO tenant_audit_logs (tenant_id, actor_id, action, details) VALUES (?, ?, ?, ?)'
   ).run(tenantId, actorId, action, details);
+  logger.info('tenant audit', { tenantId, actorId, action });
+}
+
+function tenantAdmin(tenantId) {
+  return db
+    .prepare(`SELECT id, name, email FROM users WHERE tenant_id = ? AND role = 'admin' ORDER BY id LIMIT 1`)
+    .get(tenantId);
 }
 
 function tenantSummary(row) {
+  const admin = tenantAdmin(row.id);
   return {
     ...row,
+    admin_name: admin?.name || row.contact_name || '',
+    admin_email: admin?.email || '',
     modules: JSON.parse(row.modules || '{}'),
     usage: {
       users: db.prepare('SELECT COUNT(*) AS count FROM users WHERE tenant_id = ?').get(row.id).count,
@@ -151,6 +162,20 @@ router.patch('/:id', (req, res) => {
   const body = req.body || {};
   const modules = body.modules ? JSON.stringify({ ...DEFAULT_MODULES, ...body.modules }) : current.modules;
   const status = ['active', 'suspended', 'archived'].includes(body.status) ? body.status : current.status;
+  let contactEmail = body.contact_email ?? current.contact_email;
+  if (body.admin_email != null) {
+    const adminEmail = String(body.admin_email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) {
+      return res.status(400).json({ message: 'Enter a valid admin login email' });
+    }
+    const admin = tenantAdmin(id);
+    if (!admin) return res.status(404).json({ message: 'Tenant administrator not found' });
+    const taken = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(adminEmail, admin.id);
+    if (taken) return res.status(409).json({ message: 'This administrator email is already in use' });
+    db.prepare('UPDATE users SET email = ? WHERE id = ?').run(adminEmail, admin.id);
+    contactEmail = adminEmail;
+    log(id, req.user.id, 'admin_email_updated', `Admin login email set to ${adminEmail}`);
+  }
   db.prepare(
     `UPDATE tenants SET
        name = ?, status = ?, plan = ?, billing_cycle = ?, price = ?, trial_end = ?, renewal_date = ?,
@@ -164,7 +189,7 @@ router.patch('/:id', (req, res) => {
     body.billing_cycle === 'yearly' ? 'yearly' : body.billing_cycle === 'monthly' ? 'monthly' : current.billing_cycle,
     body.price != null ? Number(body.price) : current.price, body.trial_end ?? current.trial_end,
     body.renewal_date ?? current.renewal_date, body.payment_status || current.payment_status,
-    body.contact_name ?? current.contact_name, body.contact_email ?? current.contact_email,
+    body.contact_name ?? current.contact_name, contactEmail,
     body.contact_phone ?? current.contact_phone, body.gst_number ?? current.gst_number,
     body.address ?? current.address, body.domain ?? current.domain, body.theme_color ?? current.theme_color,
     body.font_family ?? current.font_family, body.login_banner ?? current.login_banner,
@@ -226,12 +251,38 @@ router.post('/:id/support', (req, res) => {
   res.status(201).json(db.prepare('SELECT * FROM tenant_support_tickets WHERE id = ?').get(result.lastInsertRowid));
 });
 
+function deleteTenantData(id) {
+  const remove = db.transaction((tenantId) => {
+    db.prepare(
+      `DELETE FROM order_items
+       WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = ?)
+          OR medicine_id IN (SELECT id FROM medicines WHERE tenant_id = ?)`
+    ).run(tenantId, tenantId);
+    db.prepare('DELETE FROM orders WHERE tenant_id = ?').run(tenantId);
+    db.prepare('DELETE FROM medicines WHERE tenant_id = ?').run(tenantId);
+    db.prepare('DELETE FROM employees WHERE tenant_id = ?').run(tenantId);
+    db.prepare(`DELETE FROM users WHERE tenant_id = ? AND role != 'super_admin'`).run(tenantId);
+    db.prepare('DELETE FROM tenant_settings WHERE tenant_id = ?').run(tenantId);
+    db.prepare('DELETE FROM tenant_support_tickets WHERE tenant_id = ?').run(tenantId);
+    db.prepare('DELETE FROM tenant_audit_logs WHERE tenant_id = ?').run(tenantId);
+    db.prepare('DELETE FROM tenants WHERE id = ?').run(tenantId);
+  });
+  remove(id);
+}
+
 router.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
   const tenant = db.prepare('SELECT * FROM tenants WHERE id = ?').get(id);
   if (!tenant) return res.status(404).json({ message: 'Tenant not found' });
   if (id === 1) return res.status(400).json({ message: 'The primary tenant cannot be deleted' });
-  if (req.body?.confirmation !== tenant.name || req.body?.backupConfirmed !== true) {
+  if (req.body?.confirmation !== tenant.name) {
+    return res.status(400).json({ message: `Type "${tenant.name}" to confirm` });
+  }
+  if (req.body?.permanent === true) {
+    deleteTenantData(id);
+    return res.json({ message: `${tenant.name} and its admin login were deleted` });
+  }
+  if (req.body?.backupConfirmed !== true) {
     return res.status(400).json({ message: 'Enter the exact tenant name and confirm backup before archiving' });
   }
   db.prepare(`UPDATE tenants SET status = 'archived', updated_at = datetime('now') WHERE id = ?`).run(id);

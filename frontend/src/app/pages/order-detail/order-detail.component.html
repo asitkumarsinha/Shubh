@@ -31,6 +31,10 @@
           <div><span>Customer</span><strong>{{ order.user?.name || 'You' }}</strong></div>
           <div><span>Email</span><strong>{{ order.user?.email }}</strong></div>
           <div><span>Date</span><strong>{{ order.created_at }}</strong></div>
+          <div><span>Payment</span><strong>{{ paymentLabel(order.payment_method) }}</strong></div>
+          @if (order.coupon_code) {
+            <div><span>Discount code</span><strong>{{ order.coupon_code }}</strong></div>
+          }
           @if (order.po_number) {
             <div><span>Purchase Order</span><strong>{{ order.po_number }}</strong></div>
           }
@@ -50,6 +54,16 @@
           }
         </div>
 
+        @if (order.discount) {
+          <div class="total-row">
+            <span>Subtotal</span>
+            <strong>₹{{ (order.subtotal ?? order.total) | number: '1.2-2' }}</strong>
+          </div>
+          <div class="total-row">
+            <span>Discount</span>
+            <strong>−₹{{ order.discount | number: '1.2-2' }}</strong>
+          </div>
+        }
         <div class="total-row">
           <span>Total amount</span>
           <strong>₹{{ order.total | number: '1.2-2' }}</strong>
@@ -58,10 +72,18 @@
 
       <aside class="qr-panel">
         <div class="stamp" aria-hidden="true">Rx</div>
-        <h2>Checkout QR</h2>
-        <p>Present this QR for payment confirmation at the dispensary desk.</p>
-        <img class="qr" [src]="settings.current().qr_code" alt="Order QR code" />
+        @if (order.payment_method === 'cod' || order.payment_method === 'counter') {
+          <h2>{{ paymentLabel(order.payment_method) }}</h2>
+          <p>{{ order.payment_method === 'cod' ? 'Pay when the order is delivered or collected.' : 'Pay by card or cash at the counter. No card number is stored here.' }}</p>
+        } @else {
+          <h2>Checkout QR</h2>
+          <p>Present this QR for payment confirmation at the dispensary desk.</p>
+          <img class="qr" [src]="settings.current().qr_code" alt="Order QR code" />
+        }
         <p class="muted small">Awaiting admin approval after payment verification.</p>
+        @if (!auth.isAdmin() && order.status === 'pending') {
+          <button class="btn danger" type="button" [disabled]="acting" (click)="cancelOwn()">Cancel order</button>
+        }
 
         @if (auth.isAdmin()) {
           <div class="admin-actions">

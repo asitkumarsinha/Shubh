@@ -1,10 +1,11 @@
 <section class="auth-page">
   <div class="auth-visual" aria-hidden="true">
     <div class="orb">
+      <span class="orb-glow"></span>
       <img class="auth-logo" [src]="settings.current().logo" alt="" width="88" height="88" />
     </div>
     <h1>{{ settings.current().title }}</h1>
-    <p class="slogan">{{ settings.current().slogan }}</p>
+    <p class="slogan"><span class="slogan-mark">“</span>{{ settings.current().slogan }}<span class="slogan-mark">”</span></p>
   </div>
 
   <form class="auth-card" (ngSubmit)="submit()">
@@ -33,10 +34,5 @@
       <button type="button" class="btn ghost" (click)="fillDemo('admin')">Admin demo</button>
       <button type="button" class="btn ghost" (click)="fillDemo('user')">User demo</button>
     </div>
-
-    <p class="footer-text">
-      New customer?
-      <a routerLink="/register">Create an account</a>
-    </p>
   </form>
 </section>

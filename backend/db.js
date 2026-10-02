@@ -8,7 +8,9 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-const db = new Database(path.join(dataDir, 'medishop.db'));
+const dbFile = process.env.SQLITE_PATH || path.join(dataDir, 'medishop.db');
+if (process.env.SQLITE_PATH) fs.mkdirSync(path.dirname(dbFile), { recursive: true });
+const db = new Database(dbFile);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
@@ -126,8 +128,8 @@ db.exec(`
 `);
 db.prepare(
   `INSERT OR IGNORE INTO site_settings (id, title, slogan, logo, qr_code)
-   VALUES (1, 'Surgical Solution', 'Your Trusted Partner in Health and Wellness.',
-   '/assets/shubh-surgical-logo.svg', '/assets/QR.jpeg')`
+   VALUES (1, 'My Store Hub', 'Your name, your products, your customers.',
+   '/assets/MyStoreHub.jfif', '/assets/QR.jpeg')`
 ).run();
 
 db.exec(`
@@ -202,8 +204,11 @@ db.prepare(
    SELECT 1, title, slogan, logo, qr_code FROM site_settings WHERE id = 1`
 ).run();
 db.prepare(
-  `UPDATE site_settings SET title = 'Surgical Solution'
-   WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution')`
+  `UPDATE site_settings
+   SET title = 'My Store Hub',
+       slogan = 'Your name, your products, your customers.',
+       logo = '/assets/MyStoreHub.jfif'
+   WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution', 'Store Hub / Apna Store')`
 ).run();
 db.prepare(
   `UPDATE tenant_settings SET title = 'Shubh Surgical'
@@ -232,6 +237,11 @@ for (const table of ['users', 'medicines', 'orders', 'employees']) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN tenant_id INTEGER NOT NULL DEFAULT 1`);
   }
 }
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_medicines_tenant_name ON medicines(tenant_id, name);
+  CREATE INDEX IF NOT EXISTS idx_users_tenant_role ON users(tenant_id, role);
+`);
 
 // Customer login initials select the correct public branding before sign-in,
 // e.g. an email containing "@shubhsurgical" loads the Shubh Surgical theme.
@@ -274,6 +284,9 @@ if (userCount === 0) {
 
 const medCount = db.prepare('SELECT COUNT(*) AS c FROM medicines').get().c;
 const sampleImages = {
+  'Notebook Set': '/assets/medicines/paracetamol.svg',
+  'Steel Bottle': '/assets/medicines/amoxicillin.svg',
+  'Desk Organizer': '/assets/medicines/cetirizine.svg',
   'Paracetamol 500mg': '/assets/medicines/paracetamol.svg',
   'Amoxicillin 250mg': '/assets/medicines/amoxicillin.svg',
   'Cetirizine 10mg': '/assets/medicines/cetirizine.svg',
@@ -288,15 +301,25 @@ if (medCount === 0) {
      VALUES (?, ?, ?, ?, ?, 1)`
   );
   const seed = [
-    ['Paracetamol 500mg', 'Pain relief and fever reducer. Strip of 10 tablets.', 45.0, sampleImages['Paracetamol 500mg'], 200],
-    ['Amoxicillin 250mg', 'Antibiotic capsules for bacterial infections.', 120.0, sampleImages['Amoxicillin 250mg'], 150],
-    ['Cetirizine 10mg', 'Antihistamine for allergy relief.', 35.0, sampleImages['Cetirizine 10mg'], 180],
+    ['Notebook Set', 'Ruled notebooks, pack of 6.', 45.0, sampleImages['Notebook Set'], 200],
+    ['Steel Bottle', 'Insulated steel bottle, 750 ml.', 120.0, sampleImages['Steel Bottle'], 150],
+    ['Desk Organizer', 'Desktop tray for pens and notes.', 35.0, sampleImages['Desk Organizer'], 180],
     ['Vitamin D3 60K', 'Weekly vitamin D supplement softgels.', 95.0, sampleImages['Vitamin D3 60K'], 100],
     ['Cough Syrup 100ml', 'Relieves dry and productive cough.', 85.0, sampleImages['Cough Syrup 100ml'], 80],
     ['ORS Sachet', 'Oral rehydration salts for dehydration.', 20.0, sampleImages['ORS Sachet'], 300],
   ];
   const tx = db.transaction((rows) => rows.forEach((r) => insert.run(...r)));
   tx(seed);
+}
+
+const productRenames = [
+  ['Paracetamol 500mg', 'Notebook Set', 'Ruled notebooks, pack of 6.'],
+  ['Amoxicillin 250mg', 'Steel Bottle', 'Insulated steel bottle, 750 ml.'],
+  ['Cetirizine 10mg', 'Desk Organizer', 'Desktop tray for pens and notes.'],
+];
+const renameProduct = db.prepare('UPDATE medicines SET name = ?, description = ? WHERE name = ?');
+for (const [from, to, description] of productRenames) {
+  renameProduct.run(to, description, from);
 }
 
 // Attach sample catalogue images when missing or pointing at deleted uploads
@@ -376,5 +399,30 @@ db.prepare(
   `UPDATE users SET email = replace(email, '@medishop.com', '@shubhsurgical.com')
    WHERE email LIKE '%@medishop.com'`
 ).run();
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS coupons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    code TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK(kind IN ('percent', 'amount')),
+    value REAL NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(tenant_id, code),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+  );
+`);
+
+(() => {
+  const cols = db.prepare('PRAGMA table_info(orders)').all();
+  const add = (name, ddl) => {
+    if (!cols.some((col) => col.name === name)) db.exec(`ALTER TABLE orders ADD COLUMN ${ddl}`);
+  };
+  add('payment_method', "payment_method TEXT NOT NULL DEFAULT 'upi'");
+  add('coupon_code', 'coupon_code TEXT');
+  add('discount', 'discount REAL NOT NULL DEFAULT 0');
+  add('subtotal', 'subtotal REAL');
+})();
 
 module.exports = db;

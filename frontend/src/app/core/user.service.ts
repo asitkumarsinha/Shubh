@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AdminClientDetail, AdminUserDetail, AdminUsersResponse } from './models';
 
@@ -9,8 +9,12 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  all(): Observable<AdminUsersResponse> {
-    return this.http.get<AdminUsersResponse>(this.api);
+  all(query: { q?: string; page?: number; limit?: number } = {}): Observable<AdminUsersResponse> {
+    let params = new HttpParams();
+    if (query.q) params = params.set('q', query.q);
+    if (query.page) params = params.set('page', query.page);
+    if (query.limit) params = params.set('limit', query.limit);
+    return this.http.get<AdminUsersResponse>(this.api, { params });
   }
 
   create(payload: {

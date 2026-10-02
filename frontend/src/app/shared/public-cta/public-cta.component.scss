@@ -6,7 +6,17 @@
 .cta-row {
   display: flex;
   gap: 0.65rem;
-  flex-wrap: wrap;
+}
+
+.cta-row .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .cta-row {
+    flex-direction: column;
+  }
 }
 
 .feedback-form {

@@ -53,6 +53,9 @@
         <label>
           Theme colour
           <input type="color" [(ngModel)]="themeColor" name="themeColor" />
+          @if (themeContrastWarning) {
+            <span class="hint contrast-warning">{{ themeContrastWarning }}</span>
+          }
         </label>
         <label>
           Heading font
@@ -68,14 +71,18 @@
       </button>
     </form>
 
-    <aside class="panel preview">
+    <aside class="panel preview" [style.--preview-theme]="themeColor" [style.--preview-font]="fontFamily">
       <h2>Current preview</h2>
-      <img [src]="settings.current().logo" [alt]="settings.current().title + ' logo'" class="brand-preview" />
-      <h3>{{ settings.current().title }}</h3>
-      <p>{{ settings.current().slogan }}</p>
+      <img [src]="previewLogo" [alt]="title + ' logo'" class="brand-preview" />
+      <h3 class="preview-title">{{ title }}</h3>
+      <p class="preview-slogan">{{ slogan }}</p>
+      <div class="theme-swatch">
+        <span class="swatch" [style.background]="themeColor"></span>
+        <span>Theme {{ themeColor }} · {{ fontFamily }}</span>
+      </div>
       <div class="qr-preview">
         <span>Checkout QR</span>
-        <img [src]="settings.current().qr_code" alt="Current checkout QR code" />
+        <img [src]="previewQr" alt="Current checkout QR code" />
       </div>
     </aside>
   </div>

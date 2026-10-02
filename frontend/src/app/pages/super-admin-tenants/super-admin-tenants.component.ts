@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Tenant, TenantModules } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
+import { DialogService } from '../../core/dialog.service';
 
 const defaultModules: TenantModules = {
   wholesale: true, employees: true, reports: true, qrCheckout: true, coupons: false, prescriptions: false,
@@ -35,7 +36,11 @@ export class SuperAdminTenantsComponent implements OnInit {
   saving = false;
   error = '';
 
-  constructor(private tenantsApi: TenantService, private toast: ToastService) {}
+  constructor(
+    private tenantsApi: TenantService,
+    private toast: ToastService,
+    private dialog: DialogService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -89,9 +94,17 @@ export class SuperAdminTenantsComponent implements OnInit {
     });
   }
 
-  resetPassword(tenant: Tenant): void {
-    const password = prompt(`Set a new password for ${tenant.name}'s administrator (minimum 6 characters):`);
+  async resetPassword(tenant: Tenant): Promise<void> {
+    const password = await this.dialog.prompt(
+      `Set a new password for ${tenant.name}'s administrator.`,
+      'Reset admin password',
+      { type: 'password', placeholder: 'At least 6 characters' }
+    );
     if (!password) return;
+    if (password.length < 6) {
+      this.toast.error('Password must be at least 6 characters');
+      return;
+    }
     this.toast.beginSave();
     this.tenantsApi.resetAdminPassword(tenant.id, password).subscribe({
       next: (res) => this.toast.success(res.message),
@@ -112,12 +125,37 @@ export class SuperAdminTenantsComponent implements OnInit {
     });
   }
 
-  archive(tenant: Tenant): void {
-    const confirmation = prompt(`Enter "${tenant.name}" to archive this customer after backup.`);
-    if (confirmation !== tenant.name) return;
+  async archive(tenant: Tenant): Promise<void> {
+    const confirmation = await this.dialog.prompt(
+      `Type "${tenant.name}" to archive this customer.`,
+      'Archive customer',
+      { placeholder: tenant.name, danger: true }
+    );
+    if (confirmation == null) return;
+    if (confirmation !== tenant.name) {
+      this.toast.error('Customer name did not match. Nothing was archived.');
+      return;
+    }
     this.tenantsApi.archive(tenant.id, confirmation).subscribe({
       next: (res) => { this.toast.success(res.message); this.load(); },
       error: (err) => this.toast.error(err.error?.message || 'Could not archive customer'),
+    });
+  }
+
+  async remove(tenant: Tenant): Promise<void> {
+    const confirmation = await this.dialog.prompt(
+      `Delete "${tenant.name}" permanently? Type the customer name to confirm.`,
+      'Delete customer',
+      { placeholder: tenant.name, danger: true }
+    );
+    if (confirmation == null) return;
+    if (confirmation !== tenant.name) {
+      this.toast.error('Customer name did not match. Nothing was deleted.');
+      return;
+    }
+    this.tenantsApi.remove(tenant.id, confirmation).subscribe({
+      next: (res) => { this.toast.success(res.message); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'Could not delete customer'),
     });
   }
 }

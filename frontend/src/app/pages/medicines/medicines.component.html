@@ -1,28 +1,33 @@
 <section class="page">
-  <section class="hero glass-card" aria-label="Shubh Surgical">
-    <img class="hero-logo" [src]="settings.current().logo" [alt]="settings.current().title + ' logo'" width="88" height="88" />
-    <div class="hero-copy">
-      <p class="eyebrow">Trusted medical supply</p>
-      <h1>{{ settings.current().title }}</h1>
-      <p>{{ settings.current().slogan }}</p>
-    </div>
-  </section>
-
   <header class="page-head catalogue-head">
     <div>
       <p class="eyebrow">Catalogue</p>
-      <h2>Medicines</h2>
+      <h2>Customer Products</h2>
       <p>Verified stock, clear pricing — select items for your cart.</p>
     </div>
   </header>
+
+  <label class="list-tools">
+    Search products
+    <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" placeholder="Name or description" />
+  </label>
 
   @if (error) {
     <div class="toast bad">{{ error }}</div>
   }
 
   @if (loading) {
-    <p class="muted">Loading catalogue…</p>
+    <div class="skeleton-list" aria-label="Loading catalogue">
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+      <span class="skeleton short"></span>
+    </div>
   } @else {
+    @if (medicines.length === 0) {
+      <div class="empty-state glass-card">
+        <p>{{ query.trim() ? 'No products match this search.' : 'No products have been added yet.' }}</p>
+      </div>
+    }
     <div class="medicine-grid">
       @for (m of medicines; track m.id) {
         <article class="medicine-item glass-card">
@@ -50,5 +55,12 @@
         </article>
       }
     </div>
+    @if (pages > 1) {
+      <nav class="pager" aria-label="Product pages">
+        <button class="btn ghost" type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
+        <span>Page {{ page }} of {{ pages }} · {{ total }} products</span>
+        <button class="btn ghost" type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
+      </nav>
+    }
   }
 </section>

@@ -18,6 +18,8 @@ export class CartComponent {
   loading = false;
   savePhase: SavePhase = 'idle';
   error = '';
+  paymentMethod: 'upi' | 'cod' | 'counter' = 'upi';
+  couponCode = '';
   readonly saveButtonLabel = saveButtonLabel;
 
   constructor(
@@ -46,7 +48,7 @@ export class CartComponent {
     this.savePhase = 'saving';
     this.error = '';
     this.toast.beginSave();
-    this.orders.checkout(items).subscribe({
+    this.orders.checkout(items, this.paymentMethod, this.couponCode.trim()).subscribe({
       next: (order) => {
         this.cart.clear();
         this.loading = false;

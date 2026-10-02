@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Medicine } from './models';
+import { Medicine, PageResult } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class MedicineService {
@@ -9,8 +9,12 @@ export class MedicineService {
 
   constructor(private http: HttpClient) {}
 
-  list(): Observable<Medicine[]> {
-    return this.http.get<Medicine[]>(this.api);
+  list(query: { q?: string; page?: number; limit?: number } = {}): Observable<PageResult<Medicine>> {
+    let params = new HttpParams();
+    if (query.q) params = params.set('q', query.q);
+    if (query.page) params = params.set('page', query.page);
+    if (query.limit) params = params.set('limit', query.limit);
+    return this.http.get<PageResult<Medicine>>(this.api, { params });
   }
 
   get(id: number): Observable<Medicine> {

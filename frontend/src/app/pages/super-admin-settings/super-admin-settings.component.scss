@@ -54,6 +54,10 @@ input[type='color'] {
   font-weight: 500;
 }
 
+.contrast-warning {
+  color: #fecaca;
+}
+
 .preview {
   text-align: center;
 }
@@ -65,13 +69,37 @@ input[type='color'] {
   margin: 0.6rem auto;
 }
 
-.preview h3 {
-  margin: 0.5rem 0;
-  color: #fff;
+.preview {
+  border-top: 3px solid var(--preview-theme, var(--tenant-theme));
 }
 
-.preview p {
+.preview-title {
+  margin: 0.5rem 0;
+  color: #fff;
+  font-family: var(--preview-font, inherit), 'IBM Plex Sans', sans-serif;
+}
+
+.preview-slogan {
   color: var(--muted);
+}
+
+.theme-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.swatch {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
 }
 
 .hit-card {

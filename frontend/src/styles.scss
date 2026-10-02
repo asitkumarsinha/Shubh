@@ -41,8 +41,15 @@ html, body {
   background:
     radial-gradient(ellipse at 15% 20%, rgba(120, 140, 170, 0.35), transparent 45%),
     radial-gradient(ellipse at 85% 75%, rgba(80, 90, 110, 0.45), transparent 40%),
-    linear-gradient(160deg, #3a414c 0%, #2a3038 45%, var(--tenant-theme) 100%);
+    linear-gradient(160deg, var(--tenant-theme) 0%, #2a3038 55%, #1b1f26 100%);
   background-attachment: fixed;
+}
+
+html.hub-login body {
+  background:
+    radial-gradient(ellipse at 78% 12%, rgba(56, 189, 248, 0.32), transparent 34%),
+    radial-gradient(ellipse at 12% 88%, rgba(14, 116, 144, 0.2), transparent 42%),
+    linear-gradient(165deg, #163044 0%, #0c1824 46%, #070d14 100%);
 }
 
 h1, h2, h3 {
@@ -304,4 +311,72 @@ input:focus, textarea:focus, select:focus {
   line-height: 1;
   cursor: pointer;
   opacity: 0.7;
+}
+
+.list-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.list-tools input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  color: var(--muted);
+}
+
+.pager .btn {
+  min-width: 7rem;
+}
+
+.skeleton-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.skeleton {
+  display: block;
+  height: 4.5rem;
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton.short {
+  width: 60%;
+  height: 1.2rem;
+}
+
+.empty-state {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 0 0 0.8rem;
+  color: var(--muted);
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
 }

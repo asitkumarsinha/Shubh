@@ -31,6 +31,11 @@ export class AdminUsersComponent implements OnInit {
   newPhone = '';
   newAddress = '';
   newGroup: ClientGroup = 'retail';
+  query = '';
+  page = 1;
+  pages = 1;
+  total = 0;
+  private searchTimer?: ReturnType<typeof setTimeout>;
 
   readonly accessOptions: Array<{ value: AccessStatus; label: string }> = [
     { value: 'allowed', label: 'Allow' },
@@ -52,13 +57,30 @@ export class AdminUsersComponent implements OnInit {
     return this.users.filter((u) => u.role === 'user');
   }
 
+  onSearch(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.page = 1;
+      this.reload();
+    }, 300);
+  }
+
+  goTo(page: number): void {
+    if (page < 1 || page > this.pages || page === this.page) return;
+    this.page = page;
+    this.reload();
+  }
+
   reload(showSpinner = false): void {
     if (showSpinner) this.loading = true;
-    this.userService.all().subscribe({
+    this.userService.all({ q: this.query.trim(), page: this.page, limit: 20 }).subscribe({
       next: (res) => {
         this.users = res.users;
         this.topUsers = res.topUsers;
         this.summary = res.summary;
+        this.total = res.total;
+        this.pages = res.pages;
+        this.page = res.page;
         this.loading = false;
       },
       error: () => {

@@ -9,7 +9,11 @@
   @if (error) { <div class="toast bad">{{ error }}</div> }
 
   @if (loading) {
-    <p class="muted">Loading dashboard…</p>
+    <div class="skeleton-list" aria-label="Loading dashboard">
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+      <span class="skeleton short"></span>
+    </div>
   } @else if (data) {
     <div class="stats">
       <a class="stat" routerLink="/admin/orders">

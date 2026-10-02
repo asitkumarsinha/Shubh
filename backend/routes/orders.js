@@ -1,6 +1,7 @@
 const express = require('express');
 const QRCode = require('qrcode');
 const db = require('../db');
+const logger = require('../logger');
 const { authenticate, requireAdmin, requireTenantLimit } = require('../middleware/auth');
 const { unitPrice } = require('../pricing');
 
@@ -18,6 +19,46 @@ function generatePoNumber() {
   return `PO-${stamp}-${rand}`;
 }
 
+const PAYMENT_METHODS = {
+  upi: 'UPI QR',
+  cod: 'Cash on delivery',
+  counter: 'Card or cash at counter',
+};
+
+function money(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+function httpError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
+function tenantModules(tenantId) {
+  const tenant = db.prepare('SELECT modules FROM tenants WHERE id = ?').get(tenantId);
+  try {
+    return JSON.parse(tenant?.modules || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function priceQuote(tenantId, subtotal, couponCode) {
+  const code = String(couponCode || '').trim().toUpperCase();
+  if (!code) return { subtotal, discount: 0, total: subtotal, couponCode: null };
+  if (!tenantModules(tenantId).coupons) {
+    throw httpError(400, 'Discount codes are not enabled for this store');
+  }
+  const coupon = db.prepare(
+    'SELECT * FROM coupons WHERE tenant_id = ? AND code = ? AND active = 1'
+  ).get(tenantId, code);
+  if (!coupon) throw httpError(400, 'Discount code is not valid');
+  const raw = coupon.kind === 'percent' ? subtotal * (Number(coupon.value) / 100) : Number(coupon.value);
+  const discount = Math.min(subtotal, money(raw));
+  return { subtotal, discount, total: money(subtotal - discount), couponCode: code };
+}
+
 function mapOrder(order) {
   const items = db
     .prepare('SELECT * FROM order_items WHERE order_id = ?')
@@ -31,13 +72,20 @@ function mapOrder(order) {
 router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), async (req, res) => {
   try {
     const { items } = req.body;
+    const paymentMethod = req.body?.paymentMethod || 'upi';
+    if (!PAYMENT_METHODS[paymentMethod]) {
+      return res.status(400).json({ message: 'Choose UPI QR, cash on delivery, or card or cash at the counter' });
+    }
+    if (paymentMethod === 'upi' && tenantModules(req.user.tenant_id).qrCheckout === false) {
+      return res.status(400).json({ message: 'UPI QR checkout is not enabled for this store' });
+    }
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
     const buyer = db.prepare('SELECT * FROM users WHERE id = ? AND tenant_id = ?').get(req.user.id, req.user.tenant_id);
     const lineItems = [];
-    let total = 0;
+    let subtotal = 0;
 
     for (const item of items) {
       const medicine = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?').get(item.medicineId, req.user.tenant_id);
@@ -45,36 +93,36 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
         return res.status(400).json({ message: `Medicine not found: ${item.medicineId}` });
       }
       const qty = Number(item.quantity);
-      if (!qty || qty < 1) {
+      if (!Number.isInteger(qty) || qty < 1) {
         return res.status(400).json({ message: 'Invalid quantity' });
       }
-      if (medicine.stock < qty) {
-        return res.status(400).json({
-          message: `Insufficient stock for ${medicine.name}. Available: ${medicine.stock}`,
-        });
-      }
       const unit = unitPrice(medicine, buyer);
-      const lineTotal = unit * qty;
-      total += lineTotal;
-      lineItems.push({ medicine, qty, unit, lineTotal });
+      subtotal += unit * qty;
+      lineItems.push({ medicine, qty, unit });
     }
 
+    const quote = priceQuote(req.user.tenant_id, money(subtotal), req.body?.couponCode);
     const billNumber = generateBillNumber();
-    const qrPayload = JSON.stringify({
-      billNumber,
-      total,
-      userId: req.user.id,
-      itemCount: lineItems.length,
-    });
-    const qrCode = await QRCode.toDataURL(qrPayload, { width: 280, margin: 2 });
+    const qrCode = paymentMethod === 'upi'
+      ? await QRCode.toDataURL(JSON.stringify({
+          billNumber,
+          total: quote.total,
+          method: paymentMethod,
+          itemCount: lineItems.length,
+        }), { width: 280, margin: 2 })
+      : '';
 
     const createOrder = db.transaction(() => {
       const result = db
         .prepare(
-          `INSERT INTO orders (user_id, bill_number, total, status, qr_code, tenant_id)
-           VALUES (?, ?, ?, 'pending', ?, ?)`
+          `INSERT INTO orders
+           (user_id, bill_number, total, status, qr_code, tenant_id, payment_method, coupon_code, discount, subtotal)
+           VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`
         )
-        .run(req.user.id, billNumber, total, qrCode, req.user.tenant_id);
+        .run(
+          req.user.id, billNumber, quote.total, qrCode, req.user.tenant_id,
+          paymentMethod, quote.couponCode, quote.discount, quote.subtotal
+        );
 
       const orderId = result.lastInsertRowid;
       const insertItem = db.prepare(
@@ -82,9 +130,15 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
          (order_id, medicine_id, medicine_name, medicine_image, quantity, price)
          VALUES (?, ?, ?, ?, ?, ?)`
       );
-      const reduceStock = db.prepare('UPDATE medicines SET stock = stock - ? WHERE id = ? AND tenant_id = ?');
+      const reduceStock = db.prepare(
+        'UPDATE medicines SET stock = stock - ? WHERE id = ? AND tenant_id = ? AND stock >= ?'
+      );
 
       for (const line of lineItems) {
+        const changed = reduceStock.run(line.qty, line.medicine.id, req.user.tenant_id, line.qty);
+        if (changed.changes !== 1) {
+          throw httpError(400, `Insufficient stock for ${line.medicine.name}`);
+        }
         insertItem.run(
           orderId,
           line.medicine.id,
@@ -93,7 +147,6 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
           line.qty,
           line.unit
         );
-        reduceStock.run(line.qty, line.medicine.id, req.user.tenant_id);
       }
       return orderId;
     });
@@ -102,9 +155,54 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
     const order = mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId));
     res.status(201).json(order);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Checkout failed' });
+    const status = err.status || 500;
+    if (status >= 500) logger.error('order request failed', { message: err.message });
+    res.status(status).json({ message: status >= 500 ? 'Checkout failed' : err.message });
   }
+});
+
+router.get('/coupons', authenticate, requireAdmin, (req, res) => {
+  const enabled = Boolean(tenantModules(req.user.tenant_id).coupons);
+  const coupons = enabled
+    ? db.prepare('SELECT id, code, kind, value, active FROM coupons WHERE tenant_id = ? ORDER BY code').all(req.user.tenant_id)
+    : [];
+  res.json({ enabled, coupons });
+});
+
+router.post('/coupons', authenticate, requireAdmin, (req, res) => {
+  if (!tenantModules(req.user.tenant_id).coupons) {
+    return res.status(403).json({ message: 'Turn on Coupons for this customer before adding a discount code' });
+  }
+  const code = String(req.body?.code || '').trim().toUpperCase();
+  const kind = req.body?.kind === 'amount' ? 'amount' : 'percent';
+  const value = Number(req.body?.value);
+  if (!/^[A-Z0-9-]{3,20}$/.test(code)) {
+    return res.status(400).json({ message: 'Use 3–20 letters or numbers for the discount code' });
+  }
+  if (kind === 'percent' && (!value || value < 1 || value > 100)) {
+    return res.status(400).json({ message: 'Percent discount must be between 1 and 100' });
+  }
+  if (kind === 'amount' && (!value || value <= 0)) {
+    return res.status(400).json({ message: 'Amount discount must be greater than 0' });
+  }
+  try {
+    const result = db.prepare(
+      'INSERT INTO coupons (tenant_id, code, kind, value) VALUES (?, ?, ?, ?)'
+    ).run(req.user.tenant_id, code, kind, value);
+    res.status(201).json(db.prepare('SELECT id, code, kind, value, active FROM coupons WHERE id = ?').get(result.lastInsertRowid));
+  } catch (err) {
+    if (String(err.message).includes('UNIQUE')) {
+      return res.status(409).json({ message: 'That discount code already exists' });
+    }
+    logger.error('coupon create failed', { message: err.message });
+    res.status(500).json({ message: 'Could not save discount code' });
+  }
+});
+
+router.delete('/coupons/:id', authenticate, requireAdmin, (req, res) => {
+  const result = db.prepare('DELETE FROM coupons WHERE id = ? AND tenant_id = ?').run(req.params.id, req.user.tenant_id);
+  if (!result.changes) return res.status(404).json({ message: 'Discount code not found' });
+  res.json({ message: 'Discount code removed' });
 });
 
 router.get('/my', authenticate, (req, res) => {
@@ -174,6 +272,16 @@ router.patch('/:id/reject', authenticate, requireAdmin, (req, res) => {
     });
   }
   restoreStockAndSetStatus(order, 'rejected');
+  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+});
+
+router.patch('/:id/cancel-own', authenticate, (req, res) => {
+  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  if (!order || order.user_id !== req.user.id) return res.status(404).json({ message: 'Order not found' });
+  if (order.status !== 'pending') {
+    return res.status(400).json({ message: 'Only a pending order can be cancelled, before it is approved' });
+  }
+  restoreStockAndSetStatus(order, 'cancelled');
   res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
 });
 
@@ -281,7 +389,7 @@ router.patch('/:id/status', authenticate, requireAdmin, (req, res) => {
     apply();
     res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
   } catch (err) {
-    console.error(err);
+    logger.error('order request failed', { message: err.message });
     res.status(400).json({ message: err.message || 'Failed to update status' });
   }
 });

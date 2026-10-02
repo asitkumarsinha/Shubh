@@ -40,6 +40,8 @@ export interface Tenant {
   payment_status: 'trial' | 'paid' | 'overdue' | 'cancelled';
   contact_name: string;
   contact_email: string;
+  admin_name: string;
+  admin_email: string;
   contact_phone: string;
   gst_number: string;
   address: string;
@@ -73,9 +75,21 @@ export interface AdminUserDetail extends User {
   notes: string;
 }
 
+export interface PageResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
 export interface AdminUsersResponse {
   users: AdminUserDetail[];
   topUsers: AdminUserDetail[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
   summary: {
     totalUsers: number;
     totalAdmins: number;
@@ -181,6 +195,10 @@ export interface Order {
   bill_number: string;
   po_number: string | null;
   total: number;
+  subtotal?: number | null;
+  discount?: number;
+  coupon_code?: string | null;
+  payment_method?: 'upi' | 'cod' | 'counter';
   status: 'pending' | 'approved' | 'cancelled' | 'rejected' | 'dispatched';
   qr_code: string;
   created_at: string;

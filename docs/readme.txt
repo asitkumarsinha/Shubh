@@ -239,3 +239,63 @@ Typical sale flow:
 Custom domain is stored on the customer record. Pointing `acme-medical.yourapp.com` or `shop.customer.com` at this app still needs hosting/DNS setup; it is not automatic on localhost.
 
 shiva@gmail.com
+
+------------------------------
+In main page 'http://localhost:4200/login' change the name of website
+ name replace with My Store Hub
+Slogan - Your Trusted Partner in Health and Wellness. 
+replace with 'Your name, your products, your customers.'
+Add logo 'MyStoreHib.jfif' also apply theme for this page as per logo
+
+In main page 'http://localhost:4200/login' near login button, logo is not visiable proper fix this
+Also add some animation in logo above slogan
+Slogan should be present in better way
+catalogue and Login button showing proper fix it
+Catalogue button display after login button
+
+
+In catalogue Replace 'Medicines' word with 'Cutsomer Products'
+remove card 'Trusted medical supply'
+, 'Trusted medical supply', logo, 'Your name, your products, your customers.'
+change some products name 
+
+In main page 'http://localhost:4200/login'
+remove 'Register' button from 
+fix some layout in main page that look proper to users
+page and button  should be responsive
+
+when login as 'asitkumarsinha@gmail.com'
+logo and name should be same as login page
+
+Also when i select 'Customer customization' and selected 'Shubh Surgical' Theme colour is white but this is not 
+reflecting, fix it. when we customize the Theme / Heading font / QR Code / Website logo / Login Initial / Website slogan / Website title / 
+as per Customer. when login as per Login Initial then all field pick the value and customise the website for particular customer
+
+
+In Help Center PDF, update name 
+'Shubh Surgical' to 'My Store Hub'
+also update the document as per current User interface.
+
+In Browser title - showing 'My Store Hub | Online Medicine Store'
+replace with 'My Store Hub'
+and heart icon replace with 'My Store Hub' icon
+
+In main page 'http://localhost:4200/login' Hide remove 'New customer? Create an account'
+
+In http://localhost:4200/admin/medicines page, update 'medicines' name with 'Products'  every where
+also check the layout of the page and should be responsive , fix it
+
+
+In http://localhost:4200/tenants url
+add Email in Customer businesses for all customers
+customer can login with Email and password as admin
+
+In http://localhost:4200/tenants url
+add option to delete customer after confirmation
+
+perform Unit testing of this website.
+this website is for multi-tenant
+when login from 'asitkumarsinh@gmail.com' as super admin
+super admin can create customer, based of 'Initial login', website will customize
+admin can create clients and employee
+all customer work as multi-tenant

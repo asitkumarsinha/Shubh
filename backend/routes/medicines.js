@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate, requireAdmin, requireTenantLimit, optionalUser } = require('../middleware/auth');
 const { decorateMedicine } = require('../pricing');
+const { pageQuery, pagePayload } = require('../paging');
+const { imageFileFilter, safeImageExt } = require('../uploads');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -13,30 +15,27 @@ const uploadDir = path.join(__dirname, '..', 'uploads');
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    cb(null, `${uuidv4()}${ext}`);
+    cb(null, `${uuidv4()}${safeImageExt(file.originalname)}`);
   },
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'));
-    }
-    cb(null, true);
-  },
+  fileFilter: imageFileFilter,
 });
 
 router.get('/', (req, res) => {
   const user = optionalUser(req);
   const tenantId = user?.tenant_id || 1;
+  const { page, limit, offset, q, like } = pageQuery(req, 12);
+  const where = `tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)`;
+  const total = db.prepare(`SELECT COUNT(*) AS count FROM medicines WHERE ${where}`).get(tenantId, q, like, like).count;
   const medicines = db
-    .prepare('SELECT * FROM medicines WHERE tenant_id = ? ORDER BY created_at DESC')
-    .all(tenantId)
+    .prepare(`SELECT * FROM medicines WHERE ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`)
+    .all(tenantId, q, like, like, limit, offset)
     .map((m) => decorateMedicine(m, user));
-  res.json(medicines);
+  res.json(pagePayload(medicines, total, page, limit));
 });
 
 router.get('/:id', (req, res) => {

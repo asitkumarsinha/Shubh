@@ -1,9 +1,12 @@
 require('dotenv').config();
+const logger = require('./logger');
+const { scheduleBackups } = require('./backup');
+const { securityHeaders } = require('./security');
+const { JWT_SECRET } = require('./middleware/auth');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-require('./db');
 
 const authRoutes = require('./routes/auth');
 const medicineRoutes = require('./routes/medicines');
@@ -15,14 +18,31 @@ const dashboardRoutes = require('./routes/dashboard');
 const settingsRoutes = require('./routes/settings');
 const tenantRoutes = require('./routes/tenants');
 const publicRoutes = require('./routes/public');
+const db = require('./db');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4200,http://127.0.0.1:4200')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(securityHeaders);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+}));
+app.use(express.json({ limit: '1mb' }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders(res) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+  },
+}));
 
 app.get('/api/health', (_req, res) =>
   res.json({ ok: true, service: 'Shubh Surgical API', hasFrontend: Boolean(resolveDistPath()) })
@@ -80,15 +100,28 @@ if (distPath) {
 }
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ message: err.message || 'Server error' });
+  const status = Number(err.status) || 500;
+  logger.error('request failed', { message: err.message, status });
+  res.status(status >= 400 && status < 600 ? status : 500).json({
+    message: status >= 500 ? 'Server error' : err.message || 'Request failed',
+  });
 });
 
-app.listen(PORT, HOST, () => {
-  console.log(`Shubh Surgical listening on http://${HOST}:${PORT}`);
-  if (distPath) console.log(`Serving frontend from ${distPath}`);
-  else console.warn('WARNING: frontend build missing — site will show 404 until you run the full build + copy-frontend step');
-  console.log('Default admin: admin@shubhsurgical.com / admin123');
-  console.log('Default user:  user@shubhsurgical.com / user123');
-  console.log('Super admin:   asitkumarsinha@gmail.com');
-});
+if (require.main === module) {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'medishop-secret-key-2026') {
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('JWT_SECRET must be set to a private value');
+      process.exit(1);
+    }
+    logger.warn('JWT_SECRET is still the default. Set a private value before hosting.');
+  } else if (JWT_SECRET.length < 16) {
+    logger.warn('JWT_SECRET is very short');
+  }
+  scheduleBackups(db);
+  app.listen(PORT, HOST, () => {
+    logger.info('API listening', { host: HOST, port: PORT, frontend: Boolean(distPath) });
+    if (!distPath) logger.warn('frontend build missing');
+  });
+}
+
+module.exports = app;

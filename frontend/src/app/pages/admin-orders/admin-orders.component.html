@@ -18,7 +18,14 @@
   </div>
 
   @if (loading) {
-    <p class="muted">Loading orders…</p>
+    <div class="skeleton-list" aria-label="Loading orders">
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+    </div>
+  } @else if (orders.length === 0) {
+    <div class="empty-state glass-card">
+      <p>No orders in this view.</p>
+    </div>
   } @else {
     <div class="table-wrap">
       <table>
@@ -27,6 +34,7 @@
             <th>Bill</th>
             <th>User</th>
             <th>Total</th>
+            <th>Payment</th>
             <th>Status</th>
             <th>Action</th>
             <th>PO</th>
@@ -42,6 +50,7 @@
                 <small>{{ o.user?.email }}</small>
               </td>
               <td>₹{{ o.total | number: '1.2-2' }}</td>
+              <td>{{ paymentLabel(o.payment_method) }}</td>
               <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
               <td>
                 <select
@@ -65,4 +74,28 @@
       </table>
     </div>
   }
+
+  <section class="coupon-panel">
+    <h2>Discount codes</h2>
+    @if (!couponsEnabled) {
+      <p class="muted">Coupons are turned off for this store. A Super Admin can enable them on the customer.</p>
+    } @else {
+      <form class="coupon-form" (ngSubmit)="addCoupon()">
+        <input [(ngModel)]="couponCode" name="couponCode" placeholder="SAVE10" maxlength="20" />
+        <select [(ngModel)]="couponKind" name="couponKind">
+          <option value="percent">Percent</option>
+          <option value="amount">Amount off</option>
+        </select>
+        <input type="number" min="1" [(ngModel)]="couponValue" name="couponValue" />
+        <button class="btn primary" type="submit">Add code</button>
+      </form>
+      @for (coupon of coupons; track coupon.id) {
+        <p class="coupon-row">
+          <strong>{{ coupon.code }}</strong>
+          {{ coupon.kind === 'percent' ? coupon.value + '% off' : '₹' + coupon.value + ' off' }}
+          <button class="btn ghost" type="button" (click)="removeCoupon(coupon.id)">Remove</button>
+        </p>
+      }
+    }
+  </section>
 </section>

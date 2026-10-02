@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../core/employee.service';
 import { Employee } from '../../core/models';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
+import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-admin-employees',
@@ -29,7 +30,11 @@ export class AdminEmployeesComponent implements OnInit {
   savePhase: SavePhase = 'idle';
   readonly saveButtonLabel = saveButtonLabel;
 
-  constructor(private employeeService: EmployeeService, private toast: ToastService) {}
+  constructor(
+    private employeeService: EmployeeService,
+    private toast: ToastService,
+    private dialog: DialogService
+  ) {}
 
   ngOnInit(): void {
     this.reload();
@@ -128,8 +133,9 @@ export class AdminEmployeesComponent implements OnInit {
     });
   }
 
-  remove(emp: Employee): void {
-    if (!confirm(`Remove employee ${emp.name}?`)) return;
+  async remove(emp: Employee): Promise<void> {
+    const confirmed = await this.dialog.confirm(`Remove ${emp.name}? This cannot be undone.`, 'Remove employee');
+    if (!confirmed) return;
     this.toast.beginSave();
     this.employeeService.remove(emp.id).subscribe({
       next: () => {

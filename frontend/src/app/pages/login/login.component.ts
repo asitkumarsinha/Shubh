@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
 import { SettingsService } from '../../core/settings.service';
@@ -11,11 +11,11 @@ import { PublicCtaComponent } from '../../shared/public-cta/public-cta.component
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent],
+  imports: [CommonModule, FormsModule, PublicCtaComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   email = '';
   password = '';
   error = '';
@@ -27,6 +27,14 @@ export class LoginComponent {
     private router: Router,
     public settings: SettingsService
   ) {}
+
+  ngOnInit(): void {
+    document.documentElement.classList.add('hub-login');
+  }
+
+  ngOnDestroy(): void {
+    document.documentElement.classList.remove('hub-login');
+  }
 
   submit(): void {
     this.error = '';

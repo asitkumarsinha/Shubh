@@ -21,6 +21,11 @@ export class AdminOrdersComponent implements OnInit {
   error = '';
   loading = true;
   updatingId: number | null = null;
+  couponsEnabled = false;
+  coupons: Array<{ id: number; code: string; kind: 'percent' | 'amount'; value: number }> = [];
+  couponCode = '';
+  couponKind: 'percent' | 'amount' = 'percent';
+  couponValue = 10;
 
   readonly actionOptions: Array<{ value: ActionStatus; label: string }> = [
     { value: 'pending', label: 'Pending' },
@@ -33,6 +38,40 @@ export class AdminOrdersComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+    this.loadCoupons();
+  }
+
+  paymentLabel(method: Order['payment_method']): string {
+    if (method === 'cod') return 'Cash on delivery';
+    if (method === 'counter') return 'Pay at counter';
+    return 'UPI QR';
+  }
+
+  loadCoupons(): void {
+    this.orderService.coupons().subscribe({
+      next: (result) => {
+        this.couponsEnabled = result.enabled;
+        this.coupons = result.coupons;
+      },
+    });
+  }
+
+  addCoupon(): void {
+    this.orderService.createCoupon(this.couponCode.trim(), this.couponKind, Number(this.couponValue)).subscribe({
+      next: () => {
+        this.couponCode = '';
+        this.toast.success('Discount code saved');
+        this.loadCoupons();
+      },
+      error: (err) => this.toast.error(err.error?.message || 'Could not save discount code'),
+    });
+  }
+
+  removeCoupon(id: number): void {
+    this.orderService.deleteCoupon(id).subscribe({
+      next: () => this.loadCoupons(),
+      error: (err) => this.toast.error(err.error?.message || 'Could not remove discount code'),
+    });
   }
 
   reload(status = this.filter): void {
