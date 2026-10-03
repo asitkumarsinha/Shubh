@@ -6,11 +6,12 @@ import { ToastService } from '../../core/toast.service';
 import { Tenant } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { PublicSiteService } from '../../core/public-site.service';
+import { SuperAdminShellComponent } from '../../shared/super-admin-shell/super-admin-shell.component';
 
 @Component({
   selector: 'app-super-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SuperAdminShellComponent],
   templateUrl: './super-admin-settings.component.html',
   styleUrl: './super-admin-settings.component.scss',
 })

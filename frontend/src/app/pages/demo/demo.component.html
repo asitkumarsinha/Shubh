@@ -1,46 +1,80 @@
-<section class="page demo-page">
-  <header class="page-head">
-    <div>
-      <p class="eyebrow">Product demo</p>
-      <h1>My Store Hub</h1>
-      <p>A ready medicine-store website you can sell to pharmacies and surgical shops. Try the catalogue, then send feedback.</p>
-    </div>
-    <div class="head-actions">
-      <a routerLink="/login" class="btn ghost">Sign in</a>
-    </div>
-  </header>
+<section class="demo-screen">
+  <div class="demo-card-shell">
+    <header class="demo-topbar">
+      <app-language-switcher variant="light" />
 
-  <div class="feature-grid">
-    <article class="panel">
-      <h2>Shop and checkout</h2>
-      <ul>
-        <li>Public catalogue with stock and pack images</li>
-        <li>Cart, bill, and Checkout QR payment</li>
-        <li>My Orders with pending, approved, dispatched, rejected</li>
-        <li>Retail or wholesale prices after the store assigns a group</li>
-      </ul>
-    </article>
-    <article class="panel">
-      <h2>Store administration</h2>
-      <ul>
-        <li>Dashboard for today’s orders, revenue, and low stock</li>
-        <li>Upload and edit medicines with retail/wholesale price</li>
-        <li>Approve bills, generate PO, then dispatch</li>
-        <li>Add clients, block/allow login, notes, and CSV export</li>
-        <li>Employee add, view, update, remove</li>
-        <li>Sales reports and email report</li>
-      </ul>
-    </article>
-    <article class="panel">
-      <h2>Super Admin platform</h2>
-      <ul>
-        <li>Create isolated customer businesses (tenants)</li>
-        <li>Per-customer title, slogan, logo, QR, and theme</li>
-        <li>Login Initial such as {{ '@shubhsurgical' }} to load that store’s look</li>
-        <li>Plans, modules, backups, and website hit count</li>
-      </ul>
-    </article>
+      <div class="topbar-actions">
+        <a routerLink="/login" class="action-chip">
+          <span class="icon-circle">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
+        </a>
+        <span class="chip-divider" aria-hidden="true"></span>
+        <a routerLink="/shoppingmall" class="action-chip highlight">
+          <span class="icon-circle bag">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="demo-body">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Product demo</p>
+          <h1>My Store Hub</h1>
+          <p>A ready medicine-store website you can sell to pharmacies and surgical shops. Try the catalogue, then send feedback.</p>
+        </div>
+        <div class="head-actions">
+          <a routerLink="/login" class="btn ghost">Sign in</a>
+        </div>
+      </header>
+
+      <div class="feature-grid">
+        <article class="panel">
+          <h2>Shop and checkout</h2>
+          <ul>
+            <li>Public catalogue with stock and pack images</li>
+            <li>Cart, bill, and Checkout QR payment</li>
+            <li>My Orders with pending, approved, dispatched, rejected</li>
+            <li>Retail or wholesale prices after the store assigns a group</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Store administration</h2>
+          <ul>
+            <li>Dashboard for today’s orders, revenue, and low stock</li>
+            <li>Upload and edit medicines with retail/wholesale price</li>
+            <li>Approve bills, generate PO, then dispatch</li>
+            <li>Add clients, block/allow login, notes, and CSV export</li>
+            <li>Employee add, view, update, remove</li>
+            <li>Sales reports and email report</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Super Admin platform</h2>
+          <ul>
+            <li>Create isolated customer businesses (tenants)</li>
+            <li>Per-customer title, slogan, logo, QR, and theme</li>
+            <li>Login Initial such as {{ '@shubhsurgical' }} to load that store’s look</li>
+            <li>Plans, modules, backups, and website hit count</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="muted trail">Open <a routerLink="/shoppingmall">Catalogue</a> to browse sample stock, or <a routerLink="/register">Register</a> to place a demo order.</p>
+    </div>
+
+    <footer class="demo-footer">
+      {{ 'login.footer' | t: { title: settings.current().title } }}
+    </footer>
   </div>
-
-  <p class="muted trail">Open <a routerLink="/medicines">Catalogue</a> to browse sample stock, or <a routerLink="/register">Register</a> to place a demo order.</p>
 </section>

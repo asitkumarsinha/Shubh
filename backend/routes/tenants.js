@@ -51,6 +51,19 @@ function safeSlug(value) {
     .replace(/^-|-$/g, '');
 }
 
+router.get('/directory', (_req, res) => {
+  const stores = db
+    .prepare(
+      `SELECT t.id, t.name, t.contact_name, t.contact_email, t.contact_phone,
+              (SELECT COUNT(*) FROM orders WHERE tenant_id = t.id) AS orderCount
+       FROM tenants t
+       WHERE t.status != 'archived'
+       ORDER BY t.name COLLATE NOCASE`
+    )
+    .all();
+  res.json(stores);
+});
+
 router.use(authenticate, requireSuperAdmin);
 
 router.get('/', (_req, res) => {

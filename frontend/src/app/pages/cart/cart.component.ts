@@ -6,11 +6,12 @@ import { CartService } from '../../core/cart.service';
 import { OrderService } from '../../core/order.service';
 import { AuthService } from '../../core/auth.service';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss',
 })

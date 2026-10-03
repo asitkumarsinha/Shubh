@@ -45,11 +45,156 @@ html, body {
   background-attachment: fixed;
 }
 
-html.hub-login body {
-  background:
-    radial-gradient(ellipse at 78% 12%, rgba(56, 189, 248, 0.32), transparent 34%),
-    radial-gradient(ellipse at 12% 88%, rgba(14, 116, 144, 0.2), transparent 42%),
-    linear-gradient(165deg, #163044 0%, #0c1824 46%, #070d14 100%);
+html.hub-login body,
+html.hub-mall body,
+html.hub-admin body {
+  background: linear-gradient(165deg, #e9ecef 0%, #dfe3e8 100%);
+  background-attachment: fixed;
+}
+
+/* Admin desk shares the light Customer screen colours. */
+html.hub-admin {
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d1d5db;
+  --line-soft: #e5e7eb;
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-border: #e5e7eb;
+  --paper: #ffffff;
+  --surface: #ffffff;
+}
+
+html.hub-admin .desk-content :is(h1, h2, h3, h4, p, label, li, strong, td, th, em) {
+  color: #1f2937 !important;
+}
+
+html.hub-admin .desk-content :is(.muted, .note, .page-head p, .stat span, .stat em) {
+  color: #6b7280 !important;
+}
+
+html.hub-admin .desk-content :is(.glass-card, .panel, .stat, .stats > div, .table-wrap) {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+html.hub-admin .desk-content :is(input, textarea, select) {
+  color: #111827 !important;
+  background: #fff !important;
+  border-color: #d1d5db !important;
+}
+
+html.hub-admin .desk-content input::placeholder,
+html.hub-admin .desk-content textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+html.hub-admin .desk-content .btn.primary {
+  background: #fff !important;
+  color: #1e3a5f !important;
+  border: 1px solid #1e3a5f !important;
+}
+
+html.hub-admin .desk-content .btn.ghost {
+  background: #fff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+html.hub-admin .desk-content .btn.danger {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+
+html.hub-admin .desk-content .badge {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+
+html.hub-admin .desk-content .badge[data-status='pending'] { color: #92400e !important; background: #fef3c7 !important; }
+html.hub-admin .desk-content .badge[data-status='approved'] { color: #1d4ed8 !important; background: #dbeafe !important; }
+html.hub-admin .desk-content .badge[data-status='dispatched'] { color: #047857 !important; background: #d1fae5 !important; }
+html.hub-admin .desk-content .badge[data-status='rejected'],
+html.hub-admin .desk-content .badge[data-status='cancelled'] { color: #b91c1c !important; background: #fee2e2 !important; }
+
+html.hub-admin .desk-content .toast {
+  background: #fff !important;
+  color: #1f2937 !important;
+}
+
+html.hub-admin .desk-content .toast.bad {
+  color: #b91c1c !important;
+  background: #fef2f2 !important;
+}
+
+/* Super Admin pages share the login card; keep their forms readable on white. */
+html.hub-login .hub-page {
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #d1d5db;
+  --line-soft: #e5e7eb;
+  --glass: #f8fafc;
+  --glass-border: #e5e7eb;
+}
+
+html.hub-login .hub-page > .page {
+  padding: 0;
+}
+
+html.hub-login .hub-page :is(h1, h2, h3, h4, p, label, li, strong, td, th, em, summary) {
+  color: #1f2937 !important;
+}
+
+html.hub-login .hub-page :is(.muted, .hint, .page-head p, .hit-card span, .preview-slogan, .usage span, .theme-swatch) {
+  color: #6b7280 !important;
+}
+
+html.hub-login .hub-page :is(.panel, .hit-card, .table-wrap, .tenant-card) {
+  background: #f8fafc !important;
+  border-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+html.hub-login .hub-page :is(input, textarea, select) {
+  color: #111827 !important;
+  background: #fff !important;
+  border-color: #d1d5db !important;
+}
+
+html.hub-login .hub-page .btn.primary {
+  background: #fff !important;
+  color: #1e3a5f !important;
+  border: 1px solid #1e3a5f !important;
+}
+
+html.hub-login .hub-page .btn.ghost {
+  background: #fff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+html.hub-login .hub-page .btn.danger {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+
+html.hub-login .hub-page .toast {
+  background: #fff !important;
+  color: #1f2937 !important;
+}
+
+html.hub-login .hub-page .toast.bad,
+html.hub-login .hub-page .contrast-warning {
+  color: #b91c1c !important;
+}
+
+html.hub-login .hub-page a {
+  color: #0f766e;
 }
 
 h1, h2, h3 {

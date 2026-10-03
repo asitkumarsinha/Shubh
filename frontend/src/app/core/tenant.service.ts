@@ -12,6 +12,20 @@ export class TenantService {
     return this.http.get<Tenant[]>(this.api);
   }
 
+  /** Public names of the customer businesses shown on the tenants page. */
+  directory() {
+    return this.http.get<
+      Array<{
+        id: number;
+        name: string;
+        contact_name: string;
+        contact_email: string;
+        contact_phone: string;
+        orderCount: number;
+      }>
+    >(`${this.api}/directory`);
+  }
+
   create(data: Record<string, unknown>) {
     return this.http.post<Tenant>(this.api, data);
   }

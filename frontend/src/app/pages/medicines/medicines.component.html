@@ -1,66 +1,191 @@
-<section class="page">
-  <header class="page-head catalogue-head">
-    <div>
-      <p class="eyebrow">Catalogue</p>
-      <h2>Customer Products</h2>
-      <p>Verified stock, clear pricing — select items for your cart.</p>
-    </div>
-  </header>
+<section class="mall-screen">
+  <div class="mall-shell">
+    <header class="mall-topbar">
+      <app-language-switcher variant="light" />
 
-  <label class="list-tools">
-    Search products
-    <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" placeholder="Name or description" />
-  </label>
+      <div class="topbar-actions">
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin/customers_tenats" class="action-chip">
+            <span class="icon-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ 'nav.dashboard' | t }}</span>
+          </a>
+          <span class="chip-divider" aria-hidden="true"></span>
+        } @else if (auth.isLoggedIn() && !auth.isSuperAdmin()) {
+          <a routerLink="/orders" class="action-chip">
+            <span class="icon-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M7 4h10l2 3v13H5V7l2-3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M9 11h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ 'nav.myOrders' | t }}</span>
+          </a>
+          <span class="chip-divider" aria-hidden="true"></span>
+        }
 
-  @if (error) {
-    <div class="toast bad">{{ error }}</div>
-  }
+        @if (auth.isLoggedIn()) {
+          <button type="button" class="action-chip" (click)="logout()">
+            <span class="icon-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ 'mall.logout' | t }}</span>
+          </button>
+        } @else {
+          <a routerLink="/login" class="action-chip">
+            <span class="icon-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ 'login.userLogin' | t }}</span>
+          </a>
+        }
 
-  @if (loading) {
-    <div class="skeleton-list" aria-label="Loading catalogue">
-      <span class="skeleton"></span>
-      <span class="skeleton"></span>
-      <span class="skeleton short"></span>
-    </div>
-  } @else {
-    @if (medicines.length === 0) {
-      <div class="empty-state glass-card">
-        <p>{{ query.trim() ? 'No products match this search.' : 'No products have been added yet.' }}</p>
+        <span class="chip-divider" aria-hidden="true"></span>
+        <button type="button" class="action-chip highlight" (click)="openMall()">
+          <span class="icon-circle bag">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+            @if (cart.count() > 0) {
+              <span class="bag-count">{{ cart.count() }}</span>
+            }
+          </span>
+          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+        </button>
       </div>
-    }
-    <div class="medicine-grid">
-      @for (m of medicines; track m.id) {
-        <article class="medicine-item glass-card">
-          <div class="thumb">
-            <img [src]="imageUrl(m)" [alt]="m.name" />
-            <span class="rx-tag">Rx</span>
+    </header>
+
+    <div class="mall-body">
+      <aside class="mall-people">
+        <div class="people-grid">
+          <div class="logo-cell">
+            <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
           </div>
-          <div class="body">
-            <h3>{{ m.name }}</h3>
-            <p>{{ m.description }}</p>
-            <div class="meta">
-              <strong>₹{{ m.price | number: '1.2-2' }}</strong>
-              @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
-                <s class="list-price">₹{{ m.listPrice | number: '1.2-2' }}</s>
-                <span class="soft-pill">Wholesale</span>
-              }
-              <span class="soft-pill" [class.low]="m.stock < 5">Stock {{ m.stock }}</span>
+
+          <div class="current-cell">
+            <div class="current-head">
+              <h2>{{ 'mall.currentCustomer' | t }}</h2>
+              <p>{{ 'mall.selectHint' | t }}</p>
             </div>
-            @if (!auth.isAdmin()) {
-              <button class="btn ghost" [disabled]="m.stock < 1" (click)="addToCart(m)">
-                {{ m.stock < 1 ? 'Out of stock' : 'Add to cart' }}
-              </button>
+            @if (selected; as c) {
+              <ng-container *ngTemplateOutlet="customerCard; context: { $implicit: c, active: true }"></ng-container>
+            } @else if (customersLoading) {
+              <div class="customer-card skeleton-card"></div>
+            } @else {
+              <p class="muted-note">{{ 'mall.noCustomers' | t }}</p>
             }
           </div>
-        </article>
-      }
+
+          @for (c of otherCustomers; track c.id) {
+            <ng-container *ngTemplateOutlet="customerCard; context: { $implicit: c, active: false }"></ng-container>
+          }
+        </div>
+      </aside>
+
+      <section class="mall-products">
+        <header class="products-head">
+          @if (selected) {
+            <h2>{{ 'mall.purchasedFor' | t: { name: selected.name } }}</h2>
+          } @else {
+            <h2>{{ 'mall.shoppingMall' | t }}</h2>
+          }
+        </header>
+
+        @if (error) {
+          <div class="mall-error">{{ error }}</div>
+        }
+
+        <label class="mall-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+            <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
+          </label>
+
+          @if (loading) {
+            <div class="product-grid">
+              <div class="product-card skeleton-card"></div>
+              <div class="product-card skeleton-card"></div>
+              <div class="product-card skeleton-card"></div>
+            </div>
+          } @else if (medicines.length === 0) {
+            <div class="empty-note">
+              <p>{{ (query.trim() ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
+            </div>
+          } @else {
+            <div class="product-grid">
+              @for (m of medicines; track m.id) {
+                <article class="product-card">
+                  <div class="product-thumb">
+                    <img [src]="imageUrl(m.image)" [alt]="m.name" />
+                  </div>
+                  <div class="product-info">
+                    <h3>{{ m.name }}</h3>
+                    <span class="price">
+                      ₹{{ m.price | number: '1.2-2' }}
+                      @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
+                        <s>₹{{ m.listPrice | number: '1.2-2' }}</s>
+                      }
+                    </span>
+                    <span [class.low]="m.stock < 5">{{ 'catalogue.stock' | t: { count: m.stock } }}</span>
+                    @if (!auth.isAdmin()) {
+                      <button class="add-btn" type="button" [disabled]="m.stock < 1" (click)="addToCart(m)">
+                        {{ (m.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+            @if (pages > 1) {
+              <nav class="pager" aria-label="Product pages">
+                <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">{{ 'catalogue.previous' | t }}</button>
+                <span>{{ 'catalogue.pageInfo' | t: { page: page, pages: pages, total: total } }}</span>
+                <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">{{ 'catalogue.next' | t }}</button>
+              </nav>
+            }
+          }
+      </section>
     </div>
-    @if (pages > 1) {
-      <nav class="pager" aria-label="Product pages">
-        <button class="btn ghost" type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
-        <span>Page {{ page }} of {{ pages }} · {{ total }} products</span>
-        <button class="btn ghost" type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
-      </nav>
-    }
-  }
+
+    <footer class="mall-footer">
+      {{ 'login.footer' | t: { title: settings.current().title } }}
+    </footer>
+  </div>
 </section>
+
+<ng-template #customerCard let-c let-active="active">
+  <button type="button" class="customer-card" [class.active]="active" (click)="selectCustomer(c.id)" [attr.aria-pressed]="active">
+    <span class="avatar" [style.background]="avatarColour(c.id)" aria-hidden="true">{{ initials(c.name) }}</span>
+    <span class="customer-info">
+      <strong>{{ c.name }}</strong>
+      <span>{{ 'mall.email' | t: { value: c.email } }}</span>
+      <span>{{ 'mall.phone' | t: { value: c.phone || '—' } }}</span>
+      <span>{{ 'mall.orderCount' | t: { count: c.orderCount } }}</span>
+    </span>
+    @if (active) {
+      <span class="selected-tag">
+        {{ 'mall.selected' | t }}
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+          <rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="M7.5 12.5 10.5 15.5 16.5 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+    }
+  </button>
+</ng-template>

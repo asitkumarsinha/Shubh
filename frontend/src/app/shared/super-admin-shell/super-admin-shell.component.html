@@ -1,0 +1,63 @@
+<section class="desk-screen">
+  <div class="desk-shell">
+    <header class="desk-topbar">
+      <app-language-switcher variant="light" />
+
+      <div class="topbar-actions">
+        <a routerLink="/shoppingmall" class="action-chip highlight">
+          <span class="icon-circle bag">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+        </a>
+        <span class="chip-divider" aria-hidden="true"></span>
+        <button type="button" class="action-chip" (click)="logout()">
+          <span class="icon-circle">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'nav.logout' | t }}</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="desk-body">
+      <aside class="desk-nav">
+        @for (link of links; track link.label) {
+          <a [routerLink]="link.path" routerLinkActive="active" class="nav-link">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              @switch (link.icon) {
+                @case ('home') {
+                  <path d="M4 11.5 12 4l8 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                }
+                @case ('user-plus') {
+                  <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M3.5 18c.8-2.6 2.8-4 5.5-4s4.7 1.4 5.5 4M17 8v6M14 11h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                }
+                @case ('user') {
+                  <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M5.5 19c1-3 3.4-4.6 6.5-4.6s5.5 1.6 6.5 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                }
+              }
+            </svg>
+            <span>{{ link.label }}</span>
+          </a>
+        }
+      </aside>
+
+      <div class="desk-content hub-page">
+        <ng-content />
+      </div>
+    </div>
+
+    <footer class="desk-footer">
+      {{ 'login.footer' | t: { title: settings.current().title } }}
+    </footer>
+  </div>
+</section>

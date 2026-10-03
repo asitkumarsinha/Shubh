@@ -29,7 +29,7 @@
         <strong>₹{{ data.summary.revenue | number: '1.2-2' }}</strong>
         <em>Today ₹{{ data.summary.revenueToday | number: '1.2-2' }}</em>
       </div>
-      <a class="stat" routerLink="/admin/medicines">
+      <a class="stat" routerLink="/admin/Products">
         <span>Low stock</span>
         <strong>{{ data.summary.lowStock }}</strong>
         <em>Below {{ data.summary.lowStockThreshold }} units</em>
@@ -75,7 +75,7 @@
       <article class="panel">
         <header>
           <h3>Restock item</h3>
-          <a routerLink="/admin/medicines" class="btn ghost">Medicines</a>
+          <a routerLink="/admin/Products" class="btn ghost">Medicines</a>
         </header>
         @if (data.lowStockItems.length === 0) {
           <p class="muted">No low-stock items.</p>

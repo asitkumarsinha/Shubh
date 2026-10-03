@@ -5,11 +5,12 @@ import { OrderService } from '../../core/order.service';
 import { Order } from '../../core/models';
 import { DialogService } from '../../core/dialog.service';
 import { ToastService } from '../../core/toast.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-my-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslatePipe],
   templateUrl: './my-orders.component.html',
   styleUrl: './my-orders.component.scss',
 })

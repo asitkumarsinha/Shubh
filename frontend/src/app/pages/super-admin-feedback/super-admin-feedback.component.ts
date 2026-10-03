@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PublicSiteService, SiteFeedback } from '../../core/public-site.service';
+import { SuperAdminShellComponent } from '../../shared/super-admin-shell/super-admin-shell.component';
 
 @Component({
   selector: 'app-super-admin-feedback',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SuperAdminShellComponent],
   templateUrl: './super-admin-feedback.component.html',
   styleUrl: './super-admin-feedback.component.scss',
 })

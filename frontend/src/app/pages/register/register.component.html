@@ -3,28 +3,28 @@
     <div class="orb">
       <img class="auth-logo" src="assets/shubh-surgical-logo.svg" alt="" width="88" height="88" />
     </div>
-    <h1>Shubh Surgical</h1>
-    <p class="slogan">Your Trusted Partner in Health and Wellness.</p>
-    <p>Open a patient account — browse the dispensary, checkout with QR, track approval.</p>
+    <h1>{{ 'register.visualTitle' | t }}</h1>
+    <p class="slogan">{{ 'register.visualSlogan' | t }}</p>
+    <p>{{ 'register.visualDesc' | t }}</p>
   </div>
 
   <form class="auth-card" (ngSubmit)="submit()">
-    <h2>Create account</h2>
-    <p class="muted">Customer registration for the digital dispensary</p>
+    <h2>{{ 'register.title' | t }}</h2>
+    <p class="muted">{{ 'register.subtitle' | t }}</p>
 
-    <label>Full name
+    <label>{{ 'register.fullName' | t }}
       <input [(ngModel)]="name" name="name" required />
     </label>
-    <label>Email
+    <label>{{ 'register.email' | t }}
       <input type="email" [(ngModel)]="email" name="email" required />
     </label>
-    <label>Password
+    <label>{{ 'register.password' | t }}
       <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
     </label>
-    <label>Phone
+    <label>{{ 'register.phone' | t }}
       <input [(ngModel)]="phone" name="phone" />
     </label>
-    <label>Address
+    <label>{{ 'register.address' | t }}
       <textarea [(ngModel)]="address" name="address" rows="2"></textarea>
     </label>
 
@@ -33,12 +33,12 @@
     }
 
     <button type="submit" class="btn primary" [disabled]="loading">
-      {{ loading ? 'Creating…' : 'Register' }}
+      {{ loading ? ('register.creating' | t) : ('register.submit' | t) }}
     </button>
 
     <p class="footer-text">
-      Already have an account?
-      <a routerLink="/login">Sign in</a>
+      {{ 'register.haveAccount' | t }}
+      <a routerLink="/login">{{ 'register.signIn' | t }}</a>
     </p>
   </form>
 </section>

@@ -27,7 +27,12 @@ const upload = multer({
 
 router.get('/', (req, res) => {
   const user = optionalUser(req);
-  const tenantId = user?.tenant_id || 1;
+  const requested = Number(req.query.tenantId);
+  const tenantExists =
+    Number.isInteger(requested) &&
+    requested > 0 &&
+    db.prepare(`SELECT id FROM tenants WHERE id = ? AND status != 'archived'`).get(requested);
+  const tenantId = tenantExists ? requested : user?.tenant_id || 1;
   const { page, limit, offset, q, like } = pageQuery(req, 12);
   const where = `tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)`;
   const total = db.prepare(`SELECT COUNT(*) AS count FROM medicines WHERE ${where}`).get(tenantId, q, like, like).count;

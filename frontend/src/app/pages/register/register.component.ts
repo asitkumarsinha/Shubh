@@ -5,11 +5,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
 import { ToastService } from '../../core/toast.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
@@ -39,7 +40,7 @@ export class RegisterComponent {
         next: () => {
           this.loading = false;
           this.toast.success('Account saved');
-          this.router.navigate(['/medicines']);
+          this.router.navigate(['/shoppingmall']);
         },
         error: (err) => {
           this.loading = false;

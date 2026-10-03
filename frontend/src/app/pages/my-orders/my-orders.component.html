@@ -1,8 +1,8 @@
 <section class="page">
   <header class="page-head">
     <div>
-      <h1>My orders</h1>
-      <p>Track bill → QR pending → approval (PO) → dispatch.</p>
+      <h1>{{ 'orders.title' | t }}</h1>
+      <p>{{ 'orders.subtitle' | t }}</p>
     </div>
   </header>
 
@@ -13,8 +13,8 @@
     </div>
   } @else if (orders.length === 0) {
     <div class="empty glass-card">
-      <p>No orders yet.</p>
-      <a routerLink="/medicines" class="btn primary">Shop medicines</a>
+      <p>{{ 'orders.none' | t }}</p>
+      <a routerLink="/shoppingmall" class="btn primary">{{ 'orders.shop' | t }}</a>
     </div>
   } @else {
     <div class="order-list">
@@ -26,7 +26,7 @@
               <h2>{{ o.bill_number }}</h2>
             </div>
             <div class="pill-row">
-              <span class="badge" [attr.data-status]="o.status">{{ o.status }}</span>
+              <span class="badge" [attr.data-status]="o.status">{{ 'status.' + o.status | t }}</span>
               @if (o.po_number) {
                 <span class="soft-pill">{{ o.po_number }}</span>
               }
@@ -39,23 +39,23 @@
                 <img [src]="imageUrl(item.medicine_image)" [alt]="item.medicine_name" />
                 <div class="info">
                   <h3>{{ item.medicine_name }}</h3>
-                  <p>₹{{ item.price | number: '1.2-2' }} · Qty {{ item.quantity }}</p>
+                  <p>₹{{ item.price | number: '1.2-2' }} · {{ 'orders.qtyCount' | t: { qty: item.quantity } }}</p>
                 </div>
-                <strong>{{ item.quantity }} units</strong>
+                <strong>{{ item.quantity }} {{ 'cart.units' | t }}</strong>
               </div>
             }
             @if (o.items.length > 2) {
-              <p class="more muted">+{{ o.items.length - 2 }} more item(s)</p>
+              <p class="more muted">{{ 'orders.more' | t: { count: o.items.length - 2 } }}</p>
             }
           </div>
 
           <div class="order-card__foot">
-            <div class="total">Total: ₹{{ o.total | number: '1.2-2' }}</div>
+            <div class="total">{{ 'orders.total' | t: { amount: o.total.toFixed(2) } }}</div>
             <div class="row-actions">
               @if (o.status === 'pending') {
-                <button class="btn danger" type="button" (click)="cancel(o)">Cancel</button>
+                <button class="btn danger" type="button" (click)="cancel(o)">{{ 'orders.cancel' | t }}</button>
               }
-              <a class="btn ghost" [routerLink]="['/orders', o.id]">View bill / QR</a>
+              <a class="btn ghost" [routerLink]="['/orders', o.id]">{{ 'orders.viewBill' | t }}</a>
             </div>
           </div>
         </article>

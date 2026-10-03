@@ -1,24 +1,24 @@
 <section class="page">
   @if (loading) {
-    <p class="muted">Loading bill…</p>
+    <p class="muted">{{ 'orderDetail.loading' | t }}</p>
   } @else if (order) {
     <header class="page-head">
       <div>
-        <p class="eyebrow">Dispensary bill</p>
-        <h1>Bill {{ order.bill_number }}</h1>
+        <p class="eyebrow">{{ 'orderDetail.eyebrow' | t }}</p>
+        <h1>{{ 'orderDetail.billTitle' | t: { number: order.bill_number } }}</h1>
         <p>
-          {{ itemCount() }} item(s) · Status
-          <span class="badge" [attr.data-status]="order.status">{{ order.status }}</span>
+          {{ 'orderDetail.itemsStatus' | t: { count: itemCount() } }}
+          <span class="badge" [attr.data-status]="order.status">{{ 'status.' + order.status | t }}</span>
         </p>
       </div>
-      <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">Back</a>
+      <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">{{ 'orderDetail.back' | t }}</a>
     </header>
 
     <ol class="pipeline" aria-label="Order pipeline">
       @for (step of pipelineSteps(); track step.key) {
         <li [class.done]="step.state === 'done'" [class.current]="step.state === 'current'" [class.failed]="step.state === 'failed'">
           <span class="dot"></span>
-          <span class="label">{{ step.label }}</span>
+          <span class="label">{{ step.label | t }}</span>
         </li>
       }
     </ol>
@@ -28,26 +28,26 @@
     <div class="bill-layout">
       <div class="bill-sheet">
         <div class="bill-meta">
-          <div><span>Customer</span><strong>{{ order.user?.name || 'You' }}</strong></div>
-          <div><span>Email</span><strong>{{ order.user?.email }}</strong></div>
-          <div><span>Date</span><strong>{{ order.created_at }}</strong></div>
-          <div><span>Payment</span><strong>{{ paymentLabel(order.payment_method) }}</strong></div>
+          <div><span>{{ 'orderDetail.customer' | t }}</span><strong>{{ order.user?.name || ('orderDetail.you' | t) }}</strong></div>
+          <div><span>{{ 'orderDetail.email' | t }}</span><strong>{{ order.user?.email }}</strong></div>
+          <div><span>{{ 'orderDetail.date' | t }}</span><strong>{{ order.created_at }}</strong></div>
+          <div><span>{{ 'orderDetail.payment' | t }}</span><strong>{{ paymentLabel(order.payment_method) | t }}</strong></div>
           @if (order.coupon_code) {
-            <div><span>Discount code</span><strong>{{ order.coupon_code }}</strong></div>
+            <div><span>{{ 'orderDetail.discountCode' | t }}</span><strong>{{ order.coupon_code }}</strong></div>
           }
           @if (order.po_number) {
-            <div><span>Purchase Order</span><strong>{{ order.po_number }}</strong></div>
+            <div><span>{{ 'orderDetail.purchaseOrder' | t }}</span><strong>{{ order.po_number }}</strong></div>
           }
         </div>
 
-        <h2 class="section-title">Selected medicines</h2>
+        <h2 class="section-title">{{ 'orderDetail.selectedMedicines' | t }}</h2>
         <div class="items">
           @for (item of order.items; track item.id) {
             <article class="item">
               <img [src]="imageUrl(item.medicine_image)" [alt]="item.medicine_name" />
               <div>
                 <h3>{{ item.medicine_name }}</h3>
-                <p>Qty {{ item.quantity }} × ₹{{ item.price | number: '1.2-2' }}</p>
+                <p>{{ 'orderDetail.qtyTimesPrice' | t: { qty: item.quantity, price: item.price.toFixed(2) } }}</p>
               </div>
               <strong>₹{{ item.quantity * item.price | number: '1.2-2' }}</strong>
             </article>
@@ -56,54 +56,54 @@
 
         @if (order.discount) {
           <div class="total-row">
-            <span>Subtotal</span>
+            <span>{{ 'orderDetail.subtotal' | t }}</span>
             <strong>₹{{ (order.subtotal ?? order.total) | number: '1.2-2' }}</strong>
           </div>
           <div class="total-row">
-            <span>Discount</span>
+            <span>{{ 'orderDetail.discount' | t }}</span>
             <strong>−₹{{ order.discount | number: '1.2-2' }}</strong>
           </div>
         }
         <div class="total-row">
-          <span>Total amount</span>
+          <span>{{ 'orderDetail.totalAmount' | t }}</span>
           <strong>₹{{ order.total | number: '1.2-2' }}</strong>
         </div>
       </div>
 
       <aside class="qr-panel">
-        <div class="stamp" aria-hidden="true">Rx</div>
+        <div class="stamp" aria-hidden="true">{{ 'orderDetail.rx' | t }}</div>
         @if (order.payment_method === 'cod' || order.payment_method === 'counter') {
-          <h2>{{ paymentLabel(order.payment_method) }}</h2>
-          <p>{{ order.payment_method === 'cod' ? 'Pay when the order is delivered or collected.' : 'Pay by card or cash at the counter. No card number is stored here.' }}</p>
+          <h2>{{ paymentLabel(order.payment_method) | t }}</h2>
+          <p>{{ (order.payment_method === 'cod' ? 'orderDetail.payCod' : 'orderDetail.payCounter') | t }}</p>
         } @else {
-          <h2>Checkout QR</h2>
-          <p>Present this QR for payment confirmation at the dispensary desk.</p>
+          <h2>{{ 'orderDetail.checkoutQr' | t }}</h2>
+          <p>{{ 'orderDetail.presentQr' | t }}</p>
           <img class="qr" [src]="settings.current().qr_code" alt="Order QR code" />
         }
-        <p class="muted small">Awaiting admin approval after payment verification.</p>
+        <p class="muted small">{{ 'orderDetail.awaitingApproval' | t }}</p>
         @if (!auth.isAdmin() && order.status === 'pending') {
-          <button class="btn danger" type="button" [disabled]="acting" (click)="cancelOwn()">Cancel order</button>
+          <button class="btn danger" type="button" [disabled]="acting" (click)="cancelOwn()">{{ 'orderDetail.cancelOrder' | t }}</button>
         }
 
         @if (auth.isAdmin()) {
           <div class="admin-actions">
             @if (order.status === 'pending') {
               <button class="btn primary" [disabled]="acting" (click)="approve()">
-                {{ actLabel || 'Approve & generate PO' }}
+                {{ actLabel || ('orderDetail.approveGeneratePo' | t) }}
               </button>
-              <button class="btn danger" [disabled]="acting" (click)="reject()">Reject order</button>
+              <button class="btn danger" [disabled]="acting" (click)="reject()">{{ 'orderDetail.rejectOrder' | t }}</button>
             }
             @if (order.status === 'approved') {
               <button class="btn primary" [disabled]="acting" (click)="dispatch()">
-                {{ actLabel || 'Mark ready to dispatch' }}
+                {{ actLabel || ('orderDetail.markDispatch' | t) }}
               </button>
-              <button class="btn danger" [disabled]="acting" (click)="cancel()">Cancel order</button>
+              <button class="btn danger" [disabled]="acting" (click)="cancel()">{{ 'orderDetail.cancelOrder' | t }}</button>
             }
           </div>
         }
       </aside>
     </div>
   } @else {
-    <div class="toast bad">{{ error || 'Order not found' }}</div>
+    <div class="toast bad">{{ error || ('orderDetail.notFound' | t) }}</div>
   }
 </section>

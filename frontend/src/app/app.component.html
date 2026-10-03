@@ -1,4 +1,5 @@
 <div class="app-shell">
+  @if (!onLoginPage()) {
   <header class="topbar">
     <a [routerLink]="auth.isSuperAdmin() ? '/settings' : auth.isAdmin() ? '/admin' : '/'" class="brand" [attr.aria-label]="settings.current().title + ' home'">
       <img class="brand-logo" [src]="settings.current().logo" alt="" width="36" height="36" />
@@ -8,31 +9,33 @@
     <nav>
       @if (auth.isLoggedIn()) {
         @if (auth.isSuperAdmin()) {
-          <a routerLink="/settings" routerLinkActive="active">Settings</a>
-          <a routerLink="/tenants" routerLinkActive="active">Customers</a>
-          <a routerLink="/feedback" routerLinkActive="active">Feedback</a>
+          <a routerLink="/settings" routerLinkActive="active">{{ 'nav.settings' | t }}</a>
+          <a routerLink="/tenants" routerLinkActive="active">{{ 'nav.customers' | t }}</a>
+          <a routerLink="/feedback" routerLinkActive="active">{{ 'nav.feedback' | t }}</a>
         } @else if (auth.isAdmin()) {
-          <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
-          <a routerLink="/admin/medicines" routerLinkActive="active">Medicines</a>
-          <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
-          <a routerLink="/admin/users" routerLinkActive="active">Clients</a>
-          <a routerLink="/admin/employees" routerLinkActive="active">Employee</a>
-          <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
+          <a routerLink="/admin/customers_tenats" routerLinkActive="active">{{ 'nav.dashboard' | t }}</a>
+          <a routerLink="/admin/Products" routerLinkActive="active">{{ 'nav.medicines' | t }}</a>
+          <a routerLink="/admin/orders" routerLinkActive="active">{{ 'nav.orders' | t }}</a>
+          <a routerLink="/admin/users" routerLinkActive="active">{{ 'nav.clients' | t }}</a>
+          <a routerLink="/admin/employees" routerLinkActive="active">{{ 'nav.employee' | t }}</a>
+          <a routerLink="/admin/reports" routerLinkActive="active">{{ 'nav.reports' | t }}</a>
         } @else {
-          <a routerLink="/medicines" routerLinkActive="active">Shop</a>
+          <a routerLink="/shoppingmall" routerLinkActive="active">{{ 'nav.shop' | t }}</a>
           <a routerLink="/cart" routerLinkActive="active">
-            Cart
+            {{ 'nav.cart' | t }}
             @if (cart.count() > 0) {
               <span class="cart-count">{{ cart.count() }}</span>
             }
           </a>
-          <a routerLink="/orders" routerLinkActive="active">My orders</a>
+          <a routerLink="/orders" routerLinkActive="active">{{ 'nav.myOrders' | t }}</a>
         }
       } @else {
-        <a routerLink="/login" routerLinkActive="active">Login</a>
-        <a routerLink="/medicines" routerLinkActive="active">Catalogue</a>
+        <a routerLink="/login" routerLinkActive="active">{{ 'nav.login' | t }}</a>
+        <a routerLink="/shoppingmall" routerLinkActive="active">{{ 'nav.catalogue' | t }}</a>
       }
     </nav>
+
+    <app-language-switcher variant="dark" />
 
     @if (auth.user(); as u) {
       <div class="user-chip">
@@ -51,19 +54,20 @@
               <path d="M9.6 9.4a2.4 2.4 0 1 1 3.7 2.02c-.7.42-1.3.9-1.3 1.78v.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
               <circle cx="12" cy="17" r="1" fill="currentColor" />
             </svg>
-            <span>Help Center</span>
+            <span>{{ 'nav.helpCenter' | t }}</span>
           </a>
         }
-        <button class="btn ghost" (click)="auth.logout()">Logout</button>
+        <button class="btn ghost" (click)="auth.logout()">{{ 'nav.logout' | t }}</button>
       </div>
-    } @else if (!onLoginPage()) {
+    } @else {
       <div class="user-chip">
-        <a routerLink="/register" class="btn primary">Register</a>
+        <a routerLink="/register" class="btn primary">{{ 'nav.register' | t }}</a>
       </div>
     }
   </header>
+  }
 
-  <main>
+  <main [class.login-main]="onLoginPage()">
     <router-outlet />
   </main>
   <app-dialog />

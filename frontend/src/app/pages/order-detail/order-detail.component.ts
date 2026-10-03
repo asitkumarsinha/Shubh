@@ -7,11 +7,12 @@ import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { SettingsService } from '../../core/settings.service';
 import { DialogService } from '../../core/dialog.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslatePipe],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss',
 })
@@ -31,10 +32,11 @@ export class OrderDetailComponent implements OnInit {
     private dialog: DialogService
   ) {}
 
+  /** Returns a translation key; templates pipe the result through `| t`. */
   paymentLabel(method: Order['payment_method']): string {
-    if (method === 'cod') return 'Cash on delivery';
-    if (method === 'counter') return 'Card or cash at counter';
-    return 'UPI QR';
+    if (method === 'cod') return 'cart.cod';
+    if (method === 'counter') return 'cart.counter';
+    return 'cart.upi';
   }
 
   async cancelOwn(): Promise<void> {
@@ -83,10 +85,10 @@ export class OrderDetailComponent implements OnInit {
     const current = rank[status] ?? 1;
 
     const keys = [
-      { key: 'bill', label: 'Bill created', at: 0 },
-      { key: 'pending', label: 'Pending / QR', at: 1 },
-      { key: 'approved', label: 'Approved · PO', at: 2 },
-      { key: 'dispatched', label: 'Dispatched', at: 3 },
+      { key: 'bill', label: 'orderDetail.step.bill', at: 0 },
+      { key: 'pending', label: 'orderDetail.step.pending', at: 1 },
+      { key: 'approved', label: 'orderDetail.step.approved', at: 2 },
+      { key: 'dispatched', label: 'orderDetail.step.dispatched', at: 3 },
     ];
 
     if (status === 'dispatched') {
@@ -97,7 +99,7 @@ export class OrderDetailComponent implements OnInit {
       if (failed && step.at === current) {
         return {
           ...step,
-          label: status === 'rejected' ? 'Rejected' : 'Cancelled',
+          label: status === 'rejected' ? 'orderDetail.step.rejected' : 'orderDetail.step.cancelled',
           state: 'failed' as const,
         };
       }

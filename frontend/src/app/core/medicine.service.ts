@@ -9,11 +9,12 @@ export class MedicineService {
 
   constructor(private http: HttpClient) {}
 
-  list(query: { q?: string; page?: number; limit?: number } = {}): Observable<PageResult<Medicine>> {
+  list(query: { q?: string; page?: number; limit?: number; tenantId?: number } = {}): Observable<PageResult<Medicine>> {
     let params = new HttpParams();
     if (query.q) params = params.set('q', query.q);
     if (query.page) params = params.set('page', query.page);
     if (query.limit) params = params.set('limit', query.limit);
+    if (query.tenantId) params = params.set('tenantId', query.tenantId);
     return this.http.get<PageResult<Medicine>>(this.api, { params });
   }
 

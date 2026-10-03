@@ -80,7 +80,7 @@ Short version:
 1. Push this project to GitHub
 2. Create a **Web Service** (Render / Railway / Azure, etc.)
 3. **Root Directory:** leave empty (repo root)
-4. **Build:** `npm install --prefix backend && npm rebuild better-sqlite3 --prefix backend && npm install --prefix frontend && npm run build`
+4. **Build:** `npm install --prefix backend && npm install --prefix frontend && npm run build`
 5. **Start:** `node backend/server.js`
 6. Open the public URL — `/api/health` should show `"hasFrontend": true`
 

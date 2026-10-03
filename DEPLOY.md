@@ -9,9 +9,13 @@ Set these exactly on Render / Railway / Azure / any Node portal:
 | Setting | Value |
 |--------|--------|
 | **Root Directory** | *(leave empty / repository root)* — do **not** set to `backend` |
-| **Build Command** | `npm install --prefix backend && npm rebuild better-sqlite3 --prefix backend && npm install --prefix frontend && npm run build` |
+| **Build Command** | `npm install --prefix backend && npm install --prefix frontend && npm run build` |
 | **Start Command** | `node backend/server.js` |
-| **Node version** | `20` (`NODE_VERSION=20`) |
+| **Node version** | `20` (`NODE_VERSION=20`, also pinned by `.node-version`) |
+
+Do not add `npm rebuild better-sqlite3`. That compiles the database library from source and fails on Render’s compiler. `npm install` uses the published binary instead.
+
+On an existing Render service, open **Settings → Build Command** and replace it with the command above, then redeploy. A Blueprint service picks this up from `render.yaml`.
 
 `npm run build` compiles Angular and copies it into `backend/public` so the API can serve the website.
 

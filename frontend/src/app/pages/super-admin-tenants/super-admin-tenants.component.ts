@@ -5,6 +5,7 @@ import { Tenant, TenantModules } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { DialogService } from '../../core/dialog.service';
+import { SuperAdminShellComponent } from '../../shared/super-admin-shell/super-admin-shell.component';
 
 const defaultModules: TenantModules = {
   wholesale: true, employees: true, reports: true, qrCheckout: true, coupons: false, prescriptions: false,
@@ -13,7 +14,7 @@ const defaultModules: TenantModules = {
 @Component({
   selector: 'app-super-admin-tenants',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SuperAdminShellComponent],
   templateUrl: './super-admin-tenants.component.html',
   styleUrl: './super-admin-tenants.component.scss',
 })

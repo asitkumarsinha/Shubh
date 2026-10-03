@@ -6,11 +6,21 @@ import { CartService } from './core/cart.service';
 import { SettingsService } from './core/settings.service';
 import { PublicSiteService } from './core/public-site.service';
 import { AppDialogComponent } from './shared/app-dialog/app-dialog.component';
+import { LanguageSwitcherComponent } from './shared/language-switcher/language-switcher.component';
+import { TranslatePipe } from './core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AppDialogComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    AppDialogComponent,
+    LanguageSwitcherComponent,
+    TranslatePipe,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -25,8 +35,19 @@ export class AppComponent implements OnInit {
     private router: Router
   ) {}
 
+  /** These routes draw their own header, footer, and page background. */
   onLoginPage(): boolean {
-    return this.router.url.split('?')[0] === '/login';
+    const path = this.router.url.split('?')[0];
+    return (
+      path === '/login' ||
+      path === '/demo' ||
+      path === '/settings' ||
+      path === '/tenants' ||
+      path === '/feedback' ||
+      path === '/shoppingmall' ||
+      path === '/' ||
+      path.startsWith('/admin')
+    );
   }
 
   ngOnInit(): void {

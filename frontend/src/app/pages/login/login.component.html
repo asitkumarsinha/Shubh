@@ -1,38 +1,102 @@
-<section class="auth-page">
-  <div class="auth-visual" aria-hidden="true">
-    <div class="orb">
-      <span class="orb-glow"></span>
-      <img class="auth-logo" [src]="settings.current().logo" alt="" width="88" height="88" />
+<section class="login-screen">
+  <div class="login-card-shell">
+    <header class="login-topbar">
+      <app-language-switcher variant="light" />
+
+      <div class="topbar-actions">
+        <span class="action-chip" aria-current="page">
+          <span class="icon-circle">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
+        </span>
+        <span class="chip-divider" aria-hidden="true"></span>
+        <a routerLink="/shoppingmall" class="action-chip highlight">
+          <span class="icon-circle bag">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="login-body">
+      <div class="login-visual">
+        <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
+      </div>
+
+      <div class="login-panel">
+        <h1>{{ 'login.heading' | t }}</h1>
+        <p class="continue-with">{{ 'login.continueWith' | t: { title: settings.current().title } }}</p>
+
+        <form (ngSubmit)="submit()">
+          <label class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5 19.2c1.2-3.6 4-5.4 7-5.4s5.8 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <input
+              type="email"
+              [placeholder]="'login.emailPlaceholder' | t"
+              [(ngModel)]="email"
+              (ngModelChange)="loadCustomerBranding()"
+              name="email"
+              required
+              autocomplete="username"
+            />
+          </label>
+
+          <label class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <rect x="5.5" y="10.5" width="13" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M8.3 10.5V8a3.7 3.7 0 0 1 7.4 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+            <input
+              type="password"
+              [placeholder]="'login.passwordPlaceholder' | t"
+              [(ngModel)]="password"
+              name="password"
+              required
+              autocomplete="current-password"
+            />
+          </label>
+
+          <div class="options-row">
+            <label class="remember">
+              <input type="checkbox" [(ngModel)]="remember" name="remember" />
+              <span class="check-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="12" height="12">
+                  <path d="M4 12.5 9 17l11-11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              {{ 'login.remember' | t }}
+            </label>
+            <a href="javascript:void(0)" class="forgot" (click)="forgotPassword()">{{ 'login.forgot' | t }}</a>
+          </div>
+
+          @if (error) {
+            <p class="error">{{ error }}</p>
+          }
+
+          <button type="submit" class="login-btn" [disabled]="loading">
+            {{ loading ? ('login.signingIn' | t) : ('login.loginNow' | t) }}
+          </button>
+        </form>
+
+        <div class="cta-slot">
+          <app-public-cta />
+        </div>
+      </div>
     </div>
-    <h1>{{ settings.current().title }}</h1>
-    <p class="slogan"><span class="slogan-mark">“</span>{{ settings.current().slogan }}<span class="slogan-mark">”</span></p>
+
+    <footer class="login-footer">
+      {{ 'login.footer' | t: { title: settings.current().title } }}
+    </footer>
   </div>
-
-  <form class="auth-card" (ngSubmit)="submit()">
-    <h2>Sign in</h2>
-    <p class="muted">Dispensary desk access for admin or customer</p>
-    <app-public-cta />
-
-    <label>
-      Email
-      <input type="email" [(ngModel)]="email" (ngModelChange)="loadCustomerBranding()" name="email" required autocomplete="username" />
-    </label>
-    <label>
-      Password
-      <input type="password" [(ngModel)]="password" name="password" required autocomplete="current-password" />
-    </label>
-
-    @if (error) {
-      <p class="error">{{ error }}</p>
-    }
-
-    <button type="submit" class="btn primary" [disabled]="loading">
-      {{ loading ? 'Signing in…' : 'Sign in' }}
-    </button>
-
-    <div class="demo-row">
-      <button type="button" class="btn ghost" (click)="fillDemo('admin')">Admin demo</button>
-      <button type="button" class="btn ghost" (click)="fillDemo('user')">User demo</button>
-    </div>
-  </form>
 </section>
