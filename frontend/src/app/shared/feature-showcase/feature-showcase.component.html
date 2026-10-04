@@ -1,0 +1,66 @@
+<div class="showcase" [class.compact]="compact">
+  <header class="intro">
+    <p class="eyebrow">Product demo</p>
+    <h1>MyStoreHub</h1>
+    <p>
+      One platform to launch and run many branded online stores — a shared Shopping Mall for shoppers,
+      a full desk for every store admin, and a Super Admin who controls them all.
+    </p>
+  </header>
+
+  <div class="feature-grid">
+    @for (group of groups; track group.title) {
+      <article class="panel">
+        <h2>{{ group.title }}</h2>
+        <ul>
+          @for (item of group.items; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </article>
+    }
+  </div>
+
+  <section class="compare">
+    <h2>MyStoreHub vs Shopify vs Dukaan</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col" class="ours">MyStoreHub</th>
+            <th scope="col">Shopify</th>
+            <th scope="col">Dukaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of comparison; track row.feature) {
+            <tr>
+              <th scope="row">{{ row.feature }}</th>
+              <td class="ours">{{ row.myStoreHub }}</td>
+              <td>{{ row.shopify }}</td>
+              <td>{{ row.dukaan }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Shopify and Dukaan details are general and based on their public plans; check their sites for current offers.</p>
+  </section>
+
+  <section class="contact">
+    <div>
+      <h2>Please contact the MyStoreHub team</h2>
+      <p>Get a demo, pricing, or your own branded store set up.</p>
+    </div>
+    <a class="mail" [href]="'mailto:' + contactEmail">
+      <span class="mail-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" />
+          <path d="m4.5 7 7.5 6 7.5-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span>Contact us: {{ contactEmail }}</span>
+    </a>
+  </section>
+</div>

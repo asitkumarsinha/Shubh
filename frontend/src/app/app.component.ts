@@ -7,6 +7,7 @@ import { SettingsService } from './core/settings.service';
 import { PublicSiteService } from './core/public-site.service';
 import { AppDialogComponent } from './shared/app-dialog/app-dialog.component';
 import { LanguageSwitcherComponent } from './shared/language-switcher/language-switcher.component';
+import { WelcomeOverlayComponent } from './shared/welcome-overlay/welcome-overlay.component';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TranslationService } from './core/i18n/translation.service';
 
@@ -20,6 +21,7 @@ import { TranslationService } from './core/i18n/translation.service';
     RouterLinkActive,
     AppDialogComponent,
     LanguageSwitcherComponent,
+    WelcomeOverlayComponent,
     TranslatePipe,
   ],
   templateUrl: './app.component.html',

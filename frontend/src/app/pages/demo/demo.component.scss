@@ -73,68 +73,8 @@
   color: #1f2937;
 }
 
-.demo-body .page-head h1,
-.demo-body .panel h2 {
-  color: #1f2937;
-}
-
-.demo-body .eyebrow {
-  margin: 0 0 0.25rem;
-  color: #0f766e;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.demo-body .page-head p,
-.demo-body .muted,
-.demo-body .panel li {
+.demo-body .muted {
   color: #5b6472;
-}
-
-.demo-body .panel {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-}
-
-.head-actions {
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
-.demo-body .btn.ghost {
-  background: #fff;
-  color: #5b6472;
-  border-color: #dfe3e8;
-}
-
-.demo-body .btn.ghost:hover {
-  background: #f8fafc;
-  border-color: #c5ccd6;
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.panel {
-  padding: 1.2rem 1.3rem;
-}
-
-.panel h2 {
-  margin: 0 0 0.7rem;
-  font-size: 1.15rem;
-}
-
-.panel ul {
-  margin: 0;
-  padding-left: 1.1rem;
-  line-height: 1.55;
 }
 
 .trail {
@@ -152,12 +92,6 @@
   color: #9aa3b0;
   font-size: 0.85rem;
   border-top: 1px solid #e7eaee;
-}
-
-@media (max-width: 900px) {
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 560px) {

@@ -1,0 +1,13 @@
+@if (open) {
+  <div class="backdrop" (click)="onBackdrop($event)">
+    <div class="window" role="dialog" aria-modal="true" aria-label="MyStoreHub features">
+      <div class="window-bar">
+        <span class="countdown">Closing in {{ secondsLeft }}s · Esc or click outside to close</span>
+        <button type="button" class="close" aria-label="Close" (click)="close()">×</button>
+      </div>
+      <div class="window-body">
+        <app-feature-showcase [compact]="true" />
+      </div>
+    </div>
+  </div>
+}
