@@ -1,0 +1,68 @@
+<app-client-shell>
+  <div class="account-grid">
+    <section class="card orders-card">
+      <h2>{{ 'account.recentOrders' | t }}</h2>
+      @if (loading) {
+        <p class="muted">{{ 'account.noOrders' | t }}</p>
+      } @else if (orders.length === 0) {
+        <p class="muted">{{ 'account.noOrders' | t }}</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'account.orderId' | t }}</th>
+                <th>{{ 'account.date' | t }}</th>
+                <th>{{ 'account.total' | t }}</th>
+                <th>{{ 'account.status' | t }}</th>
+                <th>{{ 'account.action' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of orders; track order.id) {
+                <tr>
+                  <td>{{ order.id }}</td>
+                  <td>{{ formatDate(order.created_at) }}</td>
+                  <td>₹{{ order.total | number: '1.2-2' }}</td>
+                  <td><span class="badge" [attr.data-status]="order.status">{{ 'status.' + order.status | t }}</span></td>
+                  <td><a class="view" [routerLink]="['/orders', order.id]">{{ 'account.view' | t }}</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h2>{{ 'account.shippingAddress' | t }}</h2>
+        <p class="label">{{ 'account.currentAddress' | t }}</p>
+        @if (auth.user()?.address) {
+          <p class="address">{{ auth.user()?.address }}</p>
+        } @else {
+          <p class="muted">{{ 'account.noAddress' | t }}</p>
+        }
+        @if (auth.user()?.phone) {
+          <p class="phone">{{ auth.user()?.phone }}</p>
+        }
+      </section>
+
+      <section class="card">
+        <h2>{{ 'account.pastPurchases' | t }}</h2>
+        @if (purchases.length === 0) {
+          <p class="muted">{{ 'account.noPurchases' | t }}</p>
+        } @else {
+          <ul>
+            @for (item of purchases; track item.id) {
+              <li>
+                <span>{{ item.medicine_name }}</span>
+                <strong>₹{{ item.price | number: '1.2-2' }}</strong>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </aside>
+  </div>
+</app-client-shell>

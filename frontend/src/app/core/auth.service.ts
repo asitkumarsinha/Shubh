@@ -25,6 +25,14 @@ export class AuthService {
     () => this.user()?.role === 'user' && this.user()?.client_group === 'wholesale'
   );
 
+  /** Title-bar category: Super Admin, Customer (store admin), or Client. */
+  categoryKey(): string {
+    const role = this.user()?.role;
+    if (role === 'super_admin') return 'role.superAdmin';
+    if (role === 'admin') return 'role.customer';
+    return 'role.client';
+  }
+
   constructor(private http: HttpClient, private router: Router, private settings: SettingsService) {}
 
   login(email: string, password: string): Observable<AuthResponse> {
@@ -61,6 +69,7 @@ export class AuthService {
     localStorage.setItem(this.tokenKey, res.token);
     localStorage.setItem(this.userKey, JSON.stringify(res.user));
     this.user.set(res.user);
+    this.settings.load();
   }
 
   private readUser(): User | null {

@@ -5,16 +5,13 @@ import { Router, RouterLink } from '@angular/router';
 import { MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
-import { OrderService } from '../../core/order.service';
-import { UserService } from '../../core/user.service';
 import { SettingsService } from '../../core/settings.service';
 import { TenantService } from '../../core/tenant.service';
-import { Medicine, Order } from '../../core/models';
+import { Medicine } from '../../core/models';
 import { apiErrorMessage } from '../../core/api-error';
 import { ToastService } from '../../core/toast.service';
 import { fitLogoOnWhite } from '../../core/logo-fit';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { TranslationService } from '../../core/i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 
 interface CustomerCard {
@@ -23,15 +20,6 @@ interface CustomerCard {
   email: string;
   phone: string;
   orderCount: number;
-}
-
-interface PurchaseLine {
-  key: string;
-  name: string;
-  image: string | null;
-  price: number;
-  quantity: number;
-  date: string;
 }
 
 const AVATAR_COLOURS = ['#2563eb', '#0f766e', '#9333ea', '#c2410c', '#be123c', '#0369a1', '#4d7c0f'];
@@ -52,25 +40,20 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   pages = 1;
   total = 0;
 
-  view: 'purchased' | 'shop' = 'shop';
   customers: CustomerCard[] = [];
   customersLoading = false;
   selectedId: number | null = null;
   displayLogo = '';
 
-  private ordersByUser = new Map<number, Order[]>();
   private fittedSource = '';
   private searchTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private medicineService: MedicineService,
-    private orderService: OrderService,
-    private userService: UserService,
     public cart: CartService,
     public auth: AuthService,
     public settings: SettingsService,
     private tenants: TenantService,
-    private i18n: TranslationService,
     private toast: ToastService,
     private router: Router
   ) {
@@ -94,51 +77,22 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     return this.customers.find((c) => c.id === this.selectedId) ?? null;
   }
 
-  get purchases(): PurchaseLine[] {
-    if (this.selectedId == null) return [];
-    const lines: PurchaseLine[] = [];
-    for (const order of this.ordersByUser.get(this.selectedId) ?? []) {
-      if (order.status === 'cancelled' || order.status === 'rejected') continue;
-      for (const item of order.items) {
-        lines.push({
-          key: `${order.id}-${item.id}`,
-          name: item.medicine_name,
-          image: item.medicine_image,
-          price: item.price,
-          quantity: item.quantity,
-          date: order.created_at,
-        });
-      }
-    }
-    return lines;
-  }
-
   /** Customers other than the selected one, shown below the current-customer card. */
   get otherCustomers(): CustomerCard[] {
     return this.customers.filter((c) => c.id !== this.selectedId);
   }
 
   selectCustomer(id: number): void {
-    if (this.selectedId === id && this.medicines.length) {
-      this.view = 'shop';
-      return;
-    }
+    if (this.selectedId === id && this.medicines.length) return;
     this.selectedId = id;
-    this.view = 'shop';
     this.page = 1;
     this.query = '';
     this.load();
   }
 
-  showShop(): void {
-    this.view = 'shop';
-  }
-
   openMall(): void {
     if (this.auth.isLoggedIn() && !this.auth.isAdmin() && !this.auth.isSuperAdmin()) {
       this.router.navigate(['/cart']);
-    } else {
-      this.view = 'shop';
     }
   }
 
@@ -157,12 +111,6 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   avatarColour(id: number): string {
     return AVATAR_COLOURS[id % AVATAR_COLOURS.length];
-  }
-
-  formatDate(value: string): string {
-    const date = new Date(value.includes('T') ? value : value.replace(' ', 'T'));
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString(this.i18n.lang(), { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   onLogoLoad(event: Event): void {
@@ -257,13 +205,4 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private groupOrders(orders: Order[]): void {
-    const grouped = new Map<number, Order[]>();
-    for (const order of orders) {
-      const list = grouped.get(order.user_id) ?? [];
-      list.push(order);
-      grouped.set(order.user_id, list);
-    }
-    this.ordersByUser = grouped;
-  }
 }

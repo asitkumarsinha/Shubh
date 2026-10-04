@@ -1,3 +1,4 @@
+<app-client-shell>
 <section class="page">
   <header class="page-head">
     <div>
@@ -14,7 +15,7 @@
   } @else if (orders.length === 0) {
     <div class="empty glass-card">
       <p>{{ 'orders.none' | t }}</p>
-      <a routerLink="/shoppingmall" class="btn primary">{{ 'orders.shop' | t }}</a>
+      <a routerLink="/shop" class="btn primary">{{ 'orders.shop' | t }}</a>
     </div>
   } @else {
     <div class="order-list">
@@ -63,3 +64,4 @@
     </div>
   }
 </section>
+</app-client-shell>

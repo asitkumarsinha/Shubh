@@ -1,0 +1,98 @@
+<section class="desk-screen" [class.plain]="!client">
+  <div class="desk-shell">
+    @if (client) {
+      <header class="desk-topbar">
+        <div class="topbar-brand">
+          <img class="brand-mark" [src]="settings.current().logo" [alt]="settings.current().title" />
+          <app-language-switcher variant="light" />
+        </div>
+
+        <div class="topbar-actions">
+          <a routerLink="/shoppingmall" class="action-chip highlight">
+            <span class="icon-circle bag">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+          </a>
+          <span class="chip-divider" aria-hidden="true"></span>
+          <button type="button" class="action-chip" (click)="logout()">
+            <span class="icon-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span class="chip-label">{{ auth.user()?.name }} - {{ auth.categoryKey() | t }}</span>
+          </button>
+        </div>
+      </header>
+    }
+
+    <div class="desk-body" [class.collapsed]="!pinned" [class.bare]="!client">
+      @if (client) {
+        <aside class="desk-nav">
+          <img class="menu-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
+          <div class="nav-head">
+            @if (pinned) {
+              <h2>{{ 'account.myAccount' | t }}</h2>
+            }
+            <button
+              type="button"
+              class="pin"
+              [class.pinned]="pinned"
+              [attr.aria-pressed]="pinned"
+              [attr.aria-label]="'account.pinMenu' | t"
+              (click)="togglePin()"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M9 4.5h6l-1 5.5 2.5 2.5v1.5H7.5V12.5L10 10 9 4.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M12 14v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+
+          <nav class="menu-panel">
+            <a routerLink="/shop" routerLinkActive="active" class="nav-link">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M4 9h16l-1.2 10H5.2L4 9Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M8 9V7a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              @if (pinned) { <span>{{ 'account.shop' | t }}</span> }
+            </a>
+            <a routerLink="/cart" routerLinkActive="active" class="nav-link">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="9" cy="19" r="1.3" fill="currentColor" />
+                <circle cx="17" cy="19" r="1.3" fill="currentColor" />
+                <path d="M3 5h2l2.2 10h10.3l2-7H7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              @if (pinned) { <span>{{ 'account.cart' | t }}</span> }
+              @if (cart.count() > 0) {
+                <span class="count">{{ cart.count() }}</span>
+              }
+            </a>
+            <a routerLink="/orders" routerLinkActive="active" class="nav-link">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M7 3.5h7l4 4V20.5H7v-17Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M14 3.5V8h4M9.5 12h6M9.5 15.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              @if (pinned) { <span>{{ 'account.myOrder' | t }}</span> }
+            </a>
+          </nav>
+        </aside>
+      }
+
+      <div class="desk-content hub-page">
+        <ng-content />
+      </div>
+    </div>
+
+    @if (client) {
+      <footer class="desk-footer">
+        {{ 'login.footer' | t: { title: settings.current().title } }}
+      </footer>
+    }
+  </div>
+</section>

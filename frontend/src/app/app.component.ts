@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, effect } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/auth.service';
@@ -8,6 +8,7 @@ import { PublicSiteService } from './core/public-site.service';
 import { AppDialogComponent } from './shared/app-dialog/app-dialog.component';
 import { LanguageSwitcherComponent } from './shared/language-switcher/language-switcher.component';
 import { TranslatePipe } from './core/i18n/translate.pipe';
+import { TranslationService } from './core/i18n/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -32,8 +33,16 @@ export class AppComponent implements OnInit {
     public cart: CartService,
     public settings: SettingsService,
     private publicSite: PublicSiteService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private i18n: TranslationService
+  ) {
+    effect(() => {
+      const brand = this.settings.current().title || 'My Store Hub';
+      const user = this.auth.user();
+      this.i18n.lang();
+      document.title = user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand;
+    });
+  }
 
   /** These routes draw their own header, footer, and page background. */
   onLoginPage(): boolean {
@@ -45,6 +54,10 @@ export class AppComponent implements OnInit {
       path === '/tenants' ||
       path === '/feedback' ||
       path === '/shoppingmall' ||
+      path === '/account' ||
+      path === '/shop' ||
+      path === '/cart' ||
+      path.startsWith('/orders') ||
       path === '/' ||
       path.startsWith('/admin')
     );

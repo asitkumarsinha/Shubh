@@ -1,15 +1,22 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, untracked } from '@angular/core';
 import { CartItem, Medicine } from './models';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly key = 'medishop_cart';
-  readonly items = signal<CartItem[]>(this.load());
+  readonly items = signal<CartItem[]>([]);
 
   readonly count = computed(() => this.items().reduce((s, i) => s + i.quantity, 0));
   readonly total = computed(() =>
     this.items().reduce((s, i) => s + i.price * i.quantity, 0)
   );
+
+  constructor(private auth: AuthService) {
+    effect(() => {
+      const userId = this.auth.user()?.id ?? null;
+      untracked(() => this.items.set(this.read(userId)));
+    });
+  }
 
   add(medicine: Medicine, quantity = 1): void {
     const current = [...this.items()];
@@ -56,12 +63,17 @@ export class CartService {
 
   private save(items: CartItem[]): void {
     this.items.set(items);
-    localStorage.setItem(this.key, JSON.stringify(items));
+    localStorage.setItem(this.storageKey(this.auth.user()?.id ?? null), JSON.stringify(items));
   }
 
-  private load(): CartItem[] {
+  /** Each signed-in client keeps a separate cart. A guest cart is never shared. */
+  private storageKey(userId: number | null): string {
+    return userId == null ? 'medishop_cart_guest' : `medishop_cart_user_${userId}`;
+  }
+
+  private read(userId: number | null): CartItem[] {
     try {
-      return JSON.parse(localStorage.getItem(this.key) || '[]') as CartItem[];
+      return JSON.parse(localStorage.getItem(this.storageKey(userId)) || '[]') as CartItem[];
     } catch {
       return [];
     }

@@ -6,11 +6,12 @@ import { Order } from '../../core/models';
 import { DialogService } from '../../core/dialog.service';
 import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ClientShellComponent } from '../../shared/client-shell/client-shell.component';
 
 @Component({
   selector: 'app-my-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent],
   templateUrl: './my-orders.component.html',
   styleUrl: './my-orders.component.scss',
 })

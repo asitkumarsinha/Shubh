@@ -11,6 +11,8 @@ interface SuperAdminLink {
   icon: 'home' | 'user-plus' | 'user';
 }
 
+const PIN_KEY = 'msh_super_menu_pinned';
+
 @Component({
   selector: 'app-super-admin-shell',
   standalone: true,
@@ -19,6 +21,8 @@ interface SuperAdminLink {
   styleUrl: './super-admin-shell.component.scss',
 })
 export class SuperAdminShellComponent implements OnInit, OnDestroy {
+  pinned = true;
+
   readonly links: SuperAdminLink[] = [
     { label: 'Settings', path: '/settings', icon: 'home' },
     { label: 'Tenants', path: '/tenants', icon: 'user-plus' },
@@ -28,7 +32,13 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   constructor(public auth: AuthService, public settings: SettingsService) {}
 
   ngOnInit(): void {
+    this.pinned = localStorage.getItem(PIN_KEY) !== '0';
     document.documentElement.classList.add('hub-login');
+  }
+
+  togglePin(): void {
+    this.pinned = !this.pinned;
+    localStorage.setItem(PIN_KEY, this.pinned ? '1' : '0');
   }
 
   ngOnDestroy(): void {

@@ -40,7 +40,7 @@ export class RegisterComponent {
         next: () => {
           this.loading = false;
           this.toast.success('Account saved');
-          this.router.navigate(['/shoppingmall']);
+          this.router.navigate(['/account']);
         },
         error: (err) => {
           this.loading = false;

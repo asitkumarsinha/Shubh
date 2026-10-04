@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { SiteSettings } from './models';
+import { fitLogoOnWhite } from './logo-fit';
 
 const defaults: SiteSettings = {
   title: 'My Store Hub',
@@ -16,6 +17,7 @@ const defaults: SiteSettings = {
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly api = '/api/settings';
+  private logoRequest = 0;
   readonly current = signal<SiteSettings>(defaults);
 
   constructor(private http: HttpClient) {}
@@ -46,9 +48,35 @@ export class SettingsService {
   }
 
   set(settings: SiteSettings): void {
-    this.current.set(settings);
-    document.title = settings.title;
-    document.documentElement.style.setProperty('--tenant-theme', settings.theme_color);
-    document.documentElement.style.setProperty('--tenant-font', `'${settings.font_family}', 'IBM Plex Sans', sans-serif`);
+    const logo = this.absoluteAsset(settings.logo);
+    const next = logo === settings.logo ? settings : { ...settings, logo };
+    this.current.set(next);
+    document.documentElement.style.setProperty('--tenant-theme', next.theme_color);
+    document.documentElement.style.setProperty('--tenant-font', `'${next.font_family}', 'IBM Plex Sans', sans-serif`);
+    this.fitBrandLogo(next.logo);
+  }
+
+  private absoluteAsset(url: string): string {
+    if (!url || /^(data:|blob:|https?:|\/)/.test(url)) return url;
+    return `/${url}`;
+  }
+
+  /** Crop a dark photo backdrop so every screen uses the same white emblem as the login page. */
+  private fitBrandLogo(url: string): void {
+    if (!url || url.startsWith('data:')) return;
+    const request = ++this.logoRequest;
+    const img = new Image();
+    img.onload = () => {
+      if (request !== this.logoRequest || this.current().logo !== url) return;
+      let fitted: string | null = null;
+      try {
+        fitted = fitLogoOnWhite(img);
+      } catch {
+        fitted = null;
+      }
+      if (!fitted) return;
+      this.current.set({ ...this.current(), logo: fitted });
+    };
+    img.src = url;
   }
 }

@@ -39,7 +39,7 @@
 
     @if (auth.user(); as u) {
       <div class="user-chip">
-        <span>{{ u.name }} · {{ u.role }}</span>
+        <span>{{ u.name }} - {{ auth.categoryKey() | t }}</span>
         @if (auth.isAdmin() || auth.isSuperAdmin()) {
           <a
             class="help-link"

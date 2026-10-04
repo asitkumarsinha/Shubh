@@ -1,10 +1,11 @@
+<app-client-shell>
 <section class="page">
   <header class="page-head">
     <div>
       <h1>{{ 'cart.title' | t }}</h1>
       <p>{{ 'cart.subtitle' | t }}</p>
     </div>
-    <a routerLink="/shoppingmall" class="btn ghost">{{ 'cart.continueShopping' | t }}</a>
+    <a routerLink="/shop" class="btn ghost">{{ 'cart.continueShopping' | t }}</a>
   </header>
 
   @if (error) {
@@ -14,7 +15,7 @@
   @if (cart.items().length === 0) {
     <div class="empty glass-card">
       <p>{{ 'cart.empty' | t }}</p>
-      <a routerLink="/shoppingmall" class="btn primary">{{ 'cart.browse' | t }}</a>
+      <a routerLink="/shop" class="btn primary">{{ 'cart.browse' | t }}</a>
     </div>
   } @else {
     <div class="order-card glass-card">
@@ -51,7 +52,7 @@
             </div>
             <div class="side">
               <strong>{{ item.quantity }} {{ 'cart.units' | t }}</strong>
-              <button class="linkish" type="button" (click)="cart.remove(item.medicineId)">{{ 'cart.remove' | t }}</button>
+              <button class="delete-item" type="button" (click)="cart.remove(item.medicineId)">{{ 'cart.remove' | t }}</button>
             </div>
           </article>
         }
@@ -77,3 +78,4 @@
     </div>
   }
 </section>
+</app-client-shell>

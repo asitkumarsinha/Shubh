@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
@@ -17,6 +17,8 @@ interface DeskSection {
   links: DeskLink[];
 }
 
+const PIN_KEY = 'msh_admin_menu_pinned';
+
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
@@ -25,6 +27,7 @@ interface DeskSection {
   styleUrl: './admin-shell.component.scss',
 })
 export class AdminShellComponent implements OnInit, OnDestroy {
+  pinned = true;
   readonly sections: DeskSection[] = [
     {
       links: [
@@ -41,7 +44,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
     {
       title: 'desk.reminder',
       links: [
-        { label: 'desk.lowStock', path: '/admin/Products', icon: 'alert' },
+        { label: 'desk.lowStock', path: '/admin/Products', icon: 'alert', disabled: true },
         { label: 'desk.payment', path: '/admin/orders', icon: 'card', disabled: true },
       ],
     },
@@ -52,12 +55,17 @@ export class AdminShellComponent implements OnInit, OnDestroy {
 
   constructor(
     public auth: AuthService,
-    public settings: SettingsService,
-    private router: Router
+    public settings: SettingsService
   ) {}
 
   ngOnInit(): void {
+    this.pinned = localStorage.getItem(PIN_KEY) !== '0';
     document.documentElement.classList.add('hub-admin');
+  }
+
+  togglePin(): void {
+    this.pinned = !this.pinned;
+    localStorage.setItem(PIN_KEY, this.pinned ? '1' : '0');
   }
 
   ngOnDestroy(): void {
@@ -66,6 +74,5 @@ export class AdminShellComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.auth.logout();
-    this.router.navigate(['/login']);
   }
 }

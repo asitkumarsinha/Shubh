@@ -1,0 +1,31 @@
+<app-client-shell>
+  <section class="shop">
+    <header class="shop-head">
+      <h1>{{ 'account.shop' | t }}</h1>
+      <label class="search">
+        <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+        <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="shopSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
+      </label>
+    </header>
+
+    @if (loading) {
+      <p class="muted">{{ 'catalogue.searchLabel' | t }}</p>
+    } @else if (medicines.length === 0) {
+      <p class="muted">{{ (query.trim() ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
+    } @else {
+      <div class="grid">
+        @for (medicine of medicines; track medicine.id) {
+          <article class="product">
+            <img [src]="imageUrl(medicine.image)" [alt]="medicine.name" />
+            <h2>{{ medicine.name }}</h2>
+            <p class="price">₹{{ medicine.price | number: '1.2-2' }}</p>
+            <p class="stock">{{ 'catalogue.stock' | t: { count: medicine.stock } }}</p>
+            <button type="button" [disabled]="medicine.stock < 1" (click)="addToCart(medicine)">
+              {{ (medicine.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</app-client-shell>

@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard, adminGuard, superAdminGuard, guestGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'shoppingmall' },
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
     path: 'login',
     canActivate: [guestGuard],
@@ -46,6 +46,18 @@ export const routes: Routes = [
     path: 'shoppingmall',
     loadComponent: () =>
       import('./pages/medicines/medicines.component').then((m) => m.MedicinesComponent),
+  },
+  {
+    path: 'account',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/client-account/client-account.component').then((m) => m.ClientAccountComponent),
+  },
+  {
+    path: 'shop',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/client-shop/client-shop.component').then((m) => m.ClientShopComponent),
   },
   {
     path: 'cart',

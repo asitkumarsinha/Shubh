@@ -293,6 +293,39 @@ customer can login with Email and password as admin
 In http://localhost:4200/tenants url
 add option to delete customer after confirmation
 
+
+In http://localhost:4200/tenants , Add Customer Replace with Tenants
+In http://localhost:4200/settings Dashboard replace with Settings
+In http://localhost:4200/feedback View Customer replace with Feedbacks
+
+In http://localhost:4200/admin url name replace with http://localhost:4200/admin/customers_tenats
+Add Client replace with Clients
+remove View Client
+In http://localhost:4200/admin/medicines url name replace with http://localhost:4200/admin/Products
+View Product replace with Orders
+Top Product replace with Reports
+Add Employee replace with Add / View Employee
+Remove 'View Employee', 'Top Employee','Products'
+Low Stock replace with Manage Products
+'Payment', 'Clone Client' deactivate
+
+
+
+
+when user login this website, first page always http://localhost:4200/login
+when login as client email-id, then page layout should be same as per attached screen shot
+when click on Shop then all product list will display and client can add into the cart
+when click on cart then http://localhost:4200/cart will show the page layout should same as per attached image
+when click on My Order then http://localhost:4200/orders  will show the page layout should same as per attached image
+In Title bar always show who login in right hand side
+Left hand Menu user can collapse and expand as per click on pin in left menu
+
+In title always show login 'user name - Super Admin / Customer / Client' as per category
+when login from @Initial, logo should show proper , same like 'http://localhost:4200/login' 'MyStoreHub' logo
+In Left menu, when click on Pin , after menu collapse, menu icon should show
+at last  optimize the code and git commit and push
+
+
 perform Unit testing of this website.
 this website is for multi-tenant
 when login from 'asitkumarsinh@gmail.com' as super admin

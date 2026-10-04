@@ -1,7 +1,10 @@
 <section class="desk-screen">
   <div class="desk-shell">
-    <header class="desk-topbar">
-      <app-language-switcher variant="light" />
+      <header class="desk-topbar">
+      <div class="topbar-brand">
+        <img class="brand-mark" [src]="settings.current().logo" [alt]="settings.current().title" />
+        <app-language-switcher variant="light" />
+      </div>
 
       <div class="topbar-actions">
         <a routerLink="/shoppingmall" class="action-chip highlight">
@@ -21,13 +24,27 @@
               <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             </svg>
           </span>
-          <span class="chip-label">{{ 'nav.logout' | t }}</span>
+          <span class="chip-label">{{ auth.user()?.name }} - {{ auth.categoryKey() | t }}</span>
         </button>
       </div>
     </header>
 
-    <div class="desk-body">
+    <div class="desk-body" [class.collapsed]="!pinned">
       <aside class="desk-nav">
+        <button
+          type="button"
+          class="pin"
+          [class.pinned]="pinned"
+          [attr.aria-pressed]="pinned"
+          [attr.aria-label]="'account.pinMenu' | t"
+          (click)="togglePin()"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M9 4.5h6l-1 5.5 2.5 2.5v1.5H7.5V12.5L10 10 9 4.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            <path d="M12 14v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+        <img class="menu-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
         @for (link of links; track link.label) {
           <a [routerLink]="link.path" routerLinkActive="active" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">

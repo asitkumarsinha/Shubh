@@ -8,11 +8,12 @@ import { ToastService } from '../../core/toast.service';
 import { SettingsService } from '../../core/settings.service';
 import { DialogService } from '../../core/dialog.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ClientShellComponent } from '../../shared/client-shell/client-shell.component';
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss',
 })

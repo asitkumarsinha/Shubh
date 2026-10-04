@@ -1,7 +1,10 @@
 <section class="mall-screen">
   <div class="mall-shell">
     <header class="mall-topbar">
-      <app-language-switcher variant="light" />
+      <div class="topbar-brand">
+        <img class="brand-mark" [src]="displayLogo || settings.current().logo" [alt]="settings.current().title" />
+        <app-language-switcher variant="light" />
+      </div>
 
       <div class="topbar-actions">
         @if (auth.isAdmin()) {
@@ -38,7 +41,7 @@
                 <path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </span>
-            <span class="chip-label">{{ 'mall.logout' | t }}</span>
+            <span class="chip-label">{{ auth.user()?.name }} - {{ auth.categoryKey() | t }}</span>
           </button>
         } @else {
           <a routerLink="/login" class="action-chip">
