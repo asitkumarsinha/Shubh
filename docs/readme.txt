@@ -1,3 +1,9 @@
+npm run install:all
+
+npm run start:api
+npm run start:web
+
+
 Here are feature-side improvements, grouped by who benefits:
 
 ## Customer-facing
@@ -324,6 +330,11 @@ In title always show login 'user name - Super Admin / Customer / Client' as per 
 when login from @Initial, logo should show proper , same like 'http://localhost:4200/login' 'MyStoreHub' logo
 In Left menu, when click on Pin , after menu collapse, menu icon should show
 at last  optimize the code and git commit and push
+
+when this website will open, show the website feature same like in 'Demo' content http://localhost:4200/demo.
+'Demo' text rewrite and cover all the features of MyStoreHub and compare with Shopify and dukan and please contact to MyStoreHub team.
+contact us , email icon + MyStoresHubs@gmail.com
+This window will close auto after 10 seconds or Esc key or key out side, then land on http://localhost:4200/login page
 
 
 perform Unit testing of this website.
