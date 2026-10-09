@@ -30,10 +30,34 @@ router.post('/feedback', (req, res) => {
   res.status(201).json(db.prepare('SELECT * FROM site_feedback WHERE id = ?').get(result.lastInsertRowid));
 });
 
+router.post('/contact', (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  const email = String(req.body?.email || '').trim();
+  const phone = String(req.body?.phone || '').trim();
+  const message = String(req.body?.remark || '').trim();
+  if (!name || !email || !phone || message.length < 2) {
+    return res.status(400).json({ message: 'Name, email, mobile number and remark are required' });
+  }
+  const result = db.prepare(
+    `INSERT INTO site_feedback (name, email, phone, message, kind) VALUES (?, ?, ?, ?, 'contact')`
+  ).run(name, email, phone, message);
+  res.status(201).json(db.prepare('SELECT * FROM site_feedback WHERE id = ?').get(result.lastInsertRowid));
+});
+
 router.get('/feedback', authenticate, requireSuperAdmin, (_req, res) => {
   res.json(
     db.prepare('SELECT * FROM site_feedback ORDER BY datetime(created_at) DESC LIMIT 500').all()
   );
+});
+
+router.patch('/feedback/:id', authenticate, requireSuperAdmin, (req, res) => {
+  const status = String(req.body?.status || '').toLowerCase();
+  if (!['done', 'pending'].includes(status)) {
+    return res.status(400).json({ message: 'Action must be Done or Pending' });
+  }
+  const result = db.prepare('UPDATE site_feedback SET status = ? WHERE id = ?').run(status, Number(req.params.id));
+  if (!result.changes) return res.status(404).json({ message: 'Request not found' });
+  res.json(db.prepare('SELECT * FROM site_feedback WHERE id = ?').get(Number(req.params.id)));
 });
 
 module.exports = router;

@@ -1,19 +1,12 @@
 <section class="login-screen">
   <div class="login-card-shell">
     <header class="login-topbar">
-      <app-language-switcher variant="light" />
+      <div class="topbar-left">
+        <app-language-switcher variant="light" />
+        <app-theme-toggle />
+      </div>
 
       <div class="topbar-actions">
-        <span class="action-chip" aria-current="page">
-          <span class="icon-circle">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
-        </span>
-        <span class="chip-divider" aria-hidden="true"></span>
         <a routerLink="/shoppingmall" class="action-chip highlight">
           <span class="icon-circle bag">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -23,6 +16,16 @@
           </span>
           <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
         </a>
+        <span class="chip-divider" aria-hidden="true"></span>
+        <span class="action-chip" aria-current="page">
+          <span class="icon-circle">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
+        </span>
       </div>
     </header>
 
@@ -99,4 +102,35 @@
       {{ 'login.footer' | t: { title: settings.current().title } }}
     </footer>
   </div>
+
+  <section class="login-demo">
+    <app-feature-showcase [collapseCompare]="true" />
+  </section>
+
+  @if (showReset) {
+    <div class="reset-backdrop" (click)="closeReset($event)">
+      <form class="reset-card" (ngSubmit)="submitReset()">
+        <h2>{{ 'reset.title' | t }}</h2>
+        <label class="field">
+          <input [placeholder]="'reset.name' | t" [(ngModel)]="resetName" name="resetName" required />
+        </label>
+        <label class="field">
+          <input type="email" [placeholder]="'reset.email' | t" [(ngModel)]="resetEmail" name="resetEmail" required />
+        </label>
+        <label class="field">
+          <input [placeholder]="'reset.phone' | t" [(ngModel)]="resetPhone" name="resetPhone" required />
+        </label>
+        <label class="field">
+          <input type="password" [placeholder]="'reset.password' | t" [(ngModel)]="resetPassword" name="resetPassword" required minlength="6" />
+        </label>
+        @if (resetError) {
+          <p class="error">{{ resetError }}</p>
+        }
+        <button type="submit" class="login-btn" [disabled]="resetSaving">
+          {{ resetSaving ? ('reset.saving' | t) : ('reset.submit' | t) }}
+        </button>
+        <button type="button" class="reset-cancel" (click)="showReset = false">{{ 'reset.cancel' | t }}</button>
+      </form>
+    </div>
+  }
 </section>

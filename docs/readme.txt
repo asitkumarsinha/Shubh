@@ -343,3 +343,97 @@ when login from 'asitkumarsinh@gmail.com' as super admin
 super admin can create customer, based of 'Initial login', website will customize
 admin can create clients and employee
 all customer work as multi-tenant
+
+
+
+In https://www.mystoreshubs.com/register page apply the same layout
+of https://www.mystoreshubs.com/login 
+In 'Create account' replace with 'Contact Us'
+left hand side logo panel remove
+Address label replace with Remark
+when click on 'Register' button, only 'Super Admin' can see the request in Grid.
+In https://www.mystoreshubs.com/login page, after login screen
+https://www.mystoreshubs.com/demo content will show and 'MyStoreHub vs Shopify vs Dukaan' when click on this then content will show
+Also when click on Translate then all page content will translate as per selection
+In login page 'https://www.mystoreshubs.com/login' image should show proper.
+where 'Medicine', 'Shubh Surgical' or 'shubhsurgical' replace with 'My Stores Hubs'
+
+
+In 'http://localhost:4200/login' page
+'Feedback' text replace with 'Register Me'
+In 'http://localhost:4200/register' text 'Contact Us' replace with 'Register Me'
+and all field should mandatory
+In 'http://localhost:4200/login' page
+click 'forgot password' then  User Interface will popup
+ask 'User Name', 'EmailID', 'Mobile Number' and 'New Password'
+if 'User Name', 'EmailID' and 'Mobile Number' match then update the password
+otherwise , show message and all field should mandatory
+
+
+
+
+In 'http://localhost:4200/demo' before 'MyStoreHub vs Shopify vs Dukaan'
+add
+'My Stores Hubs
+
+One website that runs many branded online stores. Shoppers see a Shopping Mall of stores. Each store has its own name, logo, colours, and products. The store owner manages orders, clients, and staff. One Super Admin looks after every store on the platform.
+
+Your name, your products, your customers.
+
+Who uses it
+1. Super Admin
+   Sets up each customer (store), branding, plans, and backups. Sees contact requests from the Register Me page.
+2. Hubs - Customer 
+   Runs one store: products, prices, orders, clients, and employees.
+3. Stores - Client (shopper)
+   Shops in that store, pays, and tracks orders.
+
+What a Stores - client can do
+- Browse the Shopping Mall and open a store
+- Search the catalogue, see stock and pictures, and add products to a personal cart
+- Check out with a bill and UPI QR payment
+- See My Orders and the status of each order
+- Pay the retail or wholesale price assigned to their group
+- Use the site in English, Hindi, Spanish, or French
+
+What a Hubs - customer can do
+- See today’s orders, revenue, and low stock on the dashboard
+- Add and edit products with a retail price and a wholesale price
+- Approve a bill, create a purchase order, then dispatch
+- Add clients, block or allow login, keep notes, and export a CSV
+- Add and view employees
+- Open sales reports and email a report
+
+What the Super Admin can do
+- Create a separate store for each customer on the same website
+- Give each store its own title, slogan, logo, QR code, and theme
+- Use a Login Initial, such as @mystoreshubs, so that email loads that store’s look
+- Manage plans, modules, backups, feedback, and website visits
+- Read Register Me requests. Only the Super Admin sees that list.
+
+How a new customer starts
+1. Open the website and choose Register Me.
+2. Enter full name, email, mobile number, and a remark. All four are required.
+3. The My Stores Hubs team reviews the request and sets up the store.
+4. Staff sign in with the store email. Shoppers sign in as clients of that store.
+5. If a password is forgotten, Forgot Password asks for user name, email, and mobile number. The password changes only when those three match the account.
+
+Contact
+support@mystoreshubs.com
+Powered by My Store Hub Technologies
+'
+Shop & Checkout replace wth 'Stores - Clients'
+Shop & Checkout replace with 'Hubs - Customers'
+Super Admin Platform replace with - 'Super Admin'
+in proper presenation.
+
+In title bar 'User Login' alwas right hand, in all pages
+
+
+
+In 'http://localhost:4200/feedback' add drop down in 'Contact requests' and 'Website feedback'
+- 'Action' drop down  it should contain
+'Done', 'Pending'
+also in 'http://localhost:4200/login' add Theme icon - Black / white. if select 
+Black then all page convert into Black Theme and same for white
+also 'http://localhost:4200/login' page logo should be proper fit and visable

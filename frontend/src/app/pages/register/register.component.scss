@@ -1,158 +1,39 @@
-.auth-page {
-  min-height: calc(100vh - 64px);
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 1.25rem;
-  align-items: stretch;
-}
-
-.auth-visual {
-  position: relative;
-  padding: 3.5rem 2.5rem;
-  color: #fff;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 20% 80%, rgba(255, 255, 255, 0.12), transparent 50%),
-    radial-gradient(ellipse at 90% 10%, rgba(255, 138, 128, 0.18), transparent 40%),
-    linear-gradient(155deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--blur));
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.auth-visual::before {
-  content: '℞';
-  position: absolute;
-  top: 10%;
-  right: 8%;
-  font-size: clamp(6rem, 18vw, 11rem);
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.08);
-  line-height: 1;
-  animation: rxPulse 6s ease-in-out infinite;
-}
-
-.orb {
-  position: absolute;
-  width: 9.5rem;
-  height: 9.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  top: 14%;
-  left: 12%;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.06);
-  animation: slideIn 0.9s ease both;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.auth-logo {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 6px 14px rgba(225, 29, 72, 0.35));
-  animation: beat 2.4s ease-in-out infinite;
-}
-
-@keyframes beat {
-  0%, 100% { transform: scale(1); }
-  35% { transform: scale(1.05); }
-  50% { transform: scale(1); }
-  65% { transform: scale(1.03); }
-}
-
-.auth-visual h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(2.2rem, 5vw, 3.4rem);
-  margin: 0 0 0.5rem;
-  position: relative;
-  z-index: 1;
-  animation: slideIn 0.7s ease both;
-}
-
-.auth-visual p {
-  max-width: 28rem;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  opacity: 0.85;
-  position: relative;
-  z-index: 1;
-  animation: slideIn 0.85s ease 0.08s both;
-}
-
-.auth-visual .slogan {
-  margin: 0 0 0.65rem;
-  font-size: 1.15rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  opacity: 0.95;
-  animation-delay: 0.04s;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes rxPulse {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
-}
-
-.auth-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.login-body.solo {
+  grid-template-columns: minmax(0, 34rem);
   justify-content: center;
-  padding: 2.25rem clamp(1.4rem, 3vw, 2.5rem);
-  background: var(--glass);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
 }
 
-.auth-card h2 {
+.field textarea {
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.field.remark {
+  align-items: flex-start;
+}
+
+.sent {
   margin: 0;
-  font-size: 1.85rem;
-  color: #fff;
-}
-
-.muted { color: var(--muted); margin: 0; }
-
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  color: #0f766e;
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
 }
 
-input, textarea {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  font: inherit;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+.switch-login {
+  margin: 0.4rem 0 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
-textarea { resize: vertical; }
-
-.error { color: #fecaca; margin: 0; font-size: 0.92rem; }
-.footer-text { margin-top: 0.5rem; color: var(--muted); }
-
-@media (max-width: 860px) {
-  .auth-page { grid-template-columns: 1fr; }
-  .auth-visual { min-height: 200px; padding: 2rem; }
+.switch-login a {
+  color: #0f766e;
+  font-weight: 700;
 }

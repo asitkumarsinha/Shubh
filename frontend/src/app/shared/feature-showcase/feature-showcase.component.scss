@@ -50,8 +50,84 @@ h2 {
   color: #5b6472;
 }
 
+.guide {
+  margin: 1.5rem 0 0.25rem;
+  padding: 1.15rem 1.25rem 1.25rem;
+  border: 1px solid #d5e6e3;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.guide h2 {
+  margin-bottom: 0.45rem;
+  font-size: 1.45rem;
+}
+
+.guide h3 {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 1.02rem;
+  color: #0f766e;
+}
+
+.guide p,
+.guide li {
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.guide .slogan {
+  margin: 0.35rem 0 0;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.guide ul,
+.guide ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.guide .who strong {
+  color: #1f2937;
+}
+
+.guide-contact {
+  margin: 1rem 0 0.25rem;
+}
+
+.guide-contact a {
+  margin-left: 0.35rem;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.guide-powered {
+  margin: 0.15rem 0 0;
+  color: #9aa3b0;
+  font-size: 0.85rem;
+}
+
 .compare {
   margin-top: 1.5rem;
+}
+
+.compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #99f6e4;
+  border-radius: 999px;
+  background: #f0fdfa;
+  color: #0f766e;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.compare-toggle:hover {
+  background: #ccfbf1;
 }
 
 .table-wrap {

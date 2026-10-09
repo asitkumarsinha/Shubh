@@ -1,0 +1,47 @@
+My Stores Hubs
+
+One website that runs many branded online stores. Shoppers see a Shopping Mall of stores. Each store has its own name, logo, colours, and products. The store owner manages orders, clients, and staff. One Super Admin looks after every store on the platform.
+
+Your name, your products, your customers.
+
+Who uses it
+1. Super Admin
+   Sets up each customer (store), branding, plans, and backups. Sees contact requests from the Register Me page.
+2. Hubs - Customer 
+   Runs one store: products, prices, orders, clients, and employees.
+3. Stores - Client (shopper)
+   Shops in that store, pays, and tracks orders.
+
+What a Stores - client can do
+- Browse the Shopping Mall and open a store
+- Search the catalogue, see stock and pictures, and add products to a personal cart
+- Check out with a bill and UPI QR payment
+- See My Orders and the status of each order
+- Pay the retail or wholesale price assigned to their group
+- Use the site in English, Hindi, Spanish, or French
+
+What a Hubs - customer can do
+- See today’s orders, revenue, and low stock on the dashboard
+- Add and edit products with a retail price and a wholesale price
+- Approve a bill, create a purchase order, then dispatch
+- Add clients, block or allow login, keep notes, and export a CSV
+- Add and view employees
+- Open sales reports and email a report
+
+What the Super Admin can do
+- Create a separate store for each customer on the same website
+- Give each store its own title, slogan, logo, QR code, and theme
+- Use a Login Initial, such as @mystoreshubs, so that email loads that store’s look
+- Manage plans, modules, backups, feedback, and website visits
+- Read Register Me requests. Only the Super Admin sees that list.
+
+How a new customer starts
+1. Open the website and choose Register Me.
+2. Enter full name, email, mobile number, and a remark. All four are required.
+3. The My Stores Hubs team reviews the request and sets up the store.
+4. Staff sign in with the store email. Shoppers sign in as clients of that store.
+5. If a password is forgotten, Forgot Password asks for user name, email, and mobile number. The password changes only when those three match the account.
+
+Contact
+support@mystoreshubs.com
+Powered by My Store Hub Technologies

@@ -1,8 +1,10 @@
 .login-screen {
   min-height: calc(100vh - 0px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.25rem;
   padding: clamp(0.75rem, 3vw, 2.25rem);
 }
 
@@ -32,6 +34,13 @@
   gap: 1rem;
   padding: 0.9rem 1.5rem;
   border-bottom: 1px solid #e7eaee;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .topbar-actions {
@@ -99,10 +108,18 @@
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 22rem;
+  max-height: 26rem;
   object-fit: contain;
   object-position: center;
-  background: #ffffff;
+}
+
+.login-demo {
+  width: 100%;
+  max-width: 72rem;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  padding: 1.4rem clamp(1rem, 3vw, 1.75rem) 1.6rem;
 }
 
 .login-panel {
@@ -312,6 +329,44 @@ form {
   border-top: 1px solid #e7eaee;
 }
 
+.reset-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.reset-card {
+  width: min(100%, 26rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.4rem 1.3rem 1.2rem;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.reset-card h2 {
+  margin: 0 0 0.2rem;
+  text-align: center;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.reset-cancel {
+  border: none;
+  background: none;
+  color: #6b7280;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Responsive --------------------------------------------------------- */
 
 @media (max-width: 860px) {
@@ -325,7 +380,7 @@ form {
   }
 
   .login-visual img {
-    max-height: 14rem;
+    max-height: 16rem;
   }
 
   .login-panel {

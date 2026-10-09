@@ -3,16 +3,16 @@
   <header class="page-head">
     <div>
       <p class="eyebrow">Super Admin</p>
-      <h1>Website feedback</h1>
-      <p>Messages sent from the Demo page. Anyone can write; only Super Admin can read the list.</p>
+      <h1>Contact requests</h1>
+      <p>Requests sent from Register Me. Only Super Admin can see this grid.</p>
     </div>
   </header>
 
   @if (error) { <div class="toast bad">{{ error }}</div> }
   @if (loading) {
-    <p class="muted">Loading feedback…</p>
-  } @else if (!items.length) {
-    <p class="muted">No feedback yet.</p>
+    <p class="muted">Loading requests…</p>
+  } @else if (!requests.length) {
+    <p class="muted">No contact requests yet.</p>
   } @else {
     <div class="table-wrap">
       <table>
@@ -21,16 +21,72 @@
             <th>When</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Feedback</th>
+            <th>Phone</th>
+            <th>Remark</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          @for (item of items; track item.id) {
+          @for (item of requests; track item.id) {
+            <tr>
+              <td>{{ item.created_at }}</td>
+              <td>{{ item.name || '—' }}</td>
+              <td>{{ item.email || '—' }}</td>
+              <td>{{ item.phone || '—' }}</td>
+              <td>{{ item.message }}</td>
+              <td>
+                <select
+                  class="action-select"
+                  [class.done]="statusOf(item) === 'done'"
+                  [value]="statusOf(item)"
+                  [disabled]="savingId === item.id"
+                  (change)="setStatus(item, $any($event.target).value)"
+                  aria-label="Action"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="done">Done</option>
+                </select>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!loading && notes.length) {
+    <h2>Website feedback</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Feedback</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of notes; track item.id) {
             <tr>
               <td>{{ item.created_at }}</td>
               <td>{{ item.name || '—' }}</td>
               <td>{{ item.email || '—' }}</td>
               <td>{{ item.message }}</td>
+              <td>
+                <select
+                  class="action-select"
+                  [class.done]="statusOf(item) === 'done'"
+                  [value]="statusOf(item)"
+                  [disabled]="savingId === item.id"
+                  (change)="setStatus(item, $any($event.target).value)"
+                  aria-label="Action"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="done">Done</option>
+                </select>
+              </td>
             </tr>
           }
         </tbody>

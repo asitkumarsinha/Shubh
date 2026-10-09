@@ -5,7 +5,10 @@ export interface SiteFeedback {
   id: number;
   name: string;
   email: string;
+  phone?: string;
   message: string;
+  kind?: string;
+  status?: 'done' | 'pending';
   created_at: string;
 }
 
@@ -25,7 +28,15 @@ export class PublicSiteService {
     return this.http.post<SiteFeedback>('/api/feedback', payload);
   }
 
+  sendContact(payload: { name: string; email: string; phone: string; remark: string }) {
+    return this.http.post<SiteFeedback>('/api/contact', payload);
+  }
+
   listFeedback() {
     return this.http.get<SiteFeedback[]>('/api/feedback');
+  }
+
+  setFeedbackStatus(id: number, status: 'done' | 'pending') {
+    return this.http.patch<SiteFeedback>(`/api/feedback/${id}`, { status });
   }
 }

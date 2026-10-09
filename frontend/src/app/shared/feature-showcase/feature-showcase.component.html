@@ -1,57 +1,121 @@
 <div class="showcase" [class.compact]="compact">
   <header class="intro">
-    <p class="eyebrow">Product demo</p>
-    <h1>My Stores Hubs</h1>
-    <p>
-      One platform to launch and run many branded online stores — a shared Shopping Mall for shoppers,
-      a full desk for every store admin, and a Super Admin who controls them all.
-    </p>
+    <p class="eyebrow">{{ 'demo.eyebrow' | t }}</p>
+    <h1>{{ 'demo.title' | t }}</h1>
+    <p>{{ 'demo.intro' | t }}</p>
   </header>
 
   <div class="feature-grid">
     @for (group of groups; track group.title) {
       <article class="panel">
-        <h2>{{ group.title }}</h2>
+        <h2>{{ group.title | t }}</h2>
         <ul>
           @for (item of group.items; track item) {
-            <li>{{ item }}</li>
+            <li>{{ item | t }}</li>
           }
         </ul>
       </article>
     }
   </div>
 
+  @if (showGuide) {
+  <section class="guide">
+    <h2>{{ 'demo.guide.title' | t }}</h2>
+    <p>{{ 'demo.guide.lead' | t }}</p>
+    <p class="slogan">{{ 'demo.guide.slogan' | t }}</p>
+
+    <h3>{{ 'demo.guide.who' | t }}</h3>
+    <ol class="who">
+      <li><strong>{{ 'demo.guide.who1' | t }}</strong> {{ 'demo.guide.who1b' | t }}</li>
+      <li><strong>{{ 'demo.guide.who2' | t }}</strong> {{ 'demo.guide.who2b' | t }}</li>
+      <li><strong>{{ 'demo.guide.who3' | t }}</strong> {{ 'demo.guide.who3b' | t }}</li>
+    </ol>
+
+    <h3>{{ 'demo.guide.clientTitle' | t }}</h3>
+    <ul>
+      <li>{{ 'demo.guide.client1' | t }}</li>
+      <li>{{ 'demo.guide.client2' | t }}</li>
+      <li>{{ 'demo.guide.client3' | t }}</li>
+      <li>{{ 'demo.guide.client4' | t }}</li>
+      <li>{{ 'demo.guide.client5' | t }}</li>
+      <li>{{ 'demo.guide.client6' | t }}</li>
+    </ul>
+
+    <h3>{{ 'demo.guide.hubTitle' | t }}</h3>
+    <ul>
+      <li>{{ 'demo.guide.hub1' | t }}</li>
+      <li>{{ 'demo.guide.hub2' | t }}</li>
+      <li>{{ 'demo.guide.hub3' | t }}</li>
+      <li>{{ 'demo.guide.hub4' | t }}</li>
+      <li>{{ 'demo.guide.hub5' | t }}</li>
+      <li>{{ 'demo.guide.hub6' | t }}</li>
+    </ul>
+
+    <h3>{{ 'demo.guide.adminTitle' | t }}</h3>
+    <ul>
+      <li>{{ 'demo.guide.admin1' | t }}</li>
+      <li>{{ 'demo.guide.admin2' | t }}</li>
+      <li>{{ 'demo.guide.admin3' | t }}</li>
+      <li>{{ 'demo.guide.admin4' | t }}</li>
+      <li>{{ 'demo.guide.admin5' | t }}</li>
+    </ul>
+
+    <h3>{{ 'demo.guide.startTitle' | t }}</h3>
+    <ol>
+      <li>{{ 'demo.guide.start1' | t }}</li>
+      <li>{{ 'demo.guide.start2' | t }}</li>
+      <li>{{ 'demo.guide.start3' | t }}</li>
+      <li>{{ 'demo.guide.start4' | t }}</li>
+      <li>{{ 'demo.guide.start5' | t }}</li>
+    </ol>
+
+    <p class="guide-contact">
+      <strong>{{ 'demo.guide.contact' | t }}</strong>
+      <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+    </p>
+    <p class="guide-powered">{{ 'login.footer' | t }}</p>
+  </section>
+  }
+
   <section class="compare">
-    <h2>MyStoreHub vs Shopify vs Dukaan</h2>
+    @if (collapseCompare) {
+      <button type="button" class="compare-toggle" (click)="compareOpen = !compareOpen" [attr.aria-expanded]="compareOpen">
+        {{ 'demo.compareTitle' | t }}
+      </button>
+    } @else {
+      <h2>{{ 'demo.compareTitle' | t }}</h2>
+    }
+    @if (!collapseCompare || compareOpen) {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th scope="col">Feature</th>
-            <th scope="col" class="ours">MyStoreHub</th>
-            <th scope="col">Shopify</th>
-            <th scope="col">Dukaan</th>
+            <th scope="col">{{ 'demo.col.feature' | t }}</th>
+            <th scope="col" class="ours">{{ 'demo.col.ours' | t }}</th>
+            <th scope="col">{{ 'demo.col.shopify' | t }}</th>
+            <th scope="col">{{ 'demo.col.dukaan' | t }}</th>
           </tr>
         </thead>
         <tbody>
           @for (row of comparison; track row.feature) {
             <tr>
-              <th scope="row">{{ row.feature }}</th>
-              <td class="ours">{{ row.myStoreHub }}</td>
-              <td>{{ row.shopify }}</td>
-              <td>{{ row.dukaan }}</td>
+              <th scope="row">{{ row.feature | t }}</th>
+              <td class="ours">{{ row.myStoreHub | t }}</td>
+              <td>{{ row.shopify | t }}</td>
+              <td>{{ row.dukaan | t }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
-    <p class="note">Shopify and Dukaan details are general and based on their public plans; check their sites for current offers.</p>
+    <p class="note">{{ 'demo.note' | t }}</p>
+    }
   </section>
 
   <section class="contact">
     <div>
-      <h2>Please contact the MyStoreHub team</h2>
-      <p>Get a demo, pricing, or your own branded store set up.</p>
+      <h2>{{ 'demo.contactTitle' | t }}</h2>
+      <p>{{ 'demo.contactBody' | t }}</p>
     </div>
     <a class="mail" [href]="'mailto:' + contactEmail">
       <span class="mail-icon" aria-hidden="true">
@@ -60,7 +124,7 @@
           <path d="m4.5 7 7.5 6 7.5-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
-      <span>Contact us: {{ contactEmail }}</span>
+      <span>{{ 'demo.contactLink' | t }} {{ contactEmail }}</span>
     </a>
   </section>
 </div>

@@ -5,7 +5,7 @@ import { SiteSettings } from './models';
 import { fitLogoOnWhite } from './logo-fit';
 
 const defaults: SiteSettings = {
-  title: 'My Store Hub',
+  title: 'My Stores Hubs',
   slogan: 'Your name, your products, your customers.',
   logo: 'assets/MyStoreHub.jfif',
   qr_code: 'assets/QR.jpeg',

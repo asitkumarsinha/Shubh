@@ -41,6 +41,10 @@ export class AuthService {
     );
   }
 
+  resetPassword(payload: { name: string; email: string; phone: string; password: string }) {
+    return this.http.post<{ ok: boolean }>(`${this.api}/reset-password`, payload);
+  }
+
   register(payload: {
     name: string;
     email: string;

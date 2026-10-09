@@ -10,6 +10,7 @@ import { LanguageSwitcherComponent } from './shared/language-switcher/language-s
 import { WelcomeOverlayComponent } from './shared/welcome-overlay/welcome-overlay.component';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TranslationService } from './core/i18n/translation.service';
+import { ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -36,10 +37,11 @@ export class AppComponent implements OnInit {
     public settings: SettingsService,
     private publicSite: PublicSiteService,
     private router: Router,
-    private i18n: TranslationService
+    private i18n: TranslationService,
+    _theme: ThemeService
   ) {
     effect(() => {
-      const brand = this.settings.current().title || 'My Store Hub';
+      const brand = this.settings.current().title || 'My Stores Hubs';
       const user = this.auth.user();
       this.i18n.lang();
       document.title = user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand;
@@ -51,6 +53,7 @@ export class AppComponent implements OnInit {
     const path = this.router.url.split('?')[0];
     return (
       path === '/login' ||
+      path === '/register' ||
       path === '/demo' ||
       path === '/settings' ||
       path === '/tenants' ||

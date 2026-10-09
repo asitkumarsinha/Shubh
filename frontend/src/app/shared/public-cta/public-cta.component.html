@@ -1,19 +1,6 @@
 <div class="public-cta">
   <div class="cta-row">
     <a routerLink="/demo" class="btn primary">{{ 'cta.demo' | t }}</a>
-    <button class="btn ghost" type="button" (click)="openFeedback()">{{ 'cta.feedback' | t }}</button>
+    <a routerLink="/register" class="btn ghost">{{ 'cta.feedback' | t }}</a>
   </div>
-
-  @if (showFeedback) {
-    <form class="feedback-form" (ngSubmit)="send()">
-      <h3>{{ 'cta.formTitle' | t }}</h3>
-      <label>{{ 'cta.name' | t }} <input [(ngModel)]="name" name="ctaName" /></label>
-      <label>{{ 'cta.email' | t }} <input type="email" [(ngModel)]="email" name="ctaEmail" /></label>
-      <label>{{ 'cta.message' | t }} <textarea [(ngModel)]="message" name="ctaMessage" required rows="3" minlength="8"></textarea></label>
-      <div class="cta-row">
-        <button class="btn primary" type="submit" [disabled]="sending">{{ sending ? ('cta.sending' | t) : ('cta.send' | t) }}</button>
-        <button class="btn ghost" type="button" (click)="showFeedback = false">{{ 'cta.cancel' | t }}</button>
-      </div>
-    </form>
-  }
 </div>

@@ -52,6 +52,16 @@ html.hub-admin body {
   background-attachment: fixed;
 }
 
+/* Black theme: invert every page; photos, logos and QR codes are inverted back to stay true. */
+html.theme-black {
+  filter: invert(1) hue-rotate(180deg);
+  background: #f2f2f2;
+}
+
+html.theme-black :is(img, video, canvas, picture, iframe, [style*='background-image']) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 /* Admin desk shares the light Customer screen colours. */
 html.hub-admin {
   --ink: #1f2937;

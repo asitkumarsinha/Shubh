@@ -130,7 +130,7 @@ export class OrderDetailComponent implements OnInit {
   dispatch(): void {
     if (!this.order) return;
     this.runAction('Saving…', this.orders.dispatch(this.order.id), () =>
-      'Medicine ready / marked as dispatched'
+      'My Stores Hubs ready / marked as dispatched'
     );
   }
 

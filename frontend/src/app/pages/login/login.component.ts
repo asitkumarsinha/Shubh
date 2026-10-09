@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, effect } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -11,11 +11,14 @@ import { fitLogoOnWhite } from '../../core/logo-fit';
 import { PublicCtaComponent } from '../../shared/public-cta/public-cta.component';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { TranslationService } from '../../core/i18n/translation.service';
+import { FeatureShowcaseComponent } from '../../shared/feature-showcase/feature-showcase.component';
+import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe, FeatureShowcaseComponent, ThemeToggleComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -25,6 +28,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   remember = false;
   error = '';
   loading = false;
+  showReset = false;
+  resetName = '';
+  resetEmail = '';
+  resetPhone = '';
+  resetPassword = '';
+  resetError = '';
+  resetSaving = false;
   displayLogo = '';
   private fittedSource = '';
   private loginInitialTimer?: ReturnType<typeof setTimeout>;
@@ -33,7 +43,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private router: Router,
     public settings: SettingsService,
-    private toast: ToastService
+    private toast: ToastService,
+    private i18n: TranslationService
   ) {
     effect(() => {
       const logo = this.settings.current().logo;
@@ -76,7 +87,45 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   forgotPassword(): void {
-    this.toast.info('Password reset isn\u2019t available yet. Please contact your admin.');
+    this.resetError = '';
+    this.showReset = true;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeResetOnEscape(): void {
+    if (this.showReset) this.showReset = false;
+  }
+
+  closeReset(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.showReset = false;
+  }
+
+  submitReset(): void {
+    this.resetError = '';
+    if (!this.resetName.trim() || !this.resetEmail.trim() || !this.resetPhone.trim() || !this.resetPassword) {
+      this.resetError = this.i18n.t('reset.required');
+      return;
+    }
+    this.resetSaving = true;
+    this.auth
+      .resetPassword({
+        name: this.resetName.trim(),
+        email: this.resetEmail.trim(),
+        phone: this.resetPhone.trim(),
+        password: this.resetPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.resetSaving = false;
+          this.showReset = false;
+          this.resetPassword = '';
+          this.toast.success(this.i18n.t('reset.success'));
+        },
+        error: (err) => {
+          this.resetSaving = false;
+          this.resetError = apiErrorMessage(err, this.i18n.t('reset.mismatch'));
+        },
+      });
   }
 
   onLogoLoad(event: Event): void {

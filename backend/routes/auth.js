@@ -87,6 +87,29 @@ router.post('/login', limitLogin, (req, res) => {
   res.json({ token, user });
 });
 
+router.post('/reset-password', limitLogin, (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const phone = String(req.body?.phone || '').replace(/\D/g, '');
+  const password = String(req.body?.password || '');
+  if (!name || !email || !phone || !password.trim()) {
+    return res.status(400).json({ message: 'User Name, Email ID, Mobile Number and New Password are required.' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  }
+  const row = db.prepare('SELECT * FROM users WHERE lower(email) = ?').get(email);
+  const sameName = row && String(row.name || '').trim().toLowerCase() === name.toLowerCase();
+  const samePhone = row && String(row.phone || '').replace(/\D/g, '') === phone;
+  if (!sameName || !samePhone) {
+    return res.status(400).json({ message: 'User Name, Email ID and Mobile Number do not match.' });
+  }
+  const hash = bcrypt.hashSync(password, 10);
+  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, row.id);
+  clearLoginFailures(email);
+  res.json({ ok: true });
+});
+
 router.get('/me', authenticate, (req, res) => {
   const row = db
     .prepare('SELECT id, name, email, role, phone, address, client_group, tenant_id FROM users WHERE id = ?')

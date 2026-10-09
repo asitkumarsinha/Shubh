@@ -205,14 +205,17 @@ db.prepare(
 ).run();
 db.prepare(
   `UPDATE site_settings
-   SET title = 'My Store Hub',
+   SET title = 'My Stores Hubs',
        slogan = 'Your name, your products, your customers.',
        logo = '/assets/MyStoreHub.jfif'
-   WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution', 'Store Hub / Apna Store')`
+   WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution', 'Store Hub / Apna Store', 'My Store Hub', 'MyStoreHub')`
 ).run();
 db.prepare(
-  `UPDATE tenant_settings SET title = 'Shubh Surgical'
-   WHERE tenant_id = 1 AND title IN ('Surgical Solution', 'Shubh Surgical')`
+  `UPDATE tenant_settings SET title = 'My Stores Hubs'
+   WHERE title IN ('Surgical Solution', 'Shubh Surgical', 'My Store Hub', 'MyStoreHub')`
+).run();
+db.prepare(
+  `UPDATE tenants SET name = 'My Stores Hubs' WHERE name IN ('Shubh Surgical', 'My Store Hub')`
 ).run();
 
 db.exec(`
@@ -230,6 +233,19 @@ db.exec(`
   );
 `);
 db.prepare(`INSERT OR IGNORE INTO site_hits (id, count) VALUES (1, 0)`).run();
+
+{
+  const feedbackColumns = db.prepare('PRAGMA table_info(site_feedback)').all();
+  if (!feedbackColumns.some((column) => column.name === 'phone')) {
+    db.exec(`ALTER TABLE site_feedback ADD COLUMN phone TEXT NOT NULL DEFAULT ''`);
+  }
+  if (!feedbackColumns.some((column) => column.name === 'kind')) {
+    db.exec(`ALTER TABLE site_feedback ADD COLUMN kind TEXT NOT NULL DEFAULT 'feedback'`);
+  }
+  if (!feedbackColumns.some((column) => column.name === 'status')) {
+    db.exec(`ALTER TABLE site_feedback ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`);
+  }
+}
 
 for (const table of ['users', 'medicines', 'orders', 'employees']) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all();

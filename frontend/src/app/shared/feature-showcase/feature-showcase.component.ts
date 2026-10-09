@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 export const CONTACT_EMAIL = 'support@mystoreshubs.com';
 
@@ -17,101 +18,37 @@ interface ComparisonRow {
 @Component({
   selector: 'app-feature-showcase',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './feature-showcase.component.html',
   styleUrl: './feature-showcase.component.scss',
 })
 export class FeatureShowcaseComponent {
   @Input() compact = false;
+  @Input() collapseCompare = false;
+  @Input() showGuide = false;
+  compareOpen = false;
 
   readonly contactEmail = CONTACT_EMAIL;
 
   readonly groups: FeatureGroup[] = [
     {
-      title: 'Stores Admin - Shop & Checkout',
-      items: [
-        'Shopping Mall that lists every store on the platform',
-        'Product catalogue with stock, images, and search',
-        'Personal cart for each signed-in client',
-        'Bill, UPI QR payment, and order tracking',
-        'Retail or wholesale prices per client group',
-      ],
+      title: 'demo.g1.title',
+      items: ['demo.g1.1', 'demo.g1.2', 'demo.g1.3', 'demo.g1.4', 'demo.g1.5'],
     },
     {
-      title: 'Hubs Admin (Hub - Customer)',
-      items: [
-        'Dashboard for today’s orders, revenue, and low stock',
-        'Add and edit products with retail / wholesale price',
-        'Approve bills, create purchase order, then dispatch',
-        'Clients: add, block / allow, notes, CSV export',
-        'Employees, sales reports, and emailed reports',
-      ],
+      title: 'demo.g2.title',
+      items: ['demo.g2.1', 'demo.g2.2', 'demo.g2.3', 'demo.g2.4', 'demo.g2.5'],
     },
     {
-      title: 'Super Admin Platform',
-      items: [
-        'Run many stores (tenants) from one platform',
-        'Own title, slogan, logo, QR, and theme per store',
-        'Login Initial such as @shubhsurgical loads that store’s brand',
-        'Plans, modules, backups, feedback, and website hits',
-        'English, Hindi, Spanish, and French screens',
-      ],
+      title: 'demo.g3.title',
+      items: ['demo.g3.1', 'demo.g3.2', 'demo.g3.3', 'demo.g3.4', 'demo.g3.5'],
     },
   ];
 
-  readonly comparison: ComparisonRow[] = [
-    {
-      feature: 'Many stores from one platform',
-      myStoreHub: 'Built in (Super Admin)',
-      shopify: 'Separate plan per store',
-      dukaan: 'One store per account',
-    },
-    {
-      feature: 'Brand loads from login email',
-      myStoreHub: 'Built in (Login Initial)',
-      shopify: 'Not available',
-      dukaan: 'Not available',
-    },
-    {
-      feature: 'Common Shopping Mall of stores',
-      myStoreHub: 'Built in',
-      shopify: 'Not available',
-      dukaan: 'Not available',
-    },
-    {
-      feature: 'Retail & wholesale pricing',
-      myStoreHub: 'Built in per client group',
-      shopify: 'Apps or higher plans',
-      dukaan: 'Limited',
-    },
-    {
-      feature: 'Approve → PO → Dispatch flow',
-      myStoreHub: 'Built in',
-      shopify: 'Through apps',
-      dukaan: 'Basic order status',
-    },
-    {
-      feature: 'Employees & client management',
-      myStoreHub: 'Built in',
-      shopify: 'Staff seats by plan',
-      dukaan: 'Limited',
-    },
-    {
-      feature: 'UPI QR checkout',
-      myStoreHub: 'Built in',
-      shopify: 'Through payment providers',
-      dukaan: 'Built in',
-    },
-    {
-      feature: 'Your data & hosting',
-      myStoreHub: 'Your own server and database',
-      shopify: 'Hosted by Shopify',
-      dukaan: 'Hosted by Dukaan',
-    },
-    {
-      feature: 'Pricing',
-      myStoreHub: 'Plan agreed with MyStoreHub team',
-      shopify: 'Monthly subscription + fees',
-      dukaan: 'Monthly / yearly subscription',
-    },
-  ];
+  readonly comparison: ComparisonRow[] = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => ({
+    feature: `demo.r${n}.feature`,
+    myStoreHub: `demo.r${n}.ours`,
+    shopify: `demo.r${n}.shopify`,
+    dukaan: `demo.r${n}.dukaan`,
+  }));
 }

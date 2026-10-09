@@ -1,50 +1,70 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/auth.service';
+import { RouterLink } from '@angular/router';
 import { apiErrorMessage } from '../../core/api-error';
+import { PublicSiteService } from '../../core/public-site.service';
+import { SettingsService } from '../../core/settings.service';
 import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { TranslationService } from '../../core/i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.scss',
+  styleUrls: ['../login/login.component.scss', './register.component.scss'],
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   name = '';
   email = '';
-  password = '';
   phone = '';
-  address = '';
+  remark = '';
   error = '';
+  sent = false;
   loading = false;
 
-  constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
+  constructor(
+    private publicSite: PublicSiteService,
+    private toast: ToastService,
+    private i18n: TranslationService,
+    public settings: SettingsService
+  ) {}
+
+  ngOnInit(): void {
+    document.documentElement.classList.add('hub-login');
+  }
+
+  ngOnDestroy(): void {
+    document.documentElement.classList.remove('hub-login');
+  }
 
   submit(): void {
     this.error = '';
+    this.sent = false;
     this.loading = true;
-    this.auth
-      .register({
+    this.publicSite
+      .sendContact({
         name: this.name,
         email: this.email,
-        password: this.password,
         phone: this.phone,
-        address: this.address,
+        remark: this.remark,
       })
       .subscribe({
         next: () => {
           this.loading = false;
-          this.toast.success('Account saved');
-          this.router.navigate(['/account']);
+          this.sent = true;
+          this.toast.success(this.i18n.t('register.sent'));
+          this.name = '';
+          this.email = '';
+          this.phone = '';
+          this.remark = '';
         },
         error: (err) => {
           this.loading = false;
-          const msg = apiErrorMessage(err, 'Registration failed');
+          const msg = apiErrorMessage(err, 'Could not send the request');
           this.error = msg;
           this.toast.error(msg);
         },

@@ -103,14 +103,38 @@ export function fitLogoOnWhite(img: HTMLImageElement): string | null {
     }
   }
 
+  // The emblem ring breaks into several bright patches; take in nearby bright pixels as well.
+  for (let pass = 0; pass < 2; pass++) {
+    const growX = Math.round((maxX - minX) * 0.12);
+    const growY = Math.round((maxY - minY) * 0.12);
+    const x0 = Math.max(0, minX - growX);
+    const x1 = Math.min(width - 1, maxX + growX);
+    const y0 = Math.max(0, minY - growY);
+    const y1 = Math.min(height - 1, maxY + growY);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (lum[y * width + x] < bright) continue;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
   const boxW = maxX - minX + 1;
   const boxH = maxY - minY + 1;
   if (boxW > width * 0.92 && boxH > height * 0.92) return null;
 
+  const round = boxH / boxW > 0.6 && boxH / boxW < 1.4;
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
-  const rx = (boxW / 2) * 1.06;
-  const ry = (boxH / 2) * 1.06;
+  let rx = (boxW / 2) * 1.28;
+  let ry = (boxH / 2) * 1.28;
+
+  if (round) {
+    rx = ry = (Math.max(boxW, boxH) / 2) * 1.05;
+  }
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -121,18 +145,30 @@ export function fitLogoOnWhite(img: HTMLImageElement): string | null {
         data[i] = 255;
         data[i + 1] = 255;
         data[i + 2] = 255;
-        data[i + 3] = 255;
+        data[i + 3] = round ? 0 : 255;
       }
     }
   }
 
-  const pad = 8;
+  ctx.putImageData(frame, 0, 0);
+  const pad = 36;
+
+  if (round) {
+    const side = Math.ceil(2 * rx) + pad * 2;
+    const square = document.createElement('canvas');
+    square.width = side;
+    square.height = side;
+    const squareCtx = square.getContext('2d');
+    if (!squareCtx) return null;
+    squareCtx.drawImage(canvas, Math.round(side / 2 - cx), Math.round(side / 2 - cy));
+    return square.toDataURL('image/png');
+  }
+
   const left = Math.max(0, Math.floor(cx - rx) - pad);
   const top = Math.max(0, Math.floor(cy - ry) - pad);
   const right = Math.min(width, Math.ceil(cx + rx) + pad);
   const bottom = Math.min(height, Math.ceil(cy + ry) + pad);
 
-  ctx.putImageData(frame, 0, 0);
   const cropped = document.createElement('canvas');
   cropped.width = Math.max(1, right - left);
   cropped.height = Math.max(1, bottom - top);

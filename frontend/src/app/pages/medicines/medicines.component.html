@@ -33,12 +33,25 @@
           <span class="chip-divider" aria-hidden="true"></span>
         }
 
+        <button type="button" class="action-chip highlight" (click)="openMall()">
+          <span class="icon-circle bag">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+            @if (cart.count() > 0) {
+              <span class="bag-count">{{ cart.count() }}</span>
+            }
+          </span>
+          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
+        </button>
+        <span class="chip-divider" aria-hidden="true"></span>
         @if (auth.isLoggedIn()) {
           <button type="button" class="action-chip" (click)="logout()">
             <span class="icon-circle">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                <path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
               </svg>
             </span>
             <span class="chip-label">{{ auth.user()?.name }} - {{ auth.categoryKey() | t }}</span>
@@ -54,20 +67,6 @@
             <span class="chip-label">{{ 'login.userLogin' | t }}</span>
           </a>
         }
-
-        <span class="chip-divider" aria-hidden="true"></span>
-        <button type="button" class="action-chip highlight" (click)="openMall()">
-          <span class="icon-circle bag">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
-            </svg>
-            @if (cart.count() > 0) {
-              <span class="bag-count">{{ cart.count() }}</span>
-            }
-          </span>
-          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
-        </button>
       </div>
     </header>
 
