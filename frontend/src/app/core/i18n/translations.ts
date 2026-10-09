@@ -32,7 +32,7 @@ const en: Dict = {
   'login.forgot': 'Forgot Password?',
   'login.loginNow': 'Login Now',
   'login.signingIn': 'Signing in…',
-  'login.footer': '(c) Powered by {{title}} Technologies.',
+  'login.footer': 'Powered by My Store Hub Technologies, Contact us - support@mystoreshubs.com',
   'login.userLogin': 'User Login',
   'login.eMall': 'E-Mall',
 
@@ -235,7 +235,7 @@ const hi: Dict = {
   'login.forgot': 'पासवर्ड भूल गए?',
   'login.loginNow': 'लॉगिन करें',
   'login.signingIn': 'लॉगिन हो रहा है…',
-  'login.footer': '© {{title}} Technologies द्वारा संचालित।',
+  'login.footer': 'Powered by My Store Hub Technologies, Contact us - support@mystoreshubs.com',
   'login.userLogin': 'यूज़र लॉगिन',
   'login.eMall': 'ई-मॉल',
 
@@ -438,7 +438,7 @@ const es: Dict = {
   'login.forgot': '¿Olvidaste tu contraseña?',
   'login.loginNow': 'Iniciar sesión',
   'login.signingIn': 'Iniciando sesión…',
-  'login.footer': '(c) Desarrollado por {{title}} Technologies.',
+  'login.footer': 'Powered by My Store Hub Technologies, Contact us - support@mystoreshubs.com',
   'login.userLogin': 'Inicio de usuario',
   'login.eMall': 'E-Mall',
 
@@ -643,7 +643,7 @@ const fr: Dict = {
   'login.forgot': 'Mot de passe oublié ?',
   'login.loginNow': 'Se connecter',
   'login.signingIn': 'Connexion en cours…',
-  'login.footer': '(c) Propulsé par {{title}} Technologies.',
+  'login.footer': 'Powered by My Store Hub Technologies, Contact us - support@mystoreshubs.com',
   'login.userLogin': 'Connexion utilisateur',
   'login.eMall': 'E-Mall',
 

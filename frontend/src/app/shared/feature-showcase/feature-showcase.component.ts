@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-export const CONTACT_EMAIL = 'MyStoresHubs@gmail.com';
+export const CONTACT_EMAIL = 'support@mystoreshubs.com';
 
 interface FeatureGroup {
   title: string;
@@ -27,7 +27,7 @@ export class FeatureShowcaseComponent {
 
   readonly groups: FeatureGroup[] = [
     {
-      title: 'Shop & Checkout',
+      title: 'Stores Admin - Shop & Checkout',
       items: [
         'Shopping Mall that lists every store on the platform',
         'Product catalogue with stock, images, and search',
@@ -37,7 +37,7 @@ export class FeatureShowcaseComponent {
       ],
     },
     {
-      title: 'Store Admin (Customer)',
+      title: 'Hubs Admin (Hub - Customer)',
       items: [
         'Dashboard for today’s orders, revenue, and low stock',
         'Add and edit products with retail / wholesale price',
