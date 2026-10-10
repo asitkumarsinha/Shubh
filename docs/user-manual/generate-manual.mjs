@@ -6,7 +6,16 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const shotDir = join(__dirname, 'screenshots');
 const outPdf = join(__dirname, '..', 'My-Store-Hub-Training-Manual.pdf');
-const helpPdf = join(__dirname, '..', '..', 'frontend', 'public', 'assets', 'help', 'My-Store-Hub-Training-Manual.pdf');
+const helpPdf = join(
+  __dirname,
+  '..',
+  '..',
+  'frontend',
+  'public',
+  'assets',
+  'help',
+  'My-Store-Hub-Training-Manual.pdf'
+);
 const BASE = process.env.APP_URL || 'http://localhost:4200';
 
 mkdirSync(shotDir, { recursive: true });
@@ -14,28 +23,36 @@ mkdirSync(dirname(helpPdf), { recursive: true });
 
 const shots = {};
 
-async function shot(page, name) {
-  const file = join(shotDir, `${name}.png`);
+async function shot(page, name, selector) {
+  console.log('shot:', name);
   await page.waitForTimeout(700);
-  await page.screenshot({ path: file, fullPage: true });
+  const file = join(shotDir, `${name}.png`);
+  if (selector) {
+    const el = page.locator(selector).first();
+    await el.scrollIntoViewIfNeeded().catch(() => {});
+    await el.screenshot({ path: file }).catch(async () => {
+      await page.screenshot({ path: file, fullPage: true });
+    });
+  } else {
+    await page.screenshot({ path: file, fullPage: true });
+  }
   shots[name] = file;
 }
 
 async function clearAuth(page) {
-  await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/login`, { waitUntil: 'load' });
   await page.evaluate(() => {
     localStorage.removeItem('medishop_token');
     localStorage.removeItem('medishop_user');
-    localStorage.removeItem('medishop_cart');
   });
 }
 
 async function login(page, email, password) {
   await clearAuth(page);
-  await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/login`, { waitUntil: 'load' });
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
-  await page.click('button[type="submit"]');
+  await page.click('button.login-btn');
   await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
   await page.waitForLoadState('networkidle');
 }
@@ -45,11 +62,11 @@ function img(name) {
   return `data:image/png;base64,${buf.toString('base64')}`;
 }
 
-function section(title, summary, steps, shotName) {
+function section(number, title, summary, steps, shotName) {
   const stepsHtml = steps.map((s) => `<li>${s}</li>`).join('');
   return `
     <section class="chapter">
-      <h2>${title}</h2>
+      <h2>${number}. ${title}</h2>
       <p class="summary">${summary}</p>
       <h3>How to do it</h3>
       <ol>${stepsHtml}</ol>
@@ -63,27 +80,51 @@ function section(title, summary, steps, shotName) {
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
-await page.goto(`${BASE}/medicines`, { waitUntil: 'networkidle' });
+// ---------- Guest screens ----------
+await page.goto(`${BASE}/shoppingmall`, { waitUntil: 'load' });
 await shot(page, 'catalogue');
 
-await page.goto(`${BASE}/register`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/register`, { waitUntil: 'load' });
 await shot(page, 'register');
+const stamp = Date.now();
+await page.fill('input[name="name"]', 'Training Contact');
+await page.fill('input[name="email"]', `training.${stamp}@example.com`);
+await page.fill('input[name="phone"]', '9876500000');
+await page.fill('textarea[name="remark"]', 'Interested in a demo walkthrough of My Stores Hubs.');
+await page.click('button.login-btn');
+await page.waitForTimeout(1000);
+await shot(page, 'register-sent');
 
-await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/login`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
 await shot(page, 'login');
 
+// Theme toggle demonstration
+const blackBtn = page.locator('app-theme-toggle button', { hasText: 'Black' }).first();
+if (await blackBtn.count()) {
+  await blackBtn.click();
+  await page.waitForTimeout(500);
+  await shot(page, 'login-black-theme');
+  const whiteBtn = page.locator('app-theme-toggle button', { hasText: 'White' }).first();
+  if (await whiteBtn.count()) {
+    await whiteBtn.click();
+    await page.waitForTimeout(400);
+  }
+}
+
+// ---------- Client (shopper) screens ----------
 await login(page, 'user@shubhsurgical.com', 'user123');
-await page.goto(`${BASE}/medicines`, { waitUntil: 'networkidle' });
-await page.waitForSelector('.medicine-item');
+await page.goto(`${BASE}/shop`, { waitUntil: 'load' });
+await page.waitForSelector('.product', { timeout: 10000 }).catch(() => {});
 await shot(page, 'shop');
 
-const addBtn = page.locator('button:has-text("Add to cart")').first();
+const addBtn = page.locator('.product button:not([disabled])').first();
 if (await addBtn.count()) {
   await addBtn.click();
   await page.waitForTimeout(400);
 }
 
-await page.goto(`${BASE}/cart`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/cart`, { waitUntil: 'load' });
 await shot(page, 'cart');
 
 const place = page.locator('button:has-text("Place order")');
@@ -91,13 +132,13 @@ if (await place.count()) {
   await place.click();
   await page.waitForURL(/\/orders\/\d+/, { timeout: 20000 }).catch(() => {});
 }
-
 await page.waitForTimeout(800);
+
 if (page.url().includes('/orders/')) {
   await shot(page, 'bill');
 } else {
-  await page.goto(`${BASE}/orders`, { waitUntil: 'networkidle' });
-  const view = page.locator('a:has-text("View bill / QR")').first();
+  await page.goto(`${BASE}/orders`, { waitUntil: 'load' });
+  const view = page.locator('a:has-text("View bill")').first();
   if (await view.count()) {
     await view.click();
     await page.waitForLoadState('networkidle');
@@ -107,67 +148,60 @@ if (page.url().includes('/orders/')) {
   }
 }
 
-await page.goto(`${BASE}/orders`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/orders`, { waitUntil: 'load' });
 await shot(page, 'my-orders');
 
+// ---------- Customer (store admin) screens ----------
 await login(page, 'admin@shubhsurgical.com', 'admin123');
-await page.goto(`${BASE}/admin`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin/customers_tenats`, { waitUntil: 'load' });
 await shot(page, 'admin-dashboard');
 
-await page.goto(`${BASE}/admin/medicines`, { waitUntil: 'networkidle' });
-await shot(page, 'admin-medicines');
+await page.goto(`${BASE}/admin/Products`, { waitUntil: 'load' });
+await shot(page, 'admin-products');
 
-await page.goto(`${BASE}/admin/orders`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin/orders`, { waitUntil: 'load' });
 await shot(page, 'admin-orders');
 
-await page.goto(`${BASE}/admin/users`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin/users`, { waitUntil: 'load' });
 await shot(page, 'admin-clients');
 
-await page.goto(`${BASE}/admin/employees`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin/employees`, { waitUntil: 'load' });
 await shot(page, 'admin-employees-add');
-
-const nameInput = page.locator('input[name="name"]');
-if (await nameInput.count()) {
-  const stamp = Date.now();
-  await nameInput.fill('Training Staff');
-  await page.fill('input[name="email"]', `staff.${stamp}@shubhsurgical.local`);
-  await page.fill('input[name="phone"]', '9876543210');
-  await page.fill('input[name="designation"]', 'Pharmacist');
-  await page.fill('input[name="department"]', 'Dispensary');
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(1200);
-}
-
-await page.goto(`${BASE}/admin/employees`, { waitUntil: 'networkidle' });
 const viewBtn = page.locator('button:has-text("View")').first();
 if (await viewBtn.count()) {
   await viewBtn.click();
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(600);
 }
 await shot(page, 'admin-employees-view');
 
-await page.goto(`${BASE}/admin/reports`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin/reports`, { waitUntil: 'load' });
 await shot(page, 'admin-reports');
 
+// ---------- Super Admin screens ----------
 await login(page, 'asitkumarsinha@gmail.com', 'Shivansh2026');
-await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/settings`, { waitUntil: 'load' });
 await shot(page, 'super-settings');
 
-await page.goto(`${BASE}/tenants`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/tenants`, { waitUntil: 'load' });
 await shot(page, 'super-tenants');
+
+await page.goto(`${BASE}/feedback`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await shot(page, 'super-feedback');
 
 await browser.close();
 
 const required = [
   'catalogue',
   'register',
+  'register-sent',
   'login',
   'shop',
   'cart',
   'bill',
   'my-orders',
   'admin-dashboard',
-  'admin-medicines',
+  'admin-products',
   'admin-orders',
   'admin-clients',
   'admin-employees-add',
@@ -175,11 +209,13 @@ const required = [
   'admin-reports',
   'super-settings',
   'super-tenants',
+  'super-feedback',
 ];
 const missing = required.filter((k) => !existsSync(shots[k]));
 if (missing.length) {
   throw new Error(`Missing screenshots: ${missing.join(', ')}`);
 }
+const hasLoginBlack = existsSync(shots['login-black-theme']);
 
 const today = new Date().toLocaleDateString('en-IN');
 
@@ -187,7 +223,7 @@ const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>My Store Hub — Training User Manual</title>
+  <title>My Stores Hubs — User Manual</title>
   <style>
     @page { size: A4; margin: 16mm 14mm 18mm; }
     * { box-sizing: border-box; }
@@ -233,20 +269,23 @@ const html = `<!doctype html>
     .toc ol { font-size: 12pt; }
     .note { background: #fff7ed; border-left: 4px solid #c2410c; padding: 8px 12px; }
     .footer-note { font-size: 9.5pt; color: #52606d; margin-top: 20px; }
+    table.ref { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+    table.ref th { text-align: left; padding: 8px; background: #0f3d4c; color: #fff; }
+    table.ref td { padding: 8px; border-bottom: 1px solid #e5e7eb; }
   </style>
 </head>
 <body>
   <div class="cover">
-    <p style="letter-spacing:0.18em;text-transform:uppercase;font-size:10pt;opacity:.8">Training document</p>
-    <h1>My Store Hub</h1>
-    <p class="tag">Your name, your products, your customers.<br/>Complete website user manual</p>
+    <p style="letter-spacing:0.18em;text-transform:uppercase;font-size:10pt;opacity:.8">User manual</p>
+    <h1>My Stores Hubs</h1>
+    <p class="tag">Your name, your products, your customers.<br/>A complete, step-by-step guide to every screen</p>
     <div class="meta">
       <table>
-        <tr><td><strong>Purpose</strong></td><td>Staff, admin, and customer training</td></tr>
-        <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / live host URL</td></tr>
-        <tr><td><strong>Audience</strong></td><td>Customers, store administrators, and Super Admin</td></tr>
-        <tr><td><strong>Version</strong></td><td>3.3 — ${today}</td></tr>
-        <tr><td><strong>Help Center</strong></td><td>Admin or Super Admin login → Help Center (opens this PDF)</td></tr>
+        <tr><td><strong>Purpose</strong></td><td>Help a brand-new user understand and use the website</td></tr>
+        <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / your live host URL</td></tr>
+        <tr><td><strong>Audience</strong></td><td>Shoppers (Client), store owners (Customer), and the Super Admin</td></tr>
+        <tr><td><strong>Version</strong></td><td>4.0 — ${today}</td></tr>
+        <tr><td><strong>Open this manual</strong></td><td>Sign-in page → <strong>Demo</strong> button, or after login → <strong>Help Center</strong></td></tr>
       </table>
     </div>
   </div>
@@ -254,304 +293,325 @@ const html = `<!doctype html>
   <section class="toc">
     <h2>Contents</h2>
     <ol>
-      <li>What this website does</li>
+      <li>What My Stores Hubs does</li>
       <li>Website features and access roles</li>
-      <li>Register</li>
-      <li>Sign in</li>
-      <li>Browse catalogue and shop</li>
-      <li>Cart and place order</li>
-      <li>Bill and Checkout QR</li>
+      <li>Browse the Shopping Mall (guest catalogue)</li>
+      <li>Register Me (contact request)</li>
+      <li>Sign in, Theme, and Language</li>
+      <li>Shop and add to cart</li>
+      <li>Cart, payment, and place order</li>
+      <li>Bill and order status</li>
       <li>My Orders</li>
-      <li>Admin: Help Center</li>
-      <li>Admin: Dashboard</li>
-      <li>Admin: manage products</li>
-      <li>Admin: orders desk</li>
-      <li>Admin: Clients (add, view, block / allow)</li>
-      <li>Admin: Employee (add, view, update, remove)</li>
-      <li>Admin: reports</li>
+      <li>Customer: Dashboard</li>
+      <li>Customer: manage products</li>
+      <li>Customer: orders desk</li>
+      <li>Customer: Clients</li>
+      <li>Customer: Employee</li>
+      <li>Customer: Reports</li>
       <li>Super Admin: Settings</li>
-      <li>Super Admin: Customers (tenants)</li>
+      <li>Super Admin: Customers &amp; tenants</li>
+      <li>Super Admin: Feedback &amp; contact requests</li>
       <li>Order status meaning</li>
-      <li>Feature map</li>
-      <li>Training checklist</li>
+      <li>Feature map (all screens)</li>
+      <li>Getting-started checklist</li>
     </ol>
-    <p class="footer-note">Screenshots were taken from the live application. Open this file from admin <strong>Help Center</strong> to always use the latest copy.</p>
+    <p class="footer-note">All screenshots were captured from the live application. Open this file from the Sign in page <strong>Demo</strong> button (or admin <strong>Help Center</strong>) to always use the latest copy.</p>
   </section>
 
   <section class="chapter">
-    <h2>1. What this website does</h2>
-    <p class="summary">My Store Hub is a multi-tenant commerce platform: shoppers browse stock, add items to a cart, and place an order. The system creates a bill with a checkout QR. A store administrator verifies payment, approves the order (this creates a Purchase Order), then marks it dispatched. Super Admin customises branding per customer and provisions isolated customer stores.</p>
+    <h2>1. What My Stores Hubs does</h2>
+    <p class="summary">My Stores Hubs is a multi-tenant commerce platform: shoppers browse stock, add items to a cart, and place an order. The system creates a bill, and the store collects payment (QR, cash on delivery, or at the counter). A store owner verifies the order, approves it (this generates a Purchase Order), then marks it dispatched. The Super Admin provisions and brands each store independently.</p>
     <h3>End-to-end flow</h3>
     <ol>
-      <li>Customer registers or signs in.</li>
-      <li>Customer adds medicines to the cart and clicks <strong>Place order</strong>.</li>
-      <li>A bill is created with status <strong>pending</strong> and a Checkout QR is shown.</li>
-      <li>Customer pays using the QR (any UPI app).</li>
-      <li>Admin opens <strong>Orders</strong>, confirms payment, and chooses <strong>Approve</strong> (PO generated) or <strong>Reject</strong>.</li>
-      <li>When stock is packed, admin marks the order <strong>Dispatch</strong>.</li>
+      <li>A visitor browses the public Shopping Mall, or signs in with an existing account.</li>
+      <li>The shopper adds products to the cart and clicks <strong>Place order</strong>.</li>
+      <li>A bill is created with status <strong>pending</strong>, together with a payment method (QR, cash on delivery, or pay at counter).</li>
+      <li>The store owner opens <strong>Orders</strong>, confirms payment, and chooses <strong>Approve</strong> (a Purchase Order is generated) or <strong>Reject</strong>.</li>
+      <li>When the order is packed, the store owner marks it <strong>Dispatch</strong>.</li>
     </ol>
-    <p class="note">After any successful save (settings, client, employee, medicine, tenant, and similar forms), the site shows a short toast and a save status so staff know the change was stored.</p>
+    <p class="note">New visitors who are not ready to create an account can use <strong>Register Me</strong> on the Sign in page to leave their name, email, phone, and a note — this creates a contact request that only the Super Admin can see on the Feedback page.</p>
   </section>
 
   <section class="chapter">
     <h2>2. Website features and access roles</h2>
-    <p class="summary">The website separates shopping, store operations, and platform management. Accounts and credentials are issued by the business; this manual intentionally does not list passwords.</p>
-    <table style="width:100%;border-collapse:collapse;margin:8px 0 12px">
-      <tr style="background:#0f3d4c;color:#fff"><th style="text-align:left;padding:8px">Role</th><th style="text-align:left;padding:8px">Main features</th><th style="text-align:left;padding:8px">Where they start</th></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Browse medicines, choose retail/wholesale prices, cart, QR bill, and order tracking</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Store admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard, stock, orders, clients, employees, reports, and customer-specific operations</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Provision customer businesses, choose modules and plans, customise each customer, and export backups</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td></tr>
+    <p class="summary">The site separates shopping, store operations, and platform management into three roles. The header always shows the signed-in person's name and role next to <strong>User Login</strong>.</p>
+    <table class="ref">
+      <tr><th>Role (shown in header)</th><th>Main features</th><th>Where they land after sign-in</th></tr>
+      <tr><td><strong>Client</strong> (shopper)</td><td>Browse the Shopping Mall, Shop, Cart, checkout, and My Orders</td><td>Shopping Mall</td></tr>
+      <tr><td><strong>Customer</strong> (store owner)</td><td>Dashboard, Products, Orders, Clients, Employee, Reports</td><td>Dashboard</td></tr>
+      <tr><td><strong>Super Admin</strong></td><td>Settings, Customers &amp; tenants, Feedback — provision and brand every store</td><td>Settings</td></tr>
     </table>
-    <p class="note">A customer business is isolated: its branding, Checkout QR, catalogue, users, employees, and orders are separate from other customer businesses.</p>
+    <p class="note">Each store (a "Customer" business) is fully isolated — its branding, logo, checkout QR, product catalogue, clients, employees, and orders never mix with another store's data.</p>
   </section>
 
   ${section(
-    '3. Register',
-    'The Sign in page shows the brand logo, name, and slogan Your name, your products, your customers. New customers must register before checkout.',
+    3,
+    'Browse the Shopping Mall (guest catalogue)',
+    'The Shopping Mall is open to everyone, signed in or not. It lists every store (Customer business) with its own product grid, search box, and live stock count, so a visitor can compare stores before creating an account.',
     [
-      'Click <strong>Register</strong> in the top bar.',
-      'Enter full name, email, and a password of at least 6 characters.',
-      'Optionally add phone and address (used on bills and client records).',
-      'Click <strong>Register</strong>. You are signed in and taken to the shop.',
+      'Open the site — it lands on <strong>Sign in</strong> — then click the <strong>Shopping Mall</strong> chip in the top bar, or go directly to <code>/shoppingmall</code>.',
+      'Pick a store from the people grid on the left; its products load on the right.',
+      'Use the search box to filter by product name or description.',
+      'Review the image, price, and stock for each product. Low stock is highlighted.',
     ],
-    'register'
+    'catalogue'
   )}
 
   ${section(
-    '4. Sign in',
-    'Returning customers, store admins, and Super Admin use the same Sign in screen. Store admins land on Dashboard. Super Admin lands on Settings. A blocked customer cannot sign in.',
+    4,
+    'Register Me (contact request)',
+    'The Register Me form on the Sign in page does not create a login — it sends a short contact request (name, email, phone, and a note) that only the Super Admin can read and action on the Feedback page. This is the easiest way for a new visitor to ask for access or help.',
     [
-      'Click <strong>Login</strong> in the top bar.',
-      'Enter email and password, then click <strong>Sign in</strong>.',
-      'If the account is blocked, the site shows: <em>User is blocked now, please contact to admin</em>.',
-      'Use <strong>Logout</strong> in the top-right when the session is finished.',
+      'On the Sign in page, click <strong>Register Me</strong>.',
+      'Fill in your full name, email, phone, and a short note about what you need.',
+      'Click <strong>Submit</strong>. A confirmation message appears on screen.',
+      'The Super Admin sees the request on the <strong>Feedback</strong> page under Contact requests and marks it Pending or Done.',
+    ],
+    'register-sent'
+  )}
+
+  ${section(
+    5,
+    'Sign in, Theme, and Language',
+    'The Sign in page shows the brand logo, title, and slogan. It also carries a language switcher, a Black/White theme switch, and (further down the page) an Enterprise Architecture &amp; Onboarding overview of how Super Admin, stores, and clients relate to each other.',
+    [
+      'Enter your email and password, then click <strong>Login now</strong>.',
+      'Use <strong>Remember me</strong> to stay signed in on this device, or <strong>Forgot password?</strong> to reset it.',
+      'Click the <strong>Theme</strong> control (sun/moon icons) to switch the whole site between White and Black — your choice is remembered for next time.',
+      'Use the language switcher to read the site in English, Hindi, Spanish, or French.',
     ],
     'login'
   )}
 
+  ${
+    hasLoginBlack
+      ? `<section class="chapter">
+      <h2>5a. Black theme example</h2>
+      <p class="summary">Selecting <strong>Black</strong> inverts every page — including the embedded architecture guide — to a dark theme. Photos, logos, and QR codes stay in their true colours. Selecting <strong>White</strong> reverts instantly.</p>
+      <figure>
+        <img src="${img('login-black-theme')}" alt="Black theme" />
+        <figcaption>Screen: Sign in page in Black theme</figcaption>
+      </figure>
+    </section>`
+      : ''
+  }
+
   ${section(
-    '5. Browse catalogue and shop',
-    'Guests can open Catalogue without signing in. After login, Shop lets customers add items to the cart. Admins see the catalogue but cannot add to cart.',
+    6,
+    'Shop and add to cart',
+    'After signing in as a Client, <strong>Shop</strong> shows the current store’s catalogue with images, price, and live stock. Adding an item puts it straight into the Cart.',
     [
-      'Guests: open <strong>Catalogue</strong>. Customers: open <strong>Shop</strong>.',
-      'Review image, description, price, and stock. Low stock is highlighted.',
-      'Click <strong>Add to cart</strong> on each required item.',
-      'The Cart badge in the top bar shows how many units are selected.',
+      'Sign in with a Client (shopper) account. The left menu shows Shop, Cart, and My orders.',
+      'Open <strong>Shop</strong> and use the search box if needed.',
+      'Click <strong>Add to cart</strong> on each item you want. The button disables automatically when stock is zero.',
+      'The Cart icon in the side menu shows a live count of items selected.',
     ],
     'shop'
   )}
 
   ${section(
-    '6. Cart and place order',
-    'The cart is a wholesale-style order sheet. Quantity can be changed up to available stock. Checkout creates a bill and QR.',
+    7,
+    'Cart, payment, and place order',
+    'The Cart lets you adjust quantity (up to available stock), remove items, choose a payment method, and optionally apply a discount code before placing the order.',
     [
-      'Click <strong>Cart</strong> in the top bar.',
-      'Adjust Qty or click <strong>Remove</strong> if needed.',
-      'Confirm the total, then click <strong>Place order</strong>.',
-      'You are taken to the bill page. Status starts as <strong>pending</strong>.',
+      'Open <strong>Cart</strong> from the side menu.',
+      'Change <strong>Qty</strong> or click <strong>Remove</strong> on any line.',
+      'Pick a payment method: <strong>UPI / QR</strong>, <strong>Cash on delivery</strong>, or <strong>Pay at counter</strong>.',
+      'Optionally enter a discount code, then click <strong>Place order</strong>.',
     ],
     'cart'
   )}
 
   ${section(
-    '7. Bill and Checkout QR',
-    'The bill lists medicines, quantities, and total. The Checkout QR is the UPI payment image. After payment, wait for admin approval.',
+    8,
+    'Bill and order status',
+    'Placing an order opens the bill page: item list, total, payment method, and (for UPI) the Checkout QR. A visual pipeline shows where the order currently stands.',
     [
       'Read the bill number, items, and total amount.',
-      'Scan the <strong>Checkout QR</strong> and pay the billed amount.',
-      'Keep the bill number handy if the desk asks for confirmation.',
-      'Track the pipeline: Pending / QR → Approved → Dispatched.',
+      'If you chose UPI, scan the <strong>Checkout QR</strong> and pay the billed amount; for cash on delivery or pay-at-counter, simply wait for the store to confirm.',
+      'Track the pipeline: Pending → Approved → Dispatched.',
+      'While the order is still pending, you can click <strong>Cancel order</strong> if you change your mind.',
     ],
     'bill'
   )}
 
   ${section(
-    '8. My Orders',
-    'My Orders lists every bill for the signed-in customer with status, total, and a link back to the QR bill.',
+    9,
+    'My Orders',
+    'My Orders lists every bill placed by the signed-in Client, with status and a link back to the bill.',
     [
-      'Click <strong>My orders</strong> in the top bar.',
+      'Open <strong>My orders</strong> from the side menu.',
       'Find the bill number and current status (pending, approved, dispatched, rejected, or cancelled).',
-      'Click <strong>View bill / QR</strong> to reopen payment QR and line items.',
+      'Click <strong>View bill</strong> to reopen the item list and payment details.',
     ],
     'my-orders'
   )}
 
   ${section(
-    '9. Admin: Help Center',
-    'After admin or Super Admin login, Help Center sits next to Logout. It opens this training PDF in a new tab so staff always have the latest manual.',
+    10,
+    'Customer: Dashboard',
+    'Dashboard is the store owner’s landing page after sign-in. Summary cards show today’s orders, pending approvals, revenue, low stock, and new clients, with quick actions to approve an order, restock an item, or add an employee without leaving the page.',
     [
-      'Sign in as store admin or Super Admin.',
-      'In the top-right, next to Logout, click <strong>Help Center</strong> (question-mark icon).',
-      'The latest user manual PDF opens in a new browser tab.',
-      'Use it for classroom training and for looking up any screen in this document.',
+      'Sign in with a Customer (store owner) account — Dashboard opens automatically.',
+      'Read the summary cards, then click <strong>Approve</strong> on a pending order if needed.',
+      'Restock a low-stock item directly from the list, or add a new employee using the quick form.',
+      'Use the left menu to open Products, Orders, Clients, Employee, or Reports.',
     ],
     'admin-dashboard'
   )}
 
   ${section(
-    '10. Admin: Dashboard',
-    'Dashboard is the store admin landing page. Cards show today’s orders, pending approvals, revenue, low stock, and new clients, with quick actions to approve, restock, or add an employee.',
+    11,
+    'Customer: manage products',
+    'Products is where the store owner maintains the catalogue shown to shoppers: name, description, retail price, optional wholesale price, stock, and a pack image.',
     [
-      'Sign in as store admin. Dashboard opens automatically.',
-      'Read the summary cards, then use a pending-order <strong>Approve</strong> action if needed.',
-      'Restock a low-stock item from the list, or add an employee from the quick form.',
-      'Use the top nav to open Medicines, Orders, Clients, Employee, or Reports.',
+      'Open <strong>Products</strong> from the left menu.',
+      'Fill in the Upload product form — name, description, price, optional wholesale price, stock, and an image — then click <strong>Upload</strong>.',
+      'The product immediately appears in the Shopping Mall and Shop pages.',
+      'Use <strong>Edit</strong> to update a product, or <strong>Delete</strong> to remove it.',
     ],
-    'admin-dashboard'
+    'admin-products'
   )}
 
   ${section(
-    '11. Admin: manage products',
-    'Administrators maintain the catalogue: name, description, retail price, optional wholesale price, stock, and pack image. Admins do not shop or checkout.',
+    12,
+    'Customer: orders desk',
+    'Orders is the operational desk: filter by status, open the bill, and move each order through the approval pipeline once payment is verified.',
     [
-      'Sign in as admin. Open <strong>Medicines</strong>.',
-      'Fill Upload product: name, description, retail price, optional wholesale price, stock, and image file.',
-      'Click <strong>Upload</strong>. The item appears on the customer Catalogue page.',
-      'Use <strong>Edit</strong> to change details, or <strong>Delete</strong> to remove a product.',
-    ],
-    'admin-medicines'
-  )}
-
-  ${section(
-    '12. Admin: orders desk',
-    'This is the dispensary desk. Filter by status, open the bill, and change the order action after payment is verified.',
-    [
-      'Open <strong>Orders</strong>. Use filters: All, Pending, Approved, Dispatched, Rejected, Cancelled.',
-      'Open <strong>Bill / QR</strong> to see items and amount.',
-      'On a pending order choose <strong>Approve & generate PO</strong> or <strong>Reject order</strong>.',
-      'On an approved order click <strong>Mark ready to dispatch</strong> when packed.',
-      'The Action dropdown on the list can also move status (Pending, Approved, Dispatch, Reject).',
+      'Open <strong>Orders</strong>. Use the filters: All, Pending, Approved, Dispatched, Rejected, Cancelled.',
+      'Click <strong>Bill / QR</strong> to review items and the amount for any order.',
+      'Use the <strong>Action</strong> dropdown on each row to move the order between Pending, Approved, Dispatch, and Reject.',
+      'Discount codes for the store can be added or removed from the Discount codes panel at the bottom of this page.',
     ],
     'admin-orders'
   )}
 
   ${section(
-    '13. Admin: Clients',
-    'Clients lists shopper accounts for this store. Admins can add a client, set retail or wholesale, block or allow login, export CSV, and open a client page for notes, spend, order history, and a new password (the old password cannot be viewed).',
+    13,
+    'Customer: Clients',
+    'Clients lists every shopper account that belongs to this store. The store owner can add a new client, set Retail or Wholesale pricing, Allow or Block login, and open a client record for order history and a password reset.',
     [
-      'Open <strong>Clients</strong> in the admin nav.',
-      'Use <strong>Add client</strong>: name, email, password (at least 6 characters), optional phone and address, and Retail or Wholesale. Click <strong>Add client</strong>.',
-      'Share the password you typed with the client. It is stored encrypted and cannot be recovered later.',
-      'In the table, set Group (retail/wholesale) and Access (Allow/Block). Click <strong>View</strong> for history, notes, and to set a replacement password.',
-      'Use <strong>Export client list</strong> to download a CSV.',
+      'Open <strong>Clients</strong> from the left menu.',
+      'Use <strong>Add client</strong>: full name, email, a password of at least 6 characters, optional phone and address, and Retail or Wholesale group.',
+      'Share the password you typed with the client — it is stored encrypted and cannot be recovered later.',
+      'In the table, change <strong>Group</strong> (Retail/Wholesale) and <strong>Access</strong> (Allow/Block) with the dropdowns, or click <strong>View</strong> for history and a new password.',
+      'Click <strong>Export client list</strong> at the top to download a CSV of every client.',
     ],
     'admin-clients'
   )}
 
   ${section(
-    '14. Admin: Employee — add',
-    'Employee sits in the admin nav before Reports. Required fields are name, email, phone, and designation. You may also add department, joining date, address, and a photo.',
+    14,
+    'Customer: Employee',
+    'Employee keeps a record of staff working at this store, including an optional photo. The page has two modes — Add (or Update) and View.',
     [
-      'Open <strong>Employee</strong>.',
-      'Stay on <strong>Add</strong> (default). Fill the required fields marked *.',
-      'Optionally choose an employee photo (image file).',
-      'Click <strong>Add employee</strong>. The record is saved and you can open View.',
-    ],
-    'admin-employees-add'
-  )}
-
-  ${section(
-    '15. Admin: Employee — view, update, remove',
-    'View shows every employee in a table with photo and details. Update loads the form; Remove deletes the record.',
-    [
-      'Click <strong>View</strong> to see the full employee list.',
-      'Click <strong>Update</strong> on a row to edit details or replace the photo, then save.',
-      'Click <strong>Remove</strong> and confirm to delete that employee.',
+      'Open <strong>Employee</strong> from the left menu. It opens on the Add form by default.',
+      'Fill the required fields (marked *): full name, email, phone, and designation. Department, joining date, address, and a photo are optional.',
+      'Click <strong>Add employee</strong> to save.',
+      'Switch to <strong>View</strong> to see the full employee table; use <strong>Update</strong> to edit a record or <strong>Remove</strong> to delete it.',
     ],
     'admin-employees-view'
   )}
 
   ${section(
-    '16. Admin: reports',
-    'Reports summarise buyers, revenue, and order statuses. Email report saves or sends a copy for management.',
+    15,
+    'Customer: Reports',
+    'Reports summarises buyers, revenue, and order status for this store, and can email a copy of the report.',
     [
-      'Open <strong>Reports</strong>.',
-      'Read the stat cards (buyers, orders, revenue, pending, approved, dispatched, rejected, cancelled).',
-      'Scroll for users who purchased, order status details, and top medicines.',
-      'Click <strong>Email report</strong>, enter an email id, and Send. Without SMTP, the report is saved to the local outbox and opened as a preview.',
+      'Open <strong>Reports</strong> from the left menu.',
+      'Read the stat cards: buyers, orders, revenue, pending, approved, dispatched, rejected, cancelled.',
+      'Scroll down for the list of buyers, order status details, and the best-selling products.',
+      'Click <strong>Email report</strong>, type an email address, and send. Without SMTP configured, the report is saved to the local outbox and shown as a preview instead.',
     ],
     'admin-reports'
   )}
 
   ${section(
-    '17. Super Admin: Settings',
-    'Super Admin is the platform owner. Settings works customer by customer: choose a customer first, then customise only that customer’s Login Initial, title, slogan, logo, Checkout QR, theme colour, and heading font.',
+    16,
+    'Super Admin: Settings',
+    'Settings is the Super Admin’s branding workspace. Pick a customer (store) first — the form then shows only that store’s title, slogan, Login Initial, logo, checkout QR, theme colour, and heading font.',
     [
       'Sign in as Super Admin. You land on <strong>Settings</strong>.',
-      'Choose the target customer from the <strong>Customer</strong> selector. Its current branding is loaded into the form.',
-      'Set <strong>Login Initial</strong>, for example <strong>@shubhsurgical</strong>. When a visitor enters an email containing that text on Sign in, this customer’s branding and theme load before login.',
-      'Change website title and slogan.',
-      'Optionally upload a new logo and Checkout QR image, then choose a theme colour and heading font.',
-      'Click <strong>Save customer settings</strong>. The selected customer’s top bar, login page, shop appearance, and bill QR update without changing another customer.',
+      'Choose the target store from the <strong>Customer</strong> dropdown — its current branding loads into the form.',
+      'Set the <strong>Login Initial</strong> (for example <code>@shubhsurgical</code>). When a visitor types an email containing that text on Sign in, this store’s branding loads automatically, before login.',
+      'Update the website title, slogan, logo, checkout QR, theme colour, and heading font as needed.',
+      'Click <strong>Save customer settings</strong> — only the selected store is affected; every other store keeps its own look.',
     ],
     'super-settings'
   )}
 
   ${section(
-    '18. Super Admin: Customers (tenants)',
-    'Customers creates isolated businesses you can sell. Each customer gets its own admin login, catalogue, orders, and plan modules. Do not confuse this with store-level Clients (shoppers).',
+    17,
+    'Super Admin: Customers &amp; tenants',
+    'Customers &amp; tenants is where the Super Admin provisions brand-new, fully isolated store businesses, each with its own admin login, plan, modules, and usage limits. Do not confuse a "Customer" (a store business) with the "Clients" (shoppers) listed inside each store.',
     [
-      'Open <strong>Customers</strong>.',
-      'Fill Create customer business: name, slug, first administrator details, plan, modules, and optional starter catalogue.',
-      'Click <strong>Create customer</strong>, then securely give that admin their login.',
-      'On a customer card: change Active/Suspended/Archived, save plan and feature configuration, set the store theme/language, export backup, or archive after typing the exact name.',
+      'Open <strong>Customers &amp; tenants</strong>.',
+      'Fill in the Create customer business form: business name, slug, the first administrator’s name/email/password, plan, billing details, and the modules to include (Wholesale, Employees, Reports, QR checkout, Coupons, Prescriptions).',
+      'Click <strong>Create customer</strong>, then securely share the new administrator’s login with that store owner.',
+      'On any customer card, change its status (Active/Suspended/Archived), open the details panel to edit plan/price/payment/theme/modules, reset the admin password, export a backup, or archive the store.',
     ],
     'super-tenants'
   )}
 
+  ${section(
+    18,
+    'Super Admin: Feedback &amp; contact requests',
+    'Feedback is only visible to the Super Admin. It lists every Register Me contact request and every website feedback note, each with an Action dropdown (Pending / Done) so nothing gets lost.',
+    [
+      'Open <strong>Feedback</strong>.',
+      'Review the <strong>Contact requests</strong> table — name, email, phone, and remark from the Register Me form.',
+      'Review the <strong>Website feedback</strong> table for general notes left by visitors.',
+      'Use the <strong>Action</strong> dropdown on each row to mark a request <strong>Pending</strong> or <strong>Done</strong> as it is handled.',
+    ],
+    'super-feedback'
+  )}
+
   <section class="chapter">
     <h2>19. Order status meaning (quick reference)</h2>
-    <table style="width:100%;border-collapse:collapse">
-      <tr style="background:#0f3d4c;color:#fff">
-        <th style="text-align:left;padding:8px">Status</th>
-        <th style="text-align:left;padding:8px">Meaning for training</th>
-      </tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>pending</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Bill and QR created. Waiting for payment check.</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>approved</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Payment accepted. Purchase Order (PO) number is generated.</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>dispatched</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order packed and ready / sent out.</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>rejected</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin declined the order (for example payment not matching).</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb"><strong>cancelled</strong></td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order cancelled and will not proceed.</td></tr>
+    <table class="ref">
+      <tr><th>Status</th><th>Meaning</th></tr>
+      <tr><td><strong>pending</strong></td><td>Bill created. Waiting for payment to be checked by the store.</td></tr>
+      <tr><td><strong>approved</strong></td><td>Payment accepted. A Purchase Order (PO) number is generated.</td></tr>
+      <tr><td><strong>dispatched</strong></td><td>Order packed and sent out / ready for pickup.</td></tr>
+      <tr><td><strong>rejected</strong></td><td>Store declined the order (for example, payment did not match).</td></tr>
+      <tr><td><strong>cancelled</strong></td><td>Order was cancelled and will not proceed.</td></tr>
     </table>
   </section>
 
   <section class="chapter">
     <h2>20. Feature map (all screens)</h2>
-    <table style="width:100%;border-collapse:collapse">
-      <tr style="background:#0f3d4c;color:#fff">
-        <th style="text-align:left;padding:8px">Who</th>
-        <th style="text-align:left;padding:8px">Menu</th>
-        <th style="text-align:left;padding:8px">What it does</th>
-      </tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Guest</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Catalogue, Login, Register</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Public title My Store Hub; Demo and Feedback appear once on the Sign in page; browse stock</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customer</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Shop, Cart, My orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Order medicines, pay by QR, track status</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Dashboard</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Today’s orders, revenue, low stock, quick actions</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Medicines</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Upload, edit, delete products; retail/wholesale price</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Orders</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Approve, reject, dispatch bills</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Clients</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add shoppers; retail/wholesale; block/allow; notes; password reset; CSV</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Employee</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Add, view, update, remove staff with photo</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Reports</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Sales stats and email report</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Admin / Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Help Center</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Opens this training PDF</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Settings</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Per-customer branding plus website hit count</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Feedback</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Read all Demo-page feedback</td></tr>
-      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb">Super Admin</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Customers</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">Create tenant businesses, plans, modules, backup</td></tr>
+    <table class="ref">
+      <tr><th>Who</th><th>Menu</th><th>What it does</th></tr>
+      <tr><td>Guest</td><td>Shopping Mall, Sign in, Register Me</td><td>Browse every store’s catalogue; sign in; or leave a contact request without an account</td></tr>
+      <tr><td>Client</td><td>Shop, Cart, My orders</td><td>Order products, pay, and track order status</td></tr>
+      <tr><td>Customer</td><td>Dashboard</td><td>Today’s orders, revenue, low stock, quick actions</td></tr>
+      <tr><td>Customer</td><td>Products</td><td>Upload, edit, delete products; retail/wholesale price</td></tr>
+      <tr><td>Customer</td><td>Orders</td><td>Approve, reject, or dispatch bills</td></tr>
+      <tr><td>Customer</td><td>Clients</td><td>Add shoppers; retail/wholesale; block/allow; CSV export</td></tr>
+      <tr><td>Customer</td><td>Employee</td><td>Add, view, update, remove staff, with photo</td></tr>
+      <tr><td>Customer</td><td>Reports</td><td>Sales statistics and email report</td></tr>
+      <tr><td>Customer / Super Admin</td><td>Help Center</td><td>Opens this user manual PDF</td></tr>
+      <tr><td>Super Admin</td><td>Settings</td><td>Per-customer branding, theme, and website hit count</td></tr>
+      <tr><td>Super Admin</td><td>Customers &amp; tenants</td><td>Create store businesses, plans, modules, backups</td></tr>
+      <tr><td>Super Admin</td><td>Feedback</td><td>Contact requests and website feedback, each with an Action status</td></tr>
     </table>
   </section>
 
   <section class="chapter">
-    <h2>21. Training checklist</h2>
+    <h2>21. Getting-started checklist</h2>
     <ol>
-      <li>Open Register and Sign in and confirm matching left branding plus the slogan.</li>
-      <li>Register a new customer and confirm Shop + Cart appear (not admin links).</li>
-      <li>Add two medicines, change quantity, place order, scan/view Checkout QR.</li>
-      <li>Log in as store admin, review Dashboard, find the pending bill, approve it, note the PO, then dispatch.</li>
-      <li>Open <strong>Clients</strong>, add a client from the form, block that client, confirm the blocked login message, then Allow again.</li>
-      <li>Open a client with <strong>View</strong>, add a note, and set a new password (old password cannot be shown).</li>
-      <li>Open <strong>Employee</strong>, add a staff record with photo, View the list, Update, then practise Remove if needed.</li>
-      <li>Open Reports and practise Email report (outbox is acceptable in training).</li>
-      <li>Log in as Super Admin, check website hits on Settings, then open Feedback.</li>
-      <li>Click <strong>Help Center</strong> next to Logout and confirm this latest PDF opens.</li>
+      <li>Open the Sign in page and confirm the brand logo, title, and slogan look correct.</li>
+      <li>Try the Theme switch (Black/White) and the language switcher.</li>
+      <li>Open the Shopping Mall and browse at least one store’s catalogue without signing in.</li>
+      <li>Sign in as a Client, add two products to the cart, choose a payment method, and place the order.</li>
+      <li>Sign in as a Customer (store owner), open Dashboard, approve the pending order, then mark it dispatched from Orders.</li>
+      <li>Open Clients, add a test client, Block it, confirm the blocked sign-in message, then Allow it again.</li>
+      <li>Open Employee, add a staff record, switch to View, and try Update.</li>
+      <li>Open Reports and try Email report.</li>
+      <li>Sign in as Super Admin, open Settings and change a store’s theme colour, then open Customers &amp; tenants.</li>
+      <li>Submit a Register Me request from Sign in, then confirm it appears on the Super Admin Feedback page and can be marked Done.</li>
     </ol>
-    <p class="footer-note">End of training manual — My Store Hub. Version 3.4 — ${today}.</p>
+    <p class="footer-note">End of user manual — My Stores Hubs. Version 4.0 — ${today}.</p>
   </section>
 </body>
 </html>`;
@@ -571,4 +631,4 @@ await pdfBrowser.close();
 
 copyFileSync(outPdf, helpPdf);
 console.log('PDF written:', outPdf);
-console.log('Help Center copy:', helpPdf);
+console.log('Help Center / Demo copy:', helpPdf);

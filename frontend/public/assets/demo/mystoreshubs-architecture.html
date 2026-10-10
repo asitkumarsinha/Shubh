@@ -88,9 +88,21 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 25px -5px rgba(0,0,0,0.5);
     }
 
-    /* White theme lightens this dark page. The logo keeps its real colours. */
+    /* White theme lightens this dark page. Pure black becomes pure white, so the blue glow does not tint the page. */
     html.theme-light {
       filter: invert(1) hue-rotate(180deg);
+      background: #000;
+    }
+    html.theme-light body,
+    html.theme-light main,
+    html.theme-light section,
+    html.theme-light .carbon-texture {
+      background-color: #000 !important;
+      background-image: none !important;
+    }
+    html.theme-light .carbon-texture > .absolute,
+    html.theme-light [class*="blur-3xl"] {
+      display: none !important;
     }
     html.theme-light :is(img, video, canvas) {
       filter: invert(1) hue-rotate(180deg);
@@ -120,202 +132,6 @@
 
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- MEDALLION LOGO CONTAINER -->
-        <div class="flex flex-col items-center justify-center text-center mb-8">
-          
-          <div class="relative group">
-            <!-- Pulsing blue ambient atmospheric light -->
-            <div class="absolute -inset-4 bg-gradient-to-r from-sky-500 via-blue-600 to-cyan-400 rounded-full blur-2xl opacity-40 group-hover:opacity-70 transition duration-700 animate-pulse"></div>
-            
-            <!-- Metallic Outer Housing Frame -->
-            <div class="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full p-2 bg-gradient-to-tr from-slate-700 via-slate-300 via-slate-600 to-slate-900 medallion-backglow overflow-hidden flex items-center justify-center transition-transform duration-500 hover:scale-[1.02]">
-              
-              <!-- 1. Real Image Element (Attempts local paths first) -->
-              <img 
-                id="main-brand-logo"
-                src="../MyStoreHub.jfif" 
-                alt="MyStoresHubs Logo"
-                class="w-full h-full object-cover rounded-full select-none"
-                onerror="handleLogoFallback(this)"
-              />
-
-              <!-- 2. High-Precision Standalone 3D Chrome SVG Replica (renders if local image file isn't found) -->
-              <div id="vector-logo-fallback" class="hidden w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-[#0d131f]">
-                <svg viewBox="0 0 600 600" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <!-- Bevel Metallic Gradients -->
-                    <linearGradient id="chromeOuter" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff"/>
-                      <stop offset="25%" stop-color="#94a3b8"/>
-                      <stop offset="50%" stop-color="#334155"/>
-                      <stop offset="75%" stop-color="#cbd5e1"/>
-                      <stop offset="100%" stop-color="#0f172a"/>
-                    </linearGradient>
-
-                    <linearGradient id="chromeRimBevel" x1="100%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="#f8fafc"/>
-                      <stop offset="30%" stop-color="#64748b"/>
-                      <stop offset="60%" stop-color="#e2e8f0"/>
-                      <stop offset="85%" stop-color="#1e293b"/>
-                      <stop offset="100%" stop-color="#94a3b8"/>
-                    </linearGradient>
-
-                    <radialGradient id="globeSphere" cx="45%" cy="38%" r="60%">
-                      <stop offset="0%" stop-color="#7dd3fc"/>
-                      <stop offset="35%" stop-color="#0284c7"/>
-                      <stop offset="70%" stop-color="#034870"/>
-                      <stop offset="100%" stop-color="#021c30"/>
-                    </radialGradient>
-
-                    <linearGradient id="orbitRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff"/>
-                      <stop offset="35%" stop-color="#93c5fd"/>
-                      <stop offset="70%" stop-color="#3b82f6"/>
-                      <stop offset="100%" stop-color="#e2e8f0"/>
-                    </linearGradient>
-
-                    <linearGradient id="chromePlateBanner" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="#f1f5f9"/>
-                      <stop offset="50%" stop-color="#cbd5e1"/>
-                      <stop offset="52%" stop-color="#94a3b8"/>
-                      <stop offset="100%" stop-color="#e2e8f0"/>
-                    </linearGradient>
-
-                    <radialGradient id="neonGlowBlue" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stop-color="#38bdf8"/>
-                      <stop offset="50%" stop-color="#0284c7"/>
-                      <stop offset="100%" stop-color="transparent"/>
-                    </radialGradient>
-
-                    <!-- Bottom Arch Text Path -->
-                    <path id="svgArchBottom" d="M 85,420 A 225,225 0 0,0 515,420" fill="none" />
-                  </defs>
-
-                  <!-- 1. Deep Metallic Brushed Bezel Base -->
-                  <circle cx="300" cy="300" r="294" fill="#0b111b" stroke="url(#chromeOuter)" stroke-width="8"/>
-                  <circle cx="300" cy="300" r="275" fill="#0c1729" stroke="url(#chromeRimBevel)" stroke-width="6"/>
-
-                  <!-- Concentric engraved rivet ring notches -->
-                  <circle cx="300" cy="300" r="258" fill="#07101e" stroke="#1e293b" stroke-width="2"/>
-                  <circle cx="300" cy="300" r="250" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.6"/>
-
-                  <!-- 2. UPPER HEMISPHERE: Vaulted Celestial Grids -->
-                  <path d="M 125,260 A 200,200 0 0,1 475,260 Z" fill="#031528" stroke="#1d4ed8" stroke-width="1"/>
-                  
-                  <!-- Grid latitude & longitude curves -->
-                  <path d="M 160,260 C 170,170 230,120 300,110 C 370,120 430,170 440,260" fill="none" stroke="#1e40af" stroke-width="2"/>
-                  <path d="M 210,260 C 225,185 260,140 300,135 C 340,140 375,185 390,260" fill="none" stroke="#2563eb" stroke-width="1.5" opacity="0.7"/>
-                  <path d="M 140,200 Q 300,165 460,200" fill="none" stroke="#1d4ed8" stroke-width="2"/>
-                  <path d="M 175,150 Q 300,120 425,150" fill="none" stroke="#1d4ed8" stroke-width="1.5"/>
-
-                  <!-- 3. CENTRAL EARTH GLOBE WITH DUAL ORBITAL RINGS -->
-                  <g id="globe-unit">
-                    <!-- Globe Sphere -->
-                    <circle cx="300" cy="180" r="70" fill="url(#globeSphere)" stroke="#7dd3fc" stroke-width="2"/>
-                    
-                    <!-- North America & Global Continent Silhouettes -->
-                    <path d="M 270,140 Q 285,130 305,145 Q 315,160 305,175 Q 320,185 310,205 Q 290,215 275,190 Q 260,170 270,140 Z" fill="#0284c7" opacity="0.6"/>
-                    <path d="M 285,155 Q 300,145 315,158 Q 300,180 280,170 Z" fill="#38bdf8" opacity="0.5"/>
-
-                    <!-- Atmospheric Outer Specular Rim Glow -->
-                    <circle cx="300" cy="180" r="72" fill="none" stroke="#bae6fd" stroke-width="1.5" opacity="0.7"/>
-
-                    <!-- Dual Chrome Planetary Orbital Rings -->
-                    <ellipse cx="300" cy="180" rx="98" ry="34" fill="none" stroke="url(#orbitRingGrad)" stroke-width="6.5" transform="rotate(-18 300 180)"/>
-                    <ellipse cx="300" cy="180" rx="90" ry="28" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.7" transform="rotate(-18 300 180)"/>
-                  </g>
-
-                  <!-- 4. CENTRAL METALLIC CHROME BANNER -->
-                  <g id="central-banner">
-                    <!-- Drop Shadow Under Bezel -->
-                    <rect x="70" y="260" width="460" height="126" rx="14" fill="#000000" opacity="0.6"/>
-                    <!-- Chrome Outer Frame -->
-                    <rect x="66" y="254" width="468" height="126" rx="12" fill="url(#chromeOuter)" stroke="#475569" stroke-width="2"/>
-                    <!-- Recessed Silver Plate -->
-                    <rect x="74" y="262" width="452" height="110" rx="9" fill="url(#chromePlateBanner)"/>
-
-                    <!-- "My Stores Hubs" Typography -->
-                    <text x="300" y="318" font-family="'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle" letter-spacing="-0.5">
-                      My Store<tspan fill="#0099e6">s</tspan> Hub<tspan fill="#0099e6">s</tspan>
-                    </text>
-                    
-                    <!-- Underlines for the letter 's' in Stores and Hubs -->
-                    <!-- 's' in Stores underline -->
-                    <rect x="304" y="323" width="22" height="4.5" rx="2" fill="#0099e6"/>
-                    <!-- 's' in Hubs underline -->
-                    <rect x="424" y="323" width="22" height="4.5" rx="2" fill="#0099e6"/>
-
-                    <!-- Slogan: GLOBAL COMMERCE. LOCAL ACCESS. -->
-                    <text x="300" y="352" font-family="'Montserrat', 'Inter', sans-serif" font-weight="800" font-size="16.5" fill="#0a192f" text-anchor="middle" letter-spacing="1.8">
-                      GLOBAL COMMERCE. LOCAL ACCESS.
-                    </text>
-                  </g>
-
-                  <!-- 5. LOWER RECESS: SPEED TRUCK & LOGISTICS SWOOSH -->
-                  <g id="lower-logistics">
-                    <!-- Recessed Metallic Plate -->
-                    <path d="M 175,395 C 215,390 385,390 425,395 C 445,475 355,505 300,505 C 245,505 155,475 175,395 Z" fill="#071526" stroke="#1e293b" stroke-width="2"/>
-
-                    <!-- Neon Cyan Accent LEDs (4 along the rim) -->
-                    <circle cx="205" cy="430" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
-                    <circle cx="205" cy="430" r="5" fill="#e0f2fe"/>
-
-                    <circle cx="245" cy="470" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
-                    <circle cx="245" cy="470" r="5" fill="#e0f2fe"/>
-
-                    <circle cx="355" cy="470" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
-                    <circle cx="355" cy="470" r="5" fill="#e0f2fe"/>
-
-                    <circle cx="395" cy="430" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
-                    <circle cx="395" cy="430" r="5" fill="#e0f2fe"/>
-
-                    <!-- Chrome Delivery Logistics Truck with Speed Motion Trail -->
-                    <g transform="translate(230, 400)">
-                      <!-- Speed Swoosh Lines -->
-                      <path d="M -15,48 C 20,36 60,34 90,44" stroke="url(#chromeOuter)" stroke-width="5" stroke-linecap="round" fill="none"/>
-                      <path d="M 5,56 C 35,46 70,44 110,50" stroke="url(#chromeOuter)" stroke-width="3" stroke-linecap="round" fill="none"/>
-                      <path d="M -25,40 C 5,28 45,26 80,34" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-                      <!-- Truck Main Cargo Box -->
-                      <rect x="75" y="15" width="48" height="32" rx="3" fill="url(#chromeOuter)" stroke="#ffffff" stroke-width="1.5"/>
-                      <!-- Small Flag / Antenna on roof -->
-                      <line x1="80" y1="15" x2="80" y2="7" stroke="#ffffff" stroke-width="2"/>
-                      <polygon points="80,7 92,10 80,13" fill="#38bdf8"/>
-
-                      <!-- Cab Front -->
-                      <path d="M 124,24 L 140,24 L 148,35 L 148,47 L 124,47 Z" fill="url(#chromeRimBevel)" stroke="#ffffff" stroke-width="1.5"/>
-                      <!-- Cab Window -->
-                      <polygon points="127,27 137,27 143,35 127,35" fill="#0f172a"/>
-
-                      <!-- Wheels -->
-                      <circle cx="92" cy="48" r="8" fill="#0f172a" stroke="#cbd5e1" stroke-width="3"/>
-                      <circle cx="92" cy="48" r="3" fill="#38bdf8"/>
-                      <circle cx="138" cy="48" r="8" fill="#0f172a" stroke="#cbd5e1" stroke-width="3"/>
-                      <circle cx="138" cy="48" r="3" fill="#38bdf8"/>
-                    </g>
-                  </g>
-
-                  <!-- 6. BOTTOM CURVED MOTTO: "Your name, your products, your customers." -->
-                  <text font-family="'Montserrat', 'Inter', sans-serif" font-size="16.5" font-weight="700" fill="#e2e8f0" letter-spacing="1.2">
-                    <textPath href="#svgArchBottom" startOffset="50%" text-anchor="middle">
-                      Your name, your products, your customers.
-                    </textPath>
-                  </text>
-                </svg>
-              </div>
-
-            </div>
-          </div>
-          
-          <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-3">
-            Global Commerce • Local Access
-          </p>
-          <p class="text-xs text-sky-400 font-semibold tracking-wide mt-0.5">
-            "Your name, your products, your customers."
-          </p>
-        </div>
-
-        <!-- ========================================================================= -->
         <!-- HEADER & BADGE: Enterprise B2B2C Architecture Defined                     -->
         <!-- ========================================================================= -->
         <div class="text-center max-w-3xl mx-auto mb-14">
@@ -400,6 +216,14 @@
     <!-- ========================================================================= -->
     <section id="architecture-diagram" class="py-16 lg:py-24 bg-[#0a0e17] border-b border-slate-800/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <figure class="mb-10">
+          <img
+            src="MyStoresHubs_Flow.jpg"
+            alt="My Stores Hubs flow: Super Admin creates Hubs, Hubs create Products, Stores and Employees, and Stores shop, add to cart and view order reports."
+            class="w-full rounded-3xl border border-slate-800 shadow-2xl"
+          />
+        </figure>
         
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
@@ -884,10 +708,6 @@
   </div>
 
   <script>
-    function handleLogoFallback(imgElement) {
-      imgElement.style.display = 'none';
-      document.getElementById('vector-logo-fallback').classList.remove('hidden');
-    }
 
     function applyPageTheme(mode) {
       document.documentElement.classList.toggle('theme-light', mode !== 'black');
