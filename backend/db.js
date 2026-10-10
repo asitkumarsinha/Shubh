@@ -8,8 +8,18 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-const dbFile = process.env.SQLITE_PATH || path.join(dataDir, 'medishop.db');
-if (process.env.SQLITE_PATH) fs.mkdirSync(path.dirname(dbFile), { recursive: true });
+const dbFile = process.env.SQLITE_PATH || path.join(dataDir, 'mystoreshubs.db');
+if (process.env.SQLITE_PATH) {
+  fs.mkdirSync(path.dirname(dbFile), { recursive: true });
+} else if (!fs.existsSync(dbFile)) {
+  const legacy = path.join(dataDir, 'medishop.db');
+  if (fs.existsSync(legacy)) {
+    for (const suffix of ['', '-wal', '-shm']) {
+      const from = legacy + suffix;
+      if (fs.existsSync(from)) fs.renameSync(from, dbFile + suffix);
+    }
+  }
+}
 const db = new Database(dbFile);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');

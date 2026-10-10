@@ -12,13 +12,12 @@ import { PublicCtaComponent } from '../../shared/public-cta/public-cta.component
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationService } from '../../core/i18n/translation.service';
-import { FeatureShowcaseComponent } from '../../shared/feature-showcase/feature-showcase.component';
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe, FeatureShowcaseComponent, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe, ThemeToggleComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

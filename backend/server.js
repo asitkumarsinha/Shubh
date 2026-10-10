@@ -30,6 +30,14 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4200,http:/
   .filter(Boolean);
 
 app.use(securityHeaders);
+// The architecture page is self-contained and is only ever framed by our own
+// login page, so allow same-origin framing for it specifically.
+app.use((req, res, next) => {
+  if (req.path === '/assets/demo/mystoreshubs-architecture.html') {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  }
+  next();
+});
 app.use(cors({
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);

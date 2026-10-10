@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyStoresHubs - Enterprise Architecture & Onboarding</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Montserrat for high-end automotive/metallic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Montserrat', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            },
+            hub: {
+              teal: '#0d9488',
+              light: '#ccfbf1',
+              dark: '#115e59',
+            },
+            store: {
+              purple: '#7c3aed',
+              light: '#f3e8ff',
+              dark: '#5b21b6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Animated dashed relationship flows */
+    @keyframes flowDash {
+      to {
+        stroke-dashoffset: -32;
+      }
+    }
+    .flow-dash-anim {
+      stroke-dasharray: 6 6;
+      animation: flowDash 1.8s linear infinite;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+
+    /* Precision Metallic 3D Styling */
+    .medallion-backglow {
+      box-shadow: 0 0 75px -10px rgba(0, 163, 255, 0.5), 
+                  0 25px 45px -10px rgba(0, 0, 0, 0.8),
+                  inset 0 0 25px rgba(255, 255, 255, 0.15);
+    }
+    .carbon-texture {
+      background-color: #0b0f17;
+      background-image: 
+        radial-gradient(ellipse at 50% 50%, rgba(14, 165, 233, 0.12) 0%, transparent 70%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
+    }
+    .metal-border {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 25px -5px rgba(0,0,0,0.5);
+    }
+
+    /* White theme lightens this dark page. The logo keeps its real colours. */
+    html.theme-light {
+      filter: invert(1) hue-rotate(180deg);
+    }
+    html.theme-light :is(img, video, canvas) {
+      filter: invert(1) hue-rotate(180deg);
+    }
+  </style>
+  <script>
+    (function () {
+      var black = localStorage.getItem('msh_theme') === 'black';
+      try {
+        black = window.parent.document.documentElement.classList.contains('theme-black');
+      } catch (err) {}
+      if (!black) document.documentElement.classList.add('theme-light');
+    })();
+  </script>
+</head>
+<body class="bg-[#080b11] text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 font-sans">
+
+  <!-- Main Container (Starts directly with the Logo & Architecture Badge, zero top navbar) -->
+  <main class="w-full min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: ULTRA-FIDELITY MEDALLION LOGO & BRAND IDENTITY HEADER         -->
+    <!-- ========================================================================= -->
+    <section class="relative overflow-hidden pt-8 pb-14 lg:pt-12 lg:pb-16 border-b border-slate-800/80 carbon-texture">
+      <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-40 pointer-events-none"></div>
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- MEDALLION LOGO CONTAINER -->
+        <div class="flex flex-col items-center justify-center text-center mb-8">
+          
+          <div class="relative group">
+            <!-- Pulsing blue ambient atmospheric light -->
+            <div class="absolute -inset-4 bg-gradient-to-r from-sky-500 via-blue-600 to-cyan-400 rounded-full blur-2xl opacity-40 group-hover:opacity-70 transition duration-700 animate-pulse"></div>
+            
+            <!-- Metallic Outer Housing Frame -->
+            <div class="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full p-2 bg-gradient-to-tr from-slate-700 via-slate-300 via-slate-600 to-slate-900 medallion-backglow overflow-hidden flex items-center justify-center transition-transform duration-500 hover:scale-[1.02]">
+              
+              <!-- 1. Real Image Element (Attempts local paths first) -->
+              <img 
+                id="main-brand-logo"
+                src="../MyStoreHub.jfif" 
+                alt="MyStoresHubs Logo"
+                class="w-full h-full object-cover rounded-full select-none"
+                onerror="handleLogoFallback(this)"
+              />
+
+              <!-- 2. High-Precision Standalone 3D Chrome SVG Replica (renders if local image file isn't found) -->
+              <div id="vector-logo-fallback" class="hidden w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-[#0d131f]">
+                <svg viewBox="0 0 600 600" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <!-- Bevel Metallic Gradients -->
+                    <linearGradient id="chromeOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff"/>
+                      <stop offset="25%" stop-color="#94a3b8"/>
+                      <stop offset="50%" stop-color="#334155"/>
+                      <stop offset="75%" stop-color="#cbd5e1"/>
+                      <stop offset="100%" stop-color="#0f172a"/>
+                    </linearGradient>
+
+                    <linearGradient id="chromeRimBevel" x1="100%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#f8fafc"/>
+                      <stop offset="30%" stop-color="#64748b"/>
+                      <stop offset="60%" stop-color="#e2e8f0"/>
+                      <stop offset="85%" stop-color="#1e293b"/>
+                      <stop offset="100%" stop-color="#94a3b8"/>
+                    </linearGradient>
+
+                    <radialGradient id="globeSphere" cx="45%" cy="38%" r="60%">
+                      <stop offset="0%" stop-color="#7dd3fc"/>
+                      <stop offset="35%" stop-color="#0284c7"/>
+                      <stop offset="70%" stop-color="#034870"/>
+                      <stop offset="100%" stop-color="#021c30"/>
+                    </radialGradient>
+
+                    <linearGradient id="orbitRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff"/>
+                      <stop offset="35%" stop-color="#93c5fd"/>
+                      <stop offset="70%" stop-color="#3b82f6"/>
+                      <stop offset="100%" stop-color="#e2e8f0"/>
+                    </linearGradient>
+
+                    <linearGradient id="chromePlateBanner" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#f1f5f9"/>
+                      <stop offset="50%" stop-color="#cbd5e1"/>
+                      <stop offset="52%" stop-color="#94a3b8"/>
+                      <stop offset="100%" stop-color="#e2e8f0"/>
+                    </linearGradient>
+
+                    <radialGradient id="neonGlowBlue" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#38bdf8"/>
+                      <stop offset="50%" stop-color="#0284c7"/>
+                      <stop offset="100%" stop-color="transparent"/>
+                    </radialGradient>
+
+                    <!-- Bottom Arch Text Path -->
+                    <path id="svgArchBottom" d="M 85,420 A 225,225 0 0,0 515,420" fill="none" />
+                  </defs>
+
+                  <!-- 1. Deep Metallic Brushed Bezel Base -->
+                  <circle cx="300" cy="300" r="294" fill="#0b111b" stroke="url(#chromeOuter)" stroke-width="8"/>
+                  <circle cx="300" cy="300" r="275" fill="#0c1729" stroke="url(#chromeRimBevel)" stroke-width="6"/>
+
+                  <!-- Concentric engraved rivet ring notches -->
+                  <circle cx="300" cy="300" r="258" fill="#07101e" stroke="#1e293b" stroke-width="2"/>
+                  <circle cx="300" cy="300" r="250" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.6"/>
+
+                  <!-- 2. UPPER HEMISPHERE: Vaulted Celestial Grids -->
+                  <path d="M 125,260 A 200,200 0 0,1 475,260 Z" fill="#031528" stroke="#1d4ed8" stroke-width="1"/>
+                  
+                  <!-- Grid latitude & longitude curves -->
+                  <path d="M 160,260 C 170,170 230,120 300,110 C 370,120 430,170 440,260" fill="none" stroke="#1e40af" stroke-width="2"/>
+                  <path d="M 210,260 C 225,185 260,140 300,135 C 340,140 375,185 390,260" fill="none" stroke="#2563eb" stroke-width="1.5" opacity="0.7"/>
+                  <path d="M 140,200 Q 300,165 460,200" fill="none" stroke="#1d4ed8" stroke-width="2"/>
+                  <path d="M 175,150 Q 300,120 425,150" fill="none" stroke="#1d4ed8" stroke-width="1.5"/>
+
+                  <!-- 3. CENTRAL EARTH GLOBE WITH DUAL ORBITAL RINGS -->
+                  <g id="globe-unit">
+                    <!-- Globe Sphere -->
+                    <circle cx="300" cy="180" r="70" fill="url(#globeSphere)" stroke="#7dd3fc" stroke-width="2"/>
+                    
+                    <!-- North America & Global Continent Silhouettes -->
+                    <path d="M 270,140 Q 285,130 305,145 Q 315,160 305,175 Q 320,185 310,205 Q 290,215 275,190 Q 260,170 270,140 Z" fill="#0284c7" opacity="0.6"/>
+                    <path d="M 285,155 Q 300,145 315,158 Q 300,180 280,170 Z" fill="#38bdf8" opacity="0.5"/>
+
+                    <!-- Atmospheric Outer Specular Rim Glow -->
+                    <circle cx="300" cy="180" r="72" fill="none" stroke="#bae6fd" stroke-width="1.5" opacity="0.7"/>
+
+                    <!-- Dual Chrome Planetary Orbital Rings -->
+                    <ellipse cx="300" cy="180" rx="98" ry="34" fill="none" stroke="url(#orbitRingGrad)" stroke-width="6.5" transform="rotate(-18 300 180)"/>
+                    <ellipse cx="300" cy="180" rx="90" ry="28" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.7" transform="rotate(-18 300 180)"/>
+                  </g>
+
+                  <!-- 4. CENTRAL METALLIC CHROME BANNER -->
+                  <g id="central-banner">
+                    <!-- Drop Shadow Under Bezel -->
+                    <rect x="70" y="260" width="460" height="126" rx="14" fill="#000000" opacity="0.6"/>
+                    <!-- Chrome Outer Frame -->
+                    <rect x="66" y="254" width="468" height="126" rx="12" fill="url(#chromeOuter)" stroke="#475569" stroke-width="2"/>
+                    <!-- Recessed Silver Plate -->
+                    <rect x="74" y="262" width="452" height="110" rx="9" fill="url(#chromePlateBanner)"/>
+
+                    <!-- "My Stores Hubs" Typography -->
+                    <text x="300" y="318" font-family="'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle" letter-spacing="-0.5">
+                      My Store<tspan fill="#0099e6">s</tspan> Hub<tspan fill="#0099e6">s</tspan>
+                    </text>
+                    
+                    <!-- Underlines for the letter 's' in Stores and Hubs -->
+                    <!-- 's' in Stores underline -->
+                    <rect x="304" y="323" width="22" height="4.5" rx="2" fill="#0099e6"/>
+                    <!-- 's' in Hubs underline -->
+                    <rect x="424" y="323" width="22" height="4.5" rx="2" fill="#0099e6"/>
+
+                    <!-- Slogan: GLOBAL COMMERCE. LOCAL ACCESS. -->
+                    <text x="300" y="352" font-family="'Montserrat', 'Inter', sans-serif" font-weight="800" font-size="16.5" fill="#0a192f" text-anchor="middle" letter-spacing="1.8">
+                      GLOBAL COMMERCE. LOCAL ACCESS.
+                    </text>
+                  </g>
+
+                  <!-- 5. LOWER RECESS: SPEED TRUCK & LOGISTICS SWOOSH -->
+                  <g id="lower-logistics">
+                    <!-- Recessed Metallic Plate -->
+                    <path d="M 175,395 C 215,390 385,390 425,395 C 445,475 355,505 300,505 C 245,505 155,475 175,395 Z" fill="#071526" stroke="#1e293b" stroke-width="2"/>
+
+                    <!-- Neon Cyan Accent LEDs (4 along the rim) -->
+                    <circle cx="205" cy="430" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
+                    <circle cx="205" cy="430" r="5" fill="#e0f2fe"/>
+
+                    <circle cx="245" cy="470" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
+                    <circle cx="245" cy="470" r="5" fill="#e0f2fe"/>
+
+                    <circle cx="355" cy="470" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
+                    <circle cx="355" cy="470" r="5" fill="#e0f2fe"/>
+
+                    <circle cx="395" cy="430" r="14" fill="url(#neonGlowBlue)" opacity="0.8"/>
+                    <circle cx="395" cy="430" r="5" fill="#e0f2fe"/>
+
+                    <!-- Chrome Delivery Logistics Truck with Speed Motion Trail -->
+                    <g transform="translate(230, 400)">
+                      <!-- Speed Swoosh Lines -->
+                      <path d="M -15,48 C 20,36 60,34 90,44" stroke="url(#chromeOuter)" stroke-width="5" stroke-linecap="round" fill="none"/>
+                      <path d="M 5,56 C 35,46 70,44 110,50" stroke="url(#chromeOuter)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                      <path d="M -25,40 C 5,28 45,26 80,34" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+                      <!-- Truck Main Cargo Box -->
+                      <rect x="75" y="15" width="48" height="32" rx="3" fill="url(#chromeOuter)" stroke="#ffffff" stroke-width="1.5"/>
+                      <!-- Small Flag / Antenna on roof -->
+                      <line x1="80" y1="15" x2="80" y2="7" stroke="#ffffff" stroke-width="2"/>
+                      <polygon points="80,7 92,10 80,13" fill="#38bdf8"/>
+
+                      <!-- Cab Front -->
+                      <path d="M 124,24 L 140,24 L 148,35 L 148,47 L 124,47 Z" fill="url(#chromeRimBevel)" stroke="#ffffff" stroke-width="1.5"/>
+                      <!-- Cab Window -->
+                      <polygon points="127,27 137,27 143,35 127,35" fill="#0f172a"/>
+
+                      <!-- Wheels -->
+                      <circle cx="92" cy="48" r="8" fill="#0f172a" stroke="#cbd5e1" stroke-width="3"/>
+                      <circle cx="92" cy="48" r="3" fill="#38bdf8"/>
+                      <circle cx="138" cy="48" r="8" fill="#0f172a" stroke="#cbd5e1" stroke-width="3"/>
+                      <circle cx="138" cy="48" r="3" fill="#38bdf8"/>
+                    </g>
+                  </g>
+
+                  <!-- 6. BOTTOM CURVED MOTTO: "Your name, your products, your customers." -->
+                  <text font-family="'Montserrat', 'Inter', sans-serif" font-size="16.5" font-weight="700" fill="#e2e8f0" letter-spacing="1.2">
+                    <textPath href="#svgArchBottom" startOffset="50%" text-anchor="middle">
+                      Your name, your products, your customers.
+                    </textPath>
+                  </text>
+                </svg>
+              </div>
+
+            </div>
+          </div>
+          
+          <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-3">
+            Global Commerce • Local Access
+          </p>
+          <p class="text-xs text-sky-400 font-semibold tracking-wide mt-0.5">
+            "Your name, your products, your customers."
+          </p>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- HEADER & BADGE: Enterprise B2B2C Architecture Defined                     -->
+        <!-- ========================================================================= -->
+        <div class="text-center max-w-3xl mx-auto mb-14">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-500/15 text-sky-400 border border-sky-500/30 mb-4 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            Enterprise B2B2C Architecture Defined
+          </div>
+          
+          <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight font-display">
+            Who We Are — <span class="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400">MyStoresHubs</span>
+          </h1>
+          
+          <p class="mt-3 text-lg sm:text-2xl font-bold text-slate-200">
+            <span class="text-sky-400 font-black">MY</span> + 
+            <span class="text-purple-400 font-black">Stores</span> + 
+            <span class="text-teal-400 font-black">Hubs</span>
+          </p>
+
+          <p class="mt-3 text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
+            A synchronized multi-tier commerce architecture bridging wholesale distribution engines, localized depot employees, and client retail storefronts.
+          </p>
+        </div>
+
+        <!-- IDENTITY FORMULA BREAKDOWN: MY + STORES + HUBS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          
+          <!-- MY Card -->
+          <div class="relative bg-slate-900/90 backdrop-blur-md p-7 rounded-2xl metal-border hover:border-sky-500/60 transition-all duration-300 shadow-xl group">
+            <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-black text-xl mb-4 border border-sky-500/20 group-hover:scale-105 transition-transform">
+              MY
+            </div>
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-800/60">Multi-Tenant Autonomy</span>
+            <h3 class="text-xl font-bold text-white mt-2.5 mb-2 font-display">Personalized Ownership</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Complete brand and tenant sovereignty. Each wholesale Hub and retail partner maintains an isolated digital boundary with personalized catalogs, scoped users, and dedicated margins.
+            </p>
+            <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-sky-400 font-semibold">
+              <span>Boundary</span>
+              <span>100% Isolated Tenancy</span>
+            </div>
+          </div>
+
+          <!-- STORES Card -->
+          <div class="relative bg-slate-900/90 backdrop-blur-md p-7 rounded-2xl metal-border hover:border-purple-500/60 transition-all duration-300 shadow-xl group">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-black text-xl mb-4 border border-purple-500/20 group-hover:scale-105 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.12 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+            </div>
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-800/60">Client Retail Fronts</span>
+            <h3 class="text-xl font-bold text-white mt-2.5 mb-2 font-display">Stores (Clients)</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Authorized downstream commercial clients provisioned under a specific Hub. Stores access assigned Products to execute purchasing flows: <strong>Shop</strong>, <strong>Add Cart</strong>, and <strong>My Order Report</strong>.
+            </p>
+            <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-purple-400 font-semibold">
+              <span>Client Actions</span>
+              <span>Shop • Cart • Reports</span>
+            </div>
+          </div>
+
+          <!-- HUBS Card -->
+          <div class="relative bg-slate-900/90 backdrop-blur-md p-7 rounded-2xl metal-border hover:border-teal-500/60 transition-all duration-300 shadow-xl group">
+            <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center font-black text-xl mb-4 border border-teal-500/20 group-hover:scale-105 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+            </div>
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-teal-950 text-teal-300 border border-teal-800/60">Wholesale Core</span>
+            <h3 class="text-xl font-bold text-white mt-2.5 mb-2 font-display">Hubs (Wholesalers)</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Vetted wholesale customers authorized by the Super Admin. A Hub possesses complete authority to create <strong>Products</strong>, onboard client <strong>Stores</strong>, and hire internal <strong>Employees</strong> strictly for depot management.
+            </p>
+            <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-teal-400 font-semibold">
+              <span>Authority</span>
+              <span>Products • Stores • Staff</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: INTERACTIVE ARCHITECTURE DIAGRAM (Strict Logic Mapping)         -->
+    <!-- ========================================================================= -->
+    <section id="architecture-diagram" class="py-16 lg:py-24 bg-[#0a0e17] border-b border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-teal-400 bg-teal-950/80 px-3 py-1 rounded-full border border-teal-800/60">System Blueprint</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 font-display">Architecture & Relationship Hierarchy</h2>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1">Super Admin creates Hubs &bull; Hubs create Products, Stores & Employees &bull; Employees strictly wholesale &bull; Stores perform Shop, Cart, and Reports.</p>
+          </div>
+
+          <!-- Interactive Role Filter Tabs -->
+          <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button onclick="setFocusTier('all')" id="filter-all" class="filter-tab active px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 text-white shadow transition-all">All Roles</button>
+            <button onclick="setFocusTier('admin')" id="filter-admin" class="filter-tab px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Super Admin</button>
+            <button onclick="setFocusTier('hub')" id="filter-hub" class="filter-tab px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Hubs (Wholesale)</button>
+            <button onclick="setFocusTier('employee')" id="filter-employee" class="filter-tab px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Employees</button>
+            <button onclick="setFocusTier('store')" id="filter-store" class="filter-tab px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Stores (Clients)</button>
+          </div>
+        </div>
+
+        <!-- Diagram Canvas -->
+        <div class="bg-slate-950/90 rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl relative overflow-hidden">
+          
+          <!-- Live Status Bar -->
+          <div id="diagram-status-bar" class="mb-8 p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs sm:text-sm text-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span id="diagram-badge" class="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-600 text-white">Full View</span>
+              <span id="diagram-message" class="font-medium text-slate-300">Complete hierarchy: Super Admin creates Hubs; Hubs create Products, Stores, and internal Employees.</span>
+            </div>
+            <span class="text-[11px] font-mono text-cyan-400 whitespace-nowrap">Strict Isolation Enforced</span>
+          </div>
+
+          <!-- Hierarchy Visual Layout -->
+          <div class="max-w-4xl mx-auto flex flex-col items-center">
+            
+            <!-- TIER 1: SUPER ADMIN -->
+            <div id="node-admin" onclick="setFocusTier('admin')" class="architecture-node cursor-pointer w-full max-w-md bg-slate-900 rounded-2xl p-5 border-2 border-amber-500/80 shadow-lg hover:border-amber-400 transition-all relative">
+              <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-3.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow flex items-center gap-1">
+                <span>👑 Platform Governance Authority</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center font-black text-2xl shadow-inner flex-shrink-0">
+                  <svg class="w-8 h-8 text-slate-950" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-black text-white text-base sm:text-lg">SUPER ADMIN</h3>
+                    <span class="text-[10px] font-bold text-amber-300 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">Tier 0 Root</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-0.5">Authorizes, verifies, and activates Wholesale Customers</p>
+                  <div class="mt-2 text-[11px] text-amber-400 font-semibold flex items-center gap-1">
+                    <span>Direct Action: Creates & manages "Hubs"</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Connector Line: Admin -> Hubs -->
+            <div class="flex flex-col items-center my-2">
+              <svg class="w-8 h-12 text-sky-500" viewBox="0 0 32 48" fill="none">
+                <line x1="16" y1="0" x2="16" y2="38" stroke="currentColor" stroke-width="2.5" class="flow-dash-anim" />
+                <polygon points="10,36 16,46 22,36" fill="currentColor" />
+              </svg>
+              <span class="text-[10px] font-extrabold uppercase bg-slate-900 px-2.5 py-0.5 rounded-full border border-sky-500/40 text-sky-300 -mt-2 shadow">
+                Creates & Authorizes
+              </span>
+            </div>
+
+            <!-- TIER 2: WHOLESALE LAYER (HUBS + EMPLOYEES) -->
+            <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+              
+              <!-- Hub Wholesale Node (8 Cols) -->
+              <div id="node-hub" onclick="setFocusTier('hub')" class="architecture-node cursor-pointer lg:col-span-8 bg-slate-900 rounded-2xl p-6 border-2 border-teal-500/80 shadow-lg hover:border-teal-400 transition-all relative">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 flex items-center justify-center font-black shadow flex-shrink-0">
+                      <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.635v6.635"/></svg>
+                    </div>
+                    <div>
+                      <h3 class="font-black text-white text-lg">HUBS (Wholesale Customer)</h3>
+                      <p class="text-xs text-slate-400 font-medium">B2B Wholesale fulfillment depot & supplier entity</p>
+                      <div class="flex flex-wrap gap-1.5 mt-2">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-800">Creates Products</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Creates Stores</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Creates Employees</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right hidden sm:block">
+                    <span class="text-[10px] uppercase font-bold text-slate-500">Tier Level</span>
+                    <p class="text-xs font-bold text-teal-400">Wholesale Engine</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Wholesale Employees (4 Cols) - Strictly Associated with Hubs Only -->
+              <div id="node-employee" onclick="setFocusTier('employee')" class="architecture-node cursor-pointer lg:col-span-4 bg-slate-900 rounded-2xl p-5 border-2 border-indigo-500/80 shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 px-2.5 py-0.5 rounded border border-indigo-800">Depot Workforce</span>
+                    <span class="text-[10px] font-mono text-cyan-400 font-bold">● Wholesale Only</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold flex-shrink-0 border border-indigo-500/30">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-white text-sm">EMPLOYEES</h4>
+                      <p class="text-[11px] text-slate-400">Warehouse & Dispatch Staff</p>
+                    </div>
+                  </div>
+                  <p class="text-xs text-indigo-300 font-medium mt-2.5">
+                    Strictly associated with Wholesale only. Zero access to Stores.
+                  </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Created by: Hub</span>
+                  <span class="text-rose-400 font-bold">🚫 Disconnected from Stores</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Hub Outflow Connectors: Products & Stores -->
+            <div class="w-full flex justify-around my-2">
+              <div class="flex flex-col items-center">
+                <svg class="w-8 h-10 text-teal-500" viewBox="0 0 32 40" fill="none">
+                  <line x1="16" y1="0" x2="16" y2="30" stroke="currentColor" stroke-width="2.5" class="flow-dash-anim" />
+                  <polygon points="10,28 16,38 22,28" fill="currentColor" />
+                </svg>
+                <span class="text-[10px] font-extrabold uppercase bg-teal-950 text-teal-300 px-2 py-0.5 rounded border border-teal-800">Creates Products</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <svg class="w-8 h-10 text-purple-500" viewBox="0 0 32 40" fill="none">
+                  <line x1="16" y1="0" x2="16" y2="30" stroke="currentColor" stroke-width="2.5" class="flow-dash-anim" />
+                  <polygon points="10,28 16,38 22,28" fill="currentColor" />
+                </svg>
+                <span class="text-[10px] font-extrabold uppercase bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800">Creates Stores</span>
+              </div>
+            </div>
+
+            <!-- TIER 3: PRODUCTS & STORES (CLIENTS) -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+              
+              <!-- PRODUCTS -->
+              <div id="node-product" onclick="setFocusTier('product')" class="architecture-node cursor-pointer bg-slate-900 rounded-2xl p-6 border-2 border-emerald-500/80 shadow-lg hover:border-emerald-400 transition-all flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black border border-emerald-500/30">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-extrabold text-white text-base sm:text-lg">PRODUCTS</h4>
+                        <p class="text-xs text-slate-400">Catalog / Supply Inventory</p>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded">Supplied by Hub</span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Managed by the wholesale Hub with SKUs, quantity increments, and tiered wholesale pricing. Stores access these products to populate their shopping experience.
+                  </p>
+                </div>
+                <div class="mt-4 p-2.5 bg-emerald-950/60 rounded-xl border border-emerald-800 text-xs text-emerald-300 font-semibold flex items-center gap-2">
+                  <span class="text-emerald-400 font-bold">✔</span>
+                  <span>Stores can directly browse, cart, and order these Products</span>
+                </div>
+              </div>
+
+              <!-- STORES (Clients) with clear 3-Action Box -->
+              <div id="node-store" onclick="setFocusTier('store')" class="architecture-node cursor-pointer bg-slate-900 rounded-2xl p-6 border-2 border-purple-500/80 shadow-lg hover:border-purple-400 transition-all flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-black border border-purple-500/30">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.25A2.25 2.25 0 010 18.75V5.25A2.25 2.25 0 012.25 3h19.5A2.25 2.25 0 0124 5.25v13.5A2.25 2.25 0 0121.75 21H13.5z"/></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-extrabold text-white text-base sm:text-lg">STORES (Clients)</h4>
+                        <p class="text-xs text-slate-400">Retail Client Endpoints</p>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded">Client Role</span>
+                  </div>
+
+                  <!-- Explicit 3 Client Actions: Shop, Add Cart, My Order Report -->
+                  <div class="mb-3">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5 mb-2">
+                      <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                      Client Actions Performed by Stores:
+                    </span>
+                    <div class="grid grid-cols-3 gap-2">
+                      <div class="bg-purple-950/70 border border-purple-700/60 rounded-xl p-2.5 text-center hover:bg-purple-900 transition-colors">
+                        <div class="text-xs font-black text-purple-300">🛍️ SHOP</div>
+                        <span class="text-[9px] text-slate-400">Browse SKUs</span>
+                      </div>
+                      <div class="bg-purple-950/70 border border-purple-700/60 rounded-xl p-2.5 text-center hover:bg-purple-900 transition-colors">
+                        <div class="text-xs font-black text-purple-300">🛒 CART</div>
+                        <span class="text-[9px] text-slate-400">Add to Cart</span>
+                      </div>
+                      <div class="bg-purple-950/70 border border-purple-700/60 rounded-xl p-2.5 text-center hover:bg-purple-900 transition-colors">
+                        <div class="text-xs font-black text-purple-300">📊 REPORT</div>
+                        <span class="text-[9px] text-slate-400">My Orders</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+                  <span>Stores can use: <strong class="text-emerald-400">Products</strong></span>
+                  <span class="text-slate-400">Created by: <strong class="text-teal-400">Hub</strong></span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Horizontal Relationship Indicator -->
+            <div class="w-full mt-4 bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex items-center justify-center gap-2 sm:gap-4 text-xs font-semibold text-slate-400">
+              <span class="text-emerald-400 font-bold">Products (Hub Catalog)</span>
+              <div class="flex items-center text-slate-600">
+                <span>◀</span>
+                <div class="w-20 sm:w-48 h-0.5 bg-slate-700 mx-1.5 relative">
+                  <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold text-cyan-400 bg-slate-900 px-1.5 whitespace-nowrap">Stores Use Products</span>
+                </div>
+                <span>▶</span>
+              </div>
+              <span class="text-purple-400 font-bold">Stores (Clients)</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: STEP-BY-STEP ONBOARDING WALKTHROUGH                            -->
+    <!-- ========================================================================= -->
+    <section class="py-16 lg:py-24 bg-[#080b11] border-b border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <span class="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-950/80 px-3 py-1 rounded-full border border-sky-800/60">Registration Guide</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 font-display">How the Ecosystem Operates</h2>
+          <p class="text-slate-400 text-xs sm:text-base mt-2">Clear orientation for newly registered wholesale operators and store buyers.</p>
+        </div>
+
+        <!-- Step Selector Navigation -->
+        <div class="max-w-4xl mx-auto mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-900 p-1.5 rounded-2xl text-xs font-bold border border-slate-800" id="step-tab-bar">
+            <button onclick="goToStep(1)" id="step-btn-1" class="step-nav-btn py-2.5 px-3 rounded-xl bg-sky-600 text-white shadow transition-all flex flex-col items-center gap-0.5">
+              <span class="text-[10px] text-sky-200 font-mono">STEP 01</span>
+              <span>Super Admin</span>
+            </button>
+            <button onclick="goToStep(2)" id="step-btn-2" class="step-nav-btn py-2.5 px-3 rounded-xl text-slate-400 hover:text-white transition-all flex flex-col items-center gap-0.5">
+              <span class="text-[10px] text-teal-400 font-mono">STEP 02</span>
+              <span>Wholesale Hubs</span>
+            </button>
+            <button onclick="goToStep(3)" id="step-btn-3" class="step-nav-btn py-2.5 px-3 rounded-xl text-slate-400 hover:text-white transition-all flex flex-col items-center gap-0.5">
+              <span class="text-[10px] text-indigo-400 font-mono">STEP 03</span>
+              <span>Hub Employees</span>
+            </button>
+            <button onclick="goToStep(4)" id="step-btn-4" class="step-nav-btn py-2.5 px-3 rounded-xl text-slate-400 hover:text-white transition-all flex flex-col items-center gap-0.5">
+              <span class="text-[10px] text-purple-400 font-mono">STEP 04</span>
+              <span>Store Clients</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Walkthrough Card -->
+        <div class="max-w-4xl mx-auto bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl transition-all flex flex-col justify-between min-h-[380px]">
+          
+          <div id="step-body-container">
+            <!-- Dynamic Content Injected by JS -->
+          </div>
+
+          <!-- Bottom Navigation Controls -->
+          <div class="flex items-center justify-between pt-6 border-t border-slate-800 mt-6">
+            <button onclick="changeStep(-1)" id="btn-back-step" class="px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 bg-slate-800 hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              &larr; Previous
+            </button>
+            
+            <div class="flex items-center gap-1.5" id="step-pill-dots">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+            </div>
+
+            <button onclick="changeStep(1)" id="btn-forward-step" class="px-5 py-2 text-xs font-semibold rounded-lg text-white bg-sky-600 hover:bg-sky-500 transition-colors">
+              Next Step &rarr;
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: LIVE MULTI-ROLE SANDBOX SIMULATOR                              -->
+    <!-- ========================================================================= -->
+    <section class="py-16 lg:py-24 bg-[#0a0e17] border-b border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center max-w-3xl mx-auto mb-14">
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-950/80 px-3 py-1 rounded-full border border-purple-800/60">Interactive Sandbox</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 font-display">Live Role Simulator</h2>
+          <p class="text-slate-400 text-xs sm:text-base mt-2">Test actions for Super Admin, Hub Wholesale, Employee staff, and Store clients.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <!-- Persona Selector Column (Left) -->
+          <div class="lg:col-span-5 space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Select Active Perspective:</span>
+            
+            <div onclick="selectPersona('admin')" id="card-admin" class="persona-option cursor-pointer p-4 rounded-2xl border-2 border-transparent bg-slate-950 hover:bg-slate-900 transition-all flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold border border-amber-500/30">👑</div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Super Admin</h4>
+                  <p class="text-xs text-slate-400">Root Governance</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-amber-400">Creates Hubs &rarr;</span>
+            </div>
+
+            <div onclick="selectPersona('hub')" id="card-hub" class="persona-option cursor-pointer p-4 rounded-2xl border-2 border-teal-500 bg-teal-950/40 transition-all flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold border border-teal-500/30">🏢</div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Hub (Wholesale Customer)</h4>
+                  <p class="text-xs text-slate-400">Products, Stores & Staff Creator</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-teal-400">Active Engine &rarr;</span>
+            </div>
+
+            <div onclick="selectPersona('employee')" id="card-employee" class="persona-option cursor-pointer p-4 rounded-2xl border-2 border-transparent bg-slate-950 hover:bg-slate-900 transition-all flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/30">👷</div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Hub Employee</h4>
+                  <p class="text-xs text-slate-400">Wholesale Staff Only</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-indigo-400">Depot Queue &rarr;</span>
+            </div>
+
+            <div onclick="selectPersona('store')" id="card-store" class="persona-option cursor-pointer p-4 rounded-2xl border-2 border-transparent bg-slate-950 hover:bg-slate-900 transition-all flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold border border-purple-500/30">🛍️</div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Store (Client)</h4>
+                  <p class="text-xs text-slate-400">Client Ordering Front</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-purple-400">Shop, Cart, Reports &rarr;</span>
+            </div>
+          </div>
+
+          <!-- Live Sandbox Execution Terminal (Right) -->
+          <div class="lg:col-span-7 bg-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800">
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span id="terminal-endpoint" class="ml-2 font-mono text-xs text-slate-400">sandbox://wholesale-hub</span>
+              </div>
+              <span id="terminal-role-tag" class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                Role: Hub
+              </span>
+            </div>
+
+            <!-- Interactive Screen Space -->
+            <div id="terminal-screen" class="space-y-4">
+              <!-- Injected by JavaScript -->
+            </div>
+
+            <!-- Terminal Output Feed -->
+            <div class="mt-6 pt-4 border-t border-slate-800">
+              <div class="text-[10px] font-mono uppercase text-slate-400 mb-2 flex items-center justify-between">
+                <span>Real-Time Operation Feed</span>
+                <button onclick="clearTerminalLogs()" class="hover:text-slate-200">Clear</button>
+              </div>
+              <div id="terminal-logs" class="font-mono text-xs text-emerald-400 space-y-1 bg-black/60 p-3 rounded-xl border border-slate-800 max-h-28 overflow-y-auto custom-scrollbar">
+                <div>[SYSTEM] MyStoresHubs sandbox initialized.</div>
+                <div>[READY] Wholesale Hub "Apex Supply #101" active.</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: CONTACT & DEMO REQUEST CALLOUT                                 -->
+    <!-- ========================================================================= -->
+    <section class="py-16 lg:py-24 bg-gradient-to-b from-[#0a0e17] via-slate-950 to-[#06090e] text-white relative overflow-hidden">
+      <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-20 -top-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <div class="text-center max-w-3xl mx-auto mb-10">
+          <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30 inline-block mb-4">
+            Connect With Us
+          </span>
+          <h2 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight font-display">
+            Please contact the My Stores Hubs team
+          </h2>
+          <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Get a demo, pricing, or your own branded store set up. Contact us: <a href="mailto:support@mystoreshubs.com" class="text-teal-400 hover:text-teal-300 underline font-semibold transition-colors">support@mystoreshubs.com</a>
+          </p>
+        </div>
+
+        <!-- Contact Box & Action Cards -->
+        <div class="bg-slate-900/80 border border-slate-800 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-2xl max-w-3xl mx-auto">
+          
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-black/50 border border-slate-800 mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center font-bold border border-teal-500/30">
+                ✉️
+              </div>
+              <div>
+                <span class="text-[10px] font-mono text-slate-400 uppercase">Direct Email</span>
+                <div class="text-sm sm:text-base font-bold text-white font-mono select-all">support@mystoreshubs.com</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button onclick="copySupportEmail()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-700 text-slate-200">
+                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>Copy Email</span>
+              </button>
+              <a href="mailto:support@mystoreshubs.com?subject=Inquiry%20for%20MyStoresHubs%20Demo%20and%20Pricing" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-teal-500/20">
+                <span>Send Email</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Service Inquiries -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span class="text-base">🚀</span>
+              <h4 class="font-bold text-xs text-white mt-1">Live Platform Demo</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Explore Wholesale & Store flows</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span class="text-base">🏷️</span>
+              <h4 class="font-bold text-xs text-white mt-1">Tiered Pricing</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Custom plans for wholesale Hubs</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span class="text-base">✨</span>
+              <h4 class="font-bold text-xs text-white mt-1">Branded Setup</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Dedicated white-label tenancy</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-12 text-center text-xs text-slate-500">
+          <p>&copy; 2026 MyStoresHubs. All rights reserved. Connecting Super Admin, Hubs, Employees, Products, and Stores.</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Interactive Toast Notification Container -->
+  <div id="app-toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-3 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none border border-slate-700">
+    <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+    <span id="app-toast-msg">Notification</span>
+  </div>
+
+  <script>
+    function handleLogoFallback(imgElement) {
+      imgElement.style.display = 'none';
+      document.getElementById('vector-logo-fallback').classList.remove('hidden');
+    }
+
+    function applyPageTheme(mode) {
+      document.documentElement.classList.toggle('theme-light', mode !== 'black');
+    }
+
+    function syncTheme() {
+      let black = localStorage.getItem('msh_theme') === 'black';
+      try {
+        black = window.parent.document.documentElement.classList.contains('theme-black');
+      } catch (err) {}
+      applyPageTheme(black ? 'black' : 'white');
+    }
+
+    try {
+      new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    } catch (err) {}
+
+    window.addEventListener('message', function (event) {
+      if (event.origin !== window.location.origin) return;
+      if (event.data && event.data.type === 'msh-theme') applyPageTheme(event.data.mode);
+    });
+
+    // ==========================================
+    // UTILITY: TOAST NOTIFICATIONS & COPY
+    // ==========================================
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      const msgText = document.getElementById('app-toast-msg');
+      msgText.textContent = message;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    function copySupportEmail() {
+      const email = 'support@mystoreshubs.com';
+      const tempInput = document.createElement('input');
+      tempInput.value = email;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard: support@mystoreshubs.com');
+      } catch (err) {
+        showToast('Please email: support@mystoreshubs.com');
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    // ==========================================
+    // DIAGRAM INTERACTIVE FILTER
+    // ==========================================
+    function setFocusTier(tier) {
+      const nodes = {
+        admin: document.getElementById('node-admin'),
+        hub: document.getElementById('node-hub'),
+        employee: document.getElementById('node-employee'),
+        product: document.getElementById('node-product'),
+        store: document.getElementById('node-store')
+      };
+
+      const badge = document.getElementById('diagram-badge');
+      const message = document.getElementById('diagram-message');
+
+      // Reset node styles
+      Object.values(nodes).forEach(n => {
+        n.style.opacity = '1';
+        n.style.transform = 'scale(1)';
+      });
+
+      // Update Tab Styles
+      document.querySelectorAll('.filter-tab').forEach(b => {
+        b.classList.remove('bg-sky-600', 'text-white', 'shadow');
+        b.classList.add('text-slate-400');
+      });
+      const activeTab = document.getElementById(`filter-${tier}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-sky-600', 'text-white', 'shadow');
+        activeTab.classList.remove('text-slate-400');
+      }
+
+      if (tier === 'all') {
+        badge.textContent = 'Full View';
+        badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-600 text-white';
+        message.textContent = 'Complete hierarchy: Super Admin creates Hubs; Hubs create Products, Stores, and internal Employees.';
+      } else if (tier === 'admin') {
+        nodes.hub.style.opacity = '0.35';
+        nodes.employee.style.opacity = '0.2';
+        nodes.product.style.opacity = '0.2';
+        nodes.store.style.opacity = '0.2';
+        nodes.admin.style.transform = 'scale(1.02)';
+        badge.textContent = 'Super Admin';
+        badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-slate-950';
+        message.textContent = 'Level 0 Platform Master: Exclusively onboards, validates, and activates wholesale Hubs.';
+      } else if (tier === 'hub') {
+        nodes.admin.style.opacity = '0.35';
+        nodes.hub.style.transform = 'scale(1.02)';
+        badge.textContent = 'Wholesale Hub';
+        badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-teal-500 text-slate-950';
+        message.textContent = 'Central Depot Engine: Creates and manages Products, client Stores, and internal Employees.';
+      } else if (tier === 'employee') {
+        nodes.admin.style.opacity = '0.2';
+        nodes.product.style.opacity = '0.2';
+        nodes.store.style.opacity = '0.2';
+        nodes.employee.style.transform = 'scale(1.03)';
+        badge.textContent = 'Wholesale Employees';
+        badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-indigo-500 text-white';
+        message.textContent = 'Strict Wholesale Association: Dedicated depot workforce; completely disconnected from Stores.';
+      } else if (tier === 'store') {
+        nodes.admin.style.opacity = '0.2';
+        nodes.employee.style.opacity = '0.2';
+        nodes.store.style.transform = 'scale(1.03)';
+        badge.textContent = 'Stores (Clients)';
+        badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-purple-500 text-white';
+        message.textContent = 'Client Outlets: Consumes Hub Products with Shop, Add Cart, and My Order Report.';
+      }
+    }
+
+    // ==========================================
+    // ONBOARDING PROGRESSION WALKTHROUGH
+    // ==========================================
+    let currentStepIndex = 1;
+    const maxSteps = 4;
+
+    const onboardingSteps = [
+      {
+        step: 1,
+        title: "Platform Governance: Super Admin",
+        tag: "Platform Root",
+        color: "sky",
+        summary: "Super Admin creates, validates, and provisions wholesale Hubs.",
+        description: "The Super Admin serves as the root platform authority. By vetting prospective wholesale operators, the Super Admin maintains system security, tenant isolation, and assigns dedicated wholesale operational domains.",
+        bullets: [
+          "Creates and approves wholesale 'Hub' accounts",
+          "Maintains absolute multi-tenant boundary security",
+          "Oversees network governance without interfering in store retail operations"
+        ]
+      },
+      {
+        step: 2,
+        title: "Wholesale Backbone: Hubs",
+        tag: "Wholesale Engine",
+        color: "teal",
+        summary: "Hubs create Products, client Stores, and internal Employees.",
+        description: "Once authorized by the Super Admin, a Hub operates as an autonomous wholesale enterprise. The Hub publishes its inventory catalog, creates authorized downstream retail store client accounts, and manages its depot workers.",
+        bullets: [
+          "Creates and catalogs wholesale 'Products' with tier rates",
+          "Onboards and provisions client 'Stores'",
+          "Adds and manages internal 'Employees' for warehouse ops"
+        ]
+      },
+      {
+        step: 3,
+        title: "Depot Staff: Wholesale Employees",
+        tag: "Strict Wholesale Association",
+        color: "indigo",
+        summary: "Employees belong strictly to the Wholesale Hub level only.",
+        description: "Employees handle warehouse picking, bulk packaging, and delivery dispatch. They are created solely by the wholesale Hub and possess zero authority or association with downstream Stores.",
+        bullets: [
+          "Created and managed exclusively by the wholesale Hub",
+          "Executes fulfillment, stock reception, and outbound dispatches",
+          "Isolated from Store Client accounts and retail operations"
+        ]
+      },
+      {
+        step: 4,
+        title: "Client Outlets: Stores",
+        tag: "Retail Client Operations",
+        color: "purple",
+        summary: "Stores use Products with Shop, Add Cart, and My Order Report.",
+        description: "Stores represent the client retail storefronts created by the Hub. Stores consume the Hub's published products, allowing client buyers to place procurement orders and audit historical deliveries.",
+        bullets: [
+          "🛍️ Shop: Explore the live wholesale catalog and available stock",
+          "🛒 Add Cart: Assemble multi-SKU purchase orders seamlessly",
+          "📊 My Order Report: Track invoice statuses, dispatches, and reports"
+        ]
+      }
+    ];
+
+    function renderStep(step) {
+      const data = onboardingSteps[step - 1];
+      const container = document.getElementById('step-body-container');
+      
+      container.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-${data.color}-950 text-${data.color}-300 border border-${data.color}-800">
+              Step 0${data.step}: ${data.tag}
+            </span>
+            <span class="text-xs font-mono text-slate-400">Phase ${data.step} of 4</span>
+          </div>
+          <h3 class="text-2xl font-black text-white tracking-tight font-display">${data.title}</h3>
+          <p class="text-xs sm:text-sm font-semibold text-slate-400 mt-1 mb-4">${data.summary}</p>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">${data.description}</p>
+          
+          <div class="bg-slate-950 rounded-2xl p-4 sm:p-5 border border-slate-800">
+            <h5 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">Key Capabilities & Isolation Rules</h5>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+              ${data.bullets.map(b => `
+                <li class="flex items-center gap-2">
+                  <span class="text-emerald-400 font-bold">✔</span>
+                  <span>${b}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+
+      // Update Navigation Tab Styles
+      document.querySelectorAll('.step-nav-btn').forEach((btn, idx) => {
+        if (idx + 1 === step) {
+          btn.classList.add('bg-sky-600', 'text-white', 'shadow');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('bg-sky-600', 'text-white', 'shadow');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
+      // Update dots
+      const dots = document.getElementById('step-pill-dots').children;
+      for (let i = 0; i < dots.length; i++) {
+        dots[i].className = (i + 1 === step) ? 'w-2.5 h-2.5 rounded-full bg-sky-500' : 'w-2.5 h-2.5 rounded-full bg-slate-700';
+      }
+
+      document.getElementById('btn-back-step').disabled = (step === 1);
+      document.getElementById('btn-forward-step').textContent = (step === maxSteps) ? 'Finish Guide' : 'Next Step →';
+    }
+
+    function goToStep(s) {
+      currentStepIndex = s;
+      renderStep(currentStepIndex);
+    }
+
+    function changeStep(dir) {
+      if (dir === 1 && currentStepIndex < maxSteps) {
+        currentStepIndex++;
+      } else if (dir === -1 && currentStepIndex > 1) {
+        currentStepIndex--;
+      } else if (dir === 1 && currentStepIndex === maxSteps) {
+        showToast("You have completed the ecosystem architecture walkthrough!");
+        return;
+      }
+      renderStep(currentStepIndex);
+    }
+
+    // ==========================================
+    // SANDBOX INTERACTIVE SIMULATION
+    // ==========================================
+    function logTerminal(msg) {
+      const logs = document.getElementById('terminal-logs');
+      const entry = document.createElement('div');
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logs.appendChild(entry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function clearTerminalLogs() {
+      document.getElementById('terminal-logs').innerHTML = '<div>[CLEARED] Ready for new role actions.</div>';
+    }
+
+    function selectPersona(role) {
+      document.querySelectorAll('.persona-option').forEach(c => {
+        c.classList.remove('border-teal-500', 'border-amber-500', 'border-indigo-500', 'border-purple-500', 'bg-teal-950/40', 'bg-amber-950/40', 'bg-indigo-950/40', 'bg-purple-950/40');
+        c.classList.add('border-transparent', 'bg-slate-950');
+      });
+
+      const card = document.getElementById(`card-${role}`);
+      const endpoint = document.getElementById('terminal-endpoint');
+      const tag = document.getElementById('terminal-role-tag');
+      const screen = document.getElementById('terminal-screen');
+
+      if (role === 'admin') {
+        card.classList.add('border-amber-500', 'bg-amber-950/40');
+        endpoint.textContent = 'sandbox://super-admin-root';
+        tag.textContent = 'Role: Super Admin';
+        tag.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        
+        screen.innerHTML = `
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <h5 class="text-xs font-bold text-white mb-1">Provision New Wholesale Hub</h5>
+            <p class="text-[11px] text-slate-400 mb-3">Onboard and verify a new independent wholesale customer.</p>
+            <div class="flex gap-2 mb-3">
+              <input type="text" id="sim-hub-name" value="Apex Regional Wholesalers" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
+            </div>
+            <button onclick="simAdminCreateHub()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition-colors">
+              + Authorize & Deploy Hub
+            </button>
+          </div>
+        `;
+        logTerminal("Super Admin workspace loaded. Ready to deploy Hubs.");
+      }
+      else if (role === 'hub') {
+        card.classList.add('border-teal-500', 'bg-teal-950/40');
+        endpoint.textContent = 'sandbox://wholesale-hub';
+        tag.textContent = 'Role: Hub (Wholesale Customer)';
+        tag.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30';
+
+        screen.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span class="text-emerald-400 text-[10px] font-bold uppercase">Products</span>
+                <h6 class="text-xs font-bold text-white mt-0.5">Publish Product</h6>
+                <p class="text-[10px] text-slate-400">Supply SKUs for Stores.</p>
+              </div>
+              <button onclick="simHubCreateProduct()" class="mt-3 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold">
+                + Create SKU
+              </button>
+            </div>
+
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span class="text-purple-400 text-[10px] font-bold uppercase">Stores</span>
+                <h6 class="text-xs font-bold text-white mt-0.5">Onboard Store</h6>
+                <p class="text-[10px] text-slate-400">Provision retail buyer.</p>
+              </div>
+              <button onclick="simHubCreateStore()" class="mt-3 px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-semibold">
+                + Add Store
+              </button>
+            </div>
+
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span class="text-indigo-400 text-[10px] font-bold uppercase">Employees</span>
+                <h6 class="text-xs font-bold text-white mt-0.5">Add Employee</h6>
+                <p class="text-[10px] text-slate-400">Wholesale warehouse staff.</p>
+              </div>
+              <button onclick="simHubCreateEmployee()" class="mt-3 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold">
+                + Add Staff
+              </button>
+            </div>
+          </div>
+        `;
+        logTerminal("Wholesale Hub control loaded: Products, Stores, and Employees active.");
+      }
+      else if (role === 'employee') {
+        card.classList.add('border-indigo-500', 'bg-indigo-950/40');
+        endpoint.textContent = 'sandbox://wholesale-depot-staff';
+        tag.textContent = 'Role: Wholesale Employee';
+        tag.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+
+        screen.innerHTML = `
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <h5 class="text-xs font-bold text-white">Wholesale Depot Operations</h5>
+              <span class="text-[10px] text-indigo-400 font-mono">Wholesale Staff Only</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-3">Fulfill orders created by Stores. Employees cannot create products or configure stores.</p>
+            <div class="p-2.5 bg-slate-950 rounded-lg flex items-center justify-between text-xs border border-slate-800">
+              <div>
+                <span class="text-white font-semibold">Pallet #PL-8890</span>
+                <span class="text-slate-400 ml-2">Packed & Staged</span>
+              </div>
+              <button onclick="simEmployeeAction()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-semibold">
+                Dispatch Freight
+              </button>
+            </div>
+          </div>
+        `;
+        logTerminal("Wholesale Employee station loaded: Depot dispatch queue.");
+      }
+      else if (role === 'store') {
+        card.classList.add('border-purple-500', 'bg-purple-950/40');
+        endpoint.textContent = 'sandbox://store-client-terminal';
+        tag.textContent = 'Role: Store (Client)';
+        tag.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30';
+
+        screen.innerHTML = `
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <h5 class="text-xs font-bold text-white mb-1">Store Client Terminal</h5>
+            <p class="text-[11px] text-slate-400 mb-3">Execute store buyer operations using products from the Hub.</p>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="simStoreShop()" class="p-2.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-700/50 rounded-lg text-left transition-colors">
+                <div class="text-sm">🛍️</div>
+                <div class="text-xs font-bold text-white mt-1">Shop</div>
+                <div class="text-[9px] text-slate-400">Browse SKUs</div>
+              </button>
+              <button onclick="simStoreCart()" class="p-2.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-700/50 rounded-lg text-left transition-colors">
+                <div class="text-sm">🛒</div>
+                <div class="text-xs font-bold text-white mt-1">Add Cart</div>
+                <div class="text-[9px] text-slate-400">Build Order</div>
+              </button>
+              <button onclick="simStoreReport()" class="p-2.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-700/50 rounded-lg text-left transition-colors">
+                <div class="text-sm">📊</div>
+                <div class="text-xs font-bold text-white mt-1">Order Report</div>
+                <div class="text-[9px] text-slate-400">View Invoices</div>
+              </button>
+            </div>
+          </div>
+        `;
+        logTerminal("Client Store terminal loaded: Shop, Cart, and Order Reports active.");
+      }
+    }
+
+    // Role Simulation Handlers
+    function simAdminCreateHub() {
+      const name = document.getElementById('sim-hub-name').value || "Metro Distribution Hub";
+      showToast(`Super Admin created Hub: ${name}`);
+      logTerminal(`SUPER ADMIN: Provisioned wholesale entity "${name}"`);
+    }
+
+    function simHubCreateProduct() {
+      const sku = "SKU-" + Math.floor(1000 + Math.random() * 9000);
+      showToast(`Hub created Product SKU: ${sku}`);
+      logTerminal(`HUB: Added ${sku} to catalog for downstream stores`);
+    }
+
+    function simHubCreateStore() {
+      const store = "Client Store #" + Math.floor(10 + Math.random() * 90);
+      showToast(`Hub created Store: ${store}`);
+      logTerminal(`HUB: Onboarded ${store} with catalog ordering access`);
+    }
+
+    function simHubCreateEmployee() {
+      const staff = "Employee #" + Math.floor(100 + Math.random() * 900);
+      showToast(`Hub created internal Employee: ${staff}`);
+      logTerminal(`HUB: Assigned ${staff} to wholesale depot (Wholesale staff only)`);
+    }
+
+    function simEmployeeAction() {
+      showToast("Pallet #PL-8890 dispatched from wholesale depot");
+      logTerminal("EMPLOYEE: Dispatched wholesale freight to delivery route");
+    }
+
+    function simStoreShop() {
+      showToast("Store: Browsing wholesale product catalog");
+      logTerminal("STORE ACTION: [SHOP] Viewing available wholesale products");
+    }
+
+    function simStoreCart() {
+      showToast("Store: Product added to bulk order cart");
+      logTerminal("STORE ACTION: [ADD CART] Item staged for wholesale checkout");
+    }
+
+    function simStoreReport() {
+      showToast("Store: My Order Report loaded");
+      logTerminal("STORE ACTION: [MY ORDER REPORT] Generated invoice & dispatch report");
+    }
+
+    // Initial page load triggers
+    window.onload = function() {
+      syncTheme();
+      renderStep(1);
+      selectPersona('hub');
+    };
+  </script>
+</body>
+</html>

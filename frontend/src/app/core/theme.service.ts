@@ -24,6 +24,9 @@ export class ThemeService {
 
   private apply(mode: ThemeMode): void {
     document.documentElement.classList.toggle('theme-black', mode === 'black');
+    document.querySelectorAll('iframe').forEach((frame) => {
+      frame.contentWindow?.postMessage({ type: 'msh-theme', mode }, window.location.origin);
+    });
   }
 
   private readStored(): ThemeMode {
