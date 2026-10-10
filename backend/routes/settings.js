@@ -20,8 +20,20 @@ const upload = multer({
   fileFilter: imageFileFilter,
 });
 
+const platformSettingsRow = db.prepare('SELECT title, slogan, logo, qr_code FROM site_settings WHERE id = 1');
+const tenantSettingsRow = db.prepare(
+  `SELECT s.title, s.slogan, s.logo, s.qr_code, t.theme_color, t.font_family, t.login_initial
+   FROM tenant_settings s JOIN tenants t ON t.id = s.tenant_id
+   WHERE s.tenant_id = ?`
+);
+const tenantByLoginInitial = db.prepare(
+  `SELECT id FROM tenants
+   WHERE status = 'active' AND login_initial <> '' AND ? LIKE '%' || lower(login_initial) || '%'
+   ORDER BY length(login_initial) DESC LIMIT 1`
+);
+
 function platformSettings() {
-  const row = db.prepare('SELECT title, slogan, logo, qr_code FROM site_settings WHERE id = 1').get();
+  const row = platformSettingsRow.get();
   return {
     title: row?.title || 'My Store Hub',
     slogan: row?.slogan || 'Your name, your products, your customers.',
@@ -34,11 +46,7 @@ function platformSettings() {
 }
 
 function settingsForTenant(tenantId) {
-  return db.prepare(
-    `SELECT s.title, s.slogan, s.logo, s.qr_code, t.theme_color, t.font_family, t.login_initial
-     FROM tenant_settings s JOIN tenants t ON t.id = s.tenant_id
-     WHERE s.tenant_id = ?`
-  ).get(tenantId);
+  return tenantSettingsRow.get(tenantId);
 }
 
 function requestedTenantId(req, fallback = 1) {
@@ -64,11 +72,7 @@ router.get('/', (req, res) => {
     return sendTenantSettings(res, user.tenant_id);
   }
   if (!user && email.includes('@')) {
-    const tenant = db.prepare(
-      `SELECT id FROM tenants
-       WHERE status = 'active' AND login_initial <> '' AND ? LIKE '%' || lower(login_initial) || '%'
-       ORDER BY length(login_initial) DESC LIMIT 1`
-    ).get(email);
+    const tenant = tenantByLoginInitial.get(email);
     if (tenant) return sendTenantSettings(res, tenant.id);
   }
   res.json(platformSettings());

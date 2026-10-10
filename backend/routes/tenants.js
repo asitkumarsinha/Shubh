@@ -21,10 +21,29 @@ function log(tenantId, actorId, action, details = '') {
   logger.info('tenant audit', { tenantId, actorId, action });
 }
 
+const tenantAdminStmt = db.prepare(
+  `SELECT id, name, email FROM users WHERE tenant_id = ? AND role = 'admin' ORDER BY id LIMIT 1`
+);
+const countUsersForTenant = db.prepare('SELECT COUNT(*) AS count FROM users WHERE tenant_id = ?');
+const countEmployeesForTenant = db.prepare('SELECT COUNT(*) AS count FROM employees WHERE tenant_id = ?');
+const countMedicinesForTenant = db.prepare('SELECT COUNT(*) AS count FROM medicines WHERE tenant_id = ?');
+const countOrdersForTenant = db.prepare('SELECT COUNT(*) AS count FROM orders WHERE tenant_id = ?');
+const usersByTenant = db.prepare('SELECT tenant_id, COUNT(*) AS count FROM users GROUP BY tenant_id');
+const employeesByTenant = db.prepare('SELECT tenant_id, COUNT(*) AS count FROM employees GROUP BY tenant_id');
+const medicinesByTenant = db.prepare('SELECT tenant_id, COUNT(*) AS count FROM medicines GROUP BY tenant_id');
+const ordersByTenant = db.prepare('SELECT tenant_id, COUNT(*) AS count FROM orders GROUP BY tenant_id');
+const adminsByTenant = db.prepare(
+  `SELECT tenant_id, name, email FROM users WHERE role = 'admin' ORDER BY id`
+);
+
+function countMap(stmt) {
+  const map = new Map();
+  for (const row of stmt.all()) map.set(row.tenant_id, row.count);
+  return map;
+}
+
 function tenantAdmin(tenantId) {
-  return db
-    .prepare(`SELECT id, name, email FROM users WHERE tenant_id = ? AND role = 'admin' ORDER BY id LIMIT 1`)
-    .get(tenantId);
+  return tenantAdminStmt.get(tenantId);
 }
 
 function tenantSummary(row) {
@@ -35,12 +54,40 @@ function tenantSummary(row) {
     admin_email: admin?.email || '',
     modules: JSON.parse(row.modules || '{}'),
     usage: {
-      users: db.prepare('SELECT COUNT(*) AS count FROM users WHERE tenant_id = ?').get(row.id).count,
-      employees: db.prepare('SELECT COUNT(*) AS count FROM employees WHERE tenant_id = ?').get(row.id).count,
-      medicines: db.prepare('SELECT COUNT(*) AS count FROM medicines WHERE tenant_id = ?').get(row.id).count,
-      orders: db.prepare('SELECT COUNT(*) AS count FROM orders WHERE tenant_id = ?').get(row.id).count,
+      users: countUsersForTenant.get(row.id).count,
+      employees: countEmployeesForTenant.get(row.id).count,
+      medicines: countMedicinesForTenant.get(row.id).count,
+      orders: countOrdersForTenant.get(row.id).count,
     },
   };
+}
+
+function summarizeTenants(rows) {
+  const usage = {
+    users: countMap(usersByTenant),
+    employees: countMap(employeesByTenant),
+    medicines: countMap(medicinesByTenant),
+    orders: countMap(ordersByTenant),
+  };
+  const admins = new Map();
+  for (const admin of adminsByTenant.all()) {
+    if (!admins.has(admin.tenant_id)) admins.set(admin.tenant_id, admin);
+  }
+  return rows.map((row) => {
+    const admin = admins.get(row.id);
+    return {
+      ...row,
+      admin_name: admin?.name || row.contact_name || '',
+      admin_email: admin?.email || '',
+      modules: JSON.parse(row.modules || '{}'),
+      usage: {
+        users: usage.users.get(row.id) || 0,
+        employees: usage.employees.get(row.id) || 0,
+        medicines: usage.medicines.get(row.id) || 0,
+        orders: usage.orders.get(row.id) || 0,
+      },
+    };
+  });
 }
 
 function safeSlug(value) {
@@ -51,17 +98,18 @@ function safeSlug(value) {
     .replace(/^-|-$/g, '');
 }
 
+const storeDirectory = db.prepare(
+  `SELECT t.id, t.name, t.contact_name, t.contact_email, t.contact_phone,
+          COUNT(o.id) AS orderCount
+   FROM tenants t
+   LEFT JOIN orders o ON o.tenant_id = t.id
+   WHERE t.status != 'archived'
+   GROUP BY t.id
+   ORDER BY t.name COLLATE NOCASE`
+);
+
 router.get('/directory', (_req, res) => {
-  const stores = db
-    .prepare(
-      `SELECT t.id, t.name, t.contact_name, t.contact_email, t.contact_phone,
-              (SELECT COUNT(*) FROM orders WHERE tenant_id = t.id) AS orderCount
-       FROM tenants t
-       WHERE t.status != 'archived'
-       ORDER BY t.name COLLATE NOCASE`
-    )
-    .all();
-  res.json(stores);
+  res.json(storeDirectory.all());
 });
 
 router.use(authenticate, requireSuperAdmin);
@@ -69,9 +117,8 @@ router.use(authenticate, requireSuperAdmin);
 router.get('/', (_req, res) => {
   const tenants = db
     .prepare('SELECT * FROM tenants ORDER BY datetime(created_at) DESC')
-    .all()
-    .map(tenantSummary);
-  res.json(tenants);
+    .all();
+  res.json(summarizeTenants(tenants));
 });
 
 router.post('/', (req, res) => {

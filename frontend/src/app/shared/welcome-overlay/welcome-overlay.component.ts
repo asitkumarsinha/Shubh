@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { FeatureShowcaseComponent } from '../feature-showcase/feature-showcase.component';
 
 const SEEN_KEY = 'msh_welcome_seen';
-const AUTO_CLOSE_SECONDS = 10;
+const AUTO_CLOSE_SECONDS = 30;
 
 @Component({
   selector: 'app-welcome-overlay',

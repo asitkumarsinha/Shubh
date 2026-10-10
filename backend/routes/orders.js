@@ -59,14 +59,63 @@ function priceQuote(tenantId, subtotal, couponCode) {
   return { subtotal, discount, total: money(subtotal - discount), couponCode: code };
 }
 
+const itemsForOrder = db.prepare('SELECT * FROM order_items WHERE order_id = ?');
+const userForOrder = db.prepare('SELECT id, name, email, phone, address FROM users WHERE id = ?');
+const orderById = db.prepare('SELECT * FROM orders WHERE id = ?');
+const orderForTenant = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?');
+const myOrdersStmt = db.prepare(
+  'SELECT * FROM orders WHERE user_id = ? AND tenant_id = ? ORDER BY created_at DESC'
+);
+const ordersByStatus = db.prepare(
+  'SELECT * FROM orders WHERE status = ? AND tenant_id = ? ORDER BY created_at DESC'
+);
+const ordersByTenant = db.prepare('SELECT * FROM orders WHERE tenant_id = ? ORDER BY created_at DESC');
+
+function rowsById(sqlIds, loader) {
+  const map = new Map();
+  for (let i = 0; i < sqlIds.length; i += 200) {
+    const chunk = sqlIds.slice(i, i + 200);
+    const rows = db
+      .prepare(loader(chunk.map(() => '?').join(',')))
+      .all(...chunk);
+    for (const row of rows) {
+      const key = row.order_id ?? row.id;
+      if (row.order_id) {
+        const list = map.get(row.order_id);
+        if (list) list.push(row);
+        else map.set(row.order_id, [row]);
+      } else {
+        map.set(key, row);
+      }
+    }
+  }
+  return map;
+}
+
 function mapOrder(order) {
-  const items = db
-    .prepare('SELECT * FROM order_items WHERE order_id = ?')
-    .all(order.id);
-  const user = db
-    .prepare('SELECT id, name, email, phone, address FROM users WHERE id = ?')
-    .get(order.user_id);
-  return { ...order, items, user };
+  if (!order) return order;
+  return {
+    ...order,
+    items: itemsForOrder.all(order.id),
+    user: userForOrder.get(order.user_id),
+  };
+}
+
+function mapOrders(orders) {
+  if (!orders.length) return [];
+  const itemsByOrder = rowsById(
+    orders.map((order) => order.id),
+    (slots) => `SELECT * FROM order_items WHERE order_id IN (${slots})`
+  );
+  const usersById = rowsById(
+    [...new Set(orders.map((order) => order.user_id))],
+    (slots) => `SELECT id, name, email, phone, address FROM users WHERE id IN (${slots})`
+  );
+  return orders.map((order) => ({
+    ...order,
+    items: itemsByOrder.get(order.id) || [],
+    user: usersById.get(order.user_id) || null,
+  }));
 }
 
 router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), async (req, res) => {
@@ -152,7 +201,7 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
     });
 
     const orderId = createOrder();
-    const order = mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId));
+    const order = mapOrder(orderById.get(orderId));
     res.status(201).json(order);
   } catch (err) {
     const status = err.status || 500;
@@ -206,15 +255,12 @@ router.delete('/coupons/:id', authenticate, requireAdmin, (req, res) => {
 });
 
 router.get('/my', authenticate, (req, res) => {
-  const orders = db
-    .prepare('SELECT * FROM orders WHERE user_id = ? AND tenant_id = ? ORDER BY created_at DESC')
-    .all(req.user.id, req.user.tenant_id)
-    .map(mapOrder);
+  const orders = mapOrders(myOrdersStmt.all(req.user.id, req.user.tenant_id));
   res.json(orders);
 });
 
 router.get('/:id', authenticate, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
     return res.status(403).json({ message: 'Access denied' });
@@ -226,17 +272,15 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   const { status } = req.query;
   let orders;
   if (status) {
-    orders = db
-      .prepare('SELECT * FROM orders WHERE status = ? AND tenant_id = ? ORDER BY created_at DESC')
-      .all(status, req.user.tenant_id);
+    orders = ordersByStatus.all(status, req.user.tenant_id);
   } else {
-    orders = db.prepare('SELECT * FROM orders WHERE tenant_id = ? ORDER BY created_at DESC').all(req.user.tenant_id);
+    orders = ordersByTenant.all(req.user.tenant_id);
   }
-  res.json(orders.map(mapOrder));
+  res.json(mapOrders(orders));
 });
 
 router.patch('/:id/approve', authenticate, requireAdmin, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'pending') {
     return res.status(400).json({ message: `Cannot approve order with status: ${order.status}` });
@@ -246,7 +290,7 @@ router.patch('/:id/approve', authenticate, requireAdmin, (req, res) => {
     `UPDATE orders SET status = 'approved', po_number = ?, updated_at = datetime('now')
      WHERE id = ?`
   ).run(poNumber, order.id);
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+  res.json(mapOrder(orderById.get(order.id)));
 });
 
 function restoreStockAndSetStatus(order, status) {
@@ -264,7 +308,7 @@ function restoreStockAndSetStatus(order, status) {
 }
 
 router.patch('/:id/reject', authenticate, requireAdmin, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'pending') {
     return res.status(400).json({
@@ -272,32 +316,32 @@ router.patch('/:id/reject', authenticate, requireAdmin, (req, res) => {
     });
   }
   restoreStockAndSetStatus(order, 'rejected');
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+  res.json(mapOrder(orderById.get(order.id)));
 });
 
 router.patch('/:id/cancel-own', authenticate, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order || order.user_id !== req.user.id) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'pending') {
     return res.status(400).json({ message: 'Only a pending order can be cancelled, before it is approved' });
   }
   restoreStockAndSetStatus(order, 'cancelled');
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+  res.json(mapOrder(orderById.get(order.id)));
 });
 
 router.patch('/:id/cancel', authenticate, requireAdmin, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (['dispatched', 'cancelled', 'rejected'].includes(order.status)) {
     return res.status(400).json({ message: `Cannot cancel order with status: ${order.status}` });
   }
 
   restoreStockAndSetStatus(order, 'cancelled');
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+  res.json(mapOrder(orderById.get(order.id)));
 });
 
 router.patch('/:id/dispatch', authenticate, requireAdmin, (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'approved') {
     return res.status(400).json({
@@ -307,7 +351,7 @@ router.patch('/:id/dispatch', authenticate, requireAdmin, (req, res) => {
   db.prepare(
     `UPDATE orders SET status = 'dispatched', updated_at = datetime('now') WHERE id = ?`
   ).run(order.id);
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+  res.json(mapOrder(orderById.get(order.id)));
 });
 
 const ACTIVE_STATUSES = new Set(['pending', 'approved', 'dispatched']);
@@ -354,7 +398,7 @@ router.patch('/:id/status', authenticate, requireAdmin, (req, res) => {
       });
     }
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
+    const order = orderForTenant.get(req.params.id, req.user.tenant_id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
     if (order.status === status) {
       return res.json(mapOrder(order));
@@ -387,7 +431,7 @@ router.patch('/:id/status', authenticate, requireAdmin, (req, res) => {
     });
 
     apply();
-    res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id)));
+    res.json(mapOrder(orderById.get(order.id)));
   } catch (err) {
     logger.error('order request failed', { message: err.message });
     res.status(400).json({ message: err.message || 'Failed to update status' });

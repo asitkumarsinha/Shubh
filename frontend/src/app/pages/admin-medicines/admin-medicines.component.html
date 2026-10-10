@@ -53,7 +53,7 @@
       }
       @for (m of medicines; track m.id) {
         <article class="row-item">
-          <img [src]="imageUrl(m)" [alt]="m.name" />
+          <img [src]="imageUrl(m)" [alt]="m.name" loading="lazy" decoding="async" />
           <div>
             <h3>{{ m.name }}</h3>
             <p>Retail ₹{{ (m.listPrice || m.price) | number: '1.2-2' }} · Wholesale ₹{{ m.wholesale_price | number: '1.2-2' }} · Stock {{ m.stock }}</p>

@@ -134,7 +134,7 @@
               @for (m of medicines; track m.id) {
                 <article class="product-card">
                   <div class="product-thumb">
-                    <img [src]="imageUrl(m.image)" [alt]="m.name" />
+                    <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
                   </div>
                   <div class="product-info">
                     <h3>{{ m.name }}</h3>

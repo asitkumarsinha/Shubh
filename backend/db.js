@@ -22,7 +22,10 @@ if (process.env.SQLITE_PATH) {
 }
 const db = new Database(dbFile);
 db.pragma('journal_mode = WAL');
+db.pragma('synchronous = NORMAL');
 db.pragma('foreign_keys = ON');
+db.pragma('temp_store = MEMORY');
+db.pragma('cache_size = -16000');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -450,5 +453,14 @@ db.exec(`
   add('discount', 'discount REAL NOT NULL DEFAULT 0');
   add('subtotal', 'subtotal REAL');
 })();
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_orders_tenant_status ON orders(tenant_id, status);
+  CREATE INDEX IF NOT EXISTS idx_orders_tenant_created ON orders(tenant_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id, tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+  CREATE INDEX IF NOT EXISTS idx_employees_tenant_created ON employees(tenant_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_medicines_tenant_created ON medicines(tenant_id, created_at);
+`);
 
 module.exports = db;

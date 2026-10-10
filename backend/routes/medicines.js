@@ -25,19 +25,29 @@ const upload = multer({
   fileFilter: imageFileFilter,
 });
 
+const activeTenant = db.prepare(`SELECT id FROM tenants WHERE id = ? AND status != 'archived'`);
+const countMedicines = db.prepare(
+  `SELECT COUNT(*) AS count FROM medicines
+   WHERE tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)`
+);
+const listMedicines = db.prepare(
+  `SELECT * FROM medicines
+   WHERE tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)
+   ORDER BY created_at DESC
+   LIMIT ? OFFSET ?`
+);
+
 router.get('/', (req, res) => {
   const user = optionalUser(req);
   const requested = Number(req.query.tenantId);
   const tenantExists =
     Number.isInteger(requested) &&
     requested > 0 &&
-    db.prepare(`SELECT id FROM tenants WHERE id = ? AND status != 'archived'`).get(requested);
+    activeTenant.get(requested);
   const tenantId = tenantExists ? requested : user?.tenant_id || 1;
   const { page, limit, offset, q, like } = pageQuery(req, 12);
-  const where = `tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)`;
-  const total = db.prepare(`SELECT COUNT(*) AS count FROM medicines WHERE ${where}`).get(tenantId, q, like, like).count;
-  const medicines = db
-    .prepare(`SELECT * FROM medicines WHERE ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`)
+  const total = countMedicines.get(tenantId, q, like, like).count;
+  const medicines = listMedicines
     .all(tenantId, q, like, like, limit, offset)
     .map((m) => decorateMedicine(m, user));
   res.json(pagePayload(medicines, total, page, limit));

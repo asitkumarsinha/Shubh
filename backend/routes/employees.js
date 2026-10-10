@@ -30,7 +30,7 @@ function unlinkImage(image) {
 }
 
 router.get('/', authenticate, requireAdmin, requireModule('employees'), (req, res) => {
-  const employees = db.prepare('SELECT * FROM employees WHERE tenant_id = ? ORDER BY datetime(created_at) DESC').all(req.user.tenant_id);
+  const employees = db.prepare('SELECT * FROM employees WHERE tenant_id = ? ORDER BY created_at DESC').all(req.user.tenant_id);
   res.json(employees);
 });
 

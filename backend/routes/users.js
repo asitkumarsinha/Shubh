@@ -41,41 +41,41 @@ const LIST_SELECT = `SELECT u.id, u.name, u.email, u.role, u.phone, u.address, u
                   LEFT JOIN orders o ON o.user_id = u.id
                   WHERE u.tenant_id = ?`;
 const LIST_SQL = `${LIST_SELECT} GROUP BY u.id`;
+const CLIENT_SEARCH = `(? = '' OR u.name LIKE ? COLLATE NOCASE OR u.email LIKE ? COLLATE NOCASE OR IFNULL(u.phone, '') LIKE ? COLLATE NOCASE)`;
+const countClientsStmt = db.prepare(
+  `SELECT COUNT(*) AS count FROM users u WHERE u.tenant_id = ? AND u.role = 'user' AND ${CLIENT_SEARCH}`
+);
+const listClientsStmt = db.prepare(
+  `${LIST_SELECT} AND u.role = 'user' AND ${CLIENT_SEARCH} GROUP BY u.id ORDER BY u.name COLLATE NOCASE LIMIT ? OFFSET ?`
+);
+const topClientsStmt = db.prepare(
+  `${LIST_SELECT} AND u.role = 'user' GROUP BY u.id ORDER BY orderCount DESC, totalSpent DESC LIMIT 5`
+);
+const clientCountsStmt = db.prepare(
+  `SELECT
+     SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) AS totalUsers,
+     SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS totalAdmins,
+     SUM(CASE WHEN role = 'user' AND status = 'blocked' THEN 1 ELSE 0 END) AS blockedUsers,
+     SUM(CASE WHEN role = 'user' AND client_group = 'wholesale' THEN 1 ELSE 0 END) AS wholesaleClients,
+     SUM(CASE WHEN role = 'user' AND client_group != 'wholesale' THEN 1 ELSE 0 END) AS retailClients
+   FROM users WHERE tenant_id = ?`
+);
+const clientsWithOrdersStmt = db.prepare(
+  `SELECT COUNT(DISTINCT u.id) AS count
+   FROM users u JOIN orders o ON o.user_id = u.id
+   WHERE u.tenant_id = ? AND u.role = 'user'`
+);
 
 router.get('/', authenticate, requireAdmin, (req, res) => {
   const tenantId = req.user.tenant_id;
   const { page, limit, offset, q, like } = pageQuery(req, 20);
-  const search = `(? = '' OR u.name LIKE ? COLLATE NOCASE OR u.email LIKE ? COLLATE NOCASE OR IFNULL(u.phone, '') LIKE ? COLLATE NOCASE)`;
-  const clientWhere = `u.tenant_id = ? AND u.role = 'user' AND ${search}`;
-  const total = db
-    .prepare(`SELECT COUNT(*) AS count FROM users u WHERE ${clientWhere}`)
-    .get(tenantId, q, like, like, like).count;
-  const users = db
-    .prepare(`${LIST_SELECT} AND u.role = 'user' AND ${search} GROUP BY u.id ORDER BY u.name COLLATE NOCASE LIMIT ? OFFSET ?`)
-    .all(tenantId, q, like, like, like, limit, offset)
-    .map(mapUser);
-  const topUsers = db
-    .prepare(`${LIST_SELECT} AND u.role = 'user' GROUP BY u.id ORDER BY orderCount DESC, totalSpent DESC LIMIT 5`)
+  const total = countClientsStmt.get(tenantId, q, like, like, like).count;
+  const users = listClientsStmt.all(tenantId, q, like, like, like, limit, offset).map(mapUser);
+  const topUsers = topClientsStmt
     .all(tenantId)
     .map((row, index) => ({ ...mapUser(row), rank: index + 1 }));
-  const counts = db
-    .prepare(
-      `SELECT
-         SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) AS totalUsers,
-         SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS totalAdmins,
-         SUM(CASE WHEN role = 'user' AND status = 'blocked' THEN 1 ELSE 0 END) AS blockedUsers,
-         SUM(CASE WHEN role = 'user' AND client_group = 'wholesale' THEN 1 ELSE 0 END) AS wholesaleClients,
-         SUM(CASE WHEN role = 'user' AND client_group != 'wholesale' THEN 1 ELSE 0 END) AS retailClients
-       FROM users WHERE tenant_id = ?`
-    )
-    .get(tenantId);
-  const usersWithOrders = db
-    .prepare(
-      `SELECT COUNT(DISTINCT u.id) AS count
-       FROM users u JOIN orders o ON o.user_id = u.id
-       WHERE u.tenant_id = ? AND u.role = 'user'`
-    )
-    .get(tenantId).count;
+  const counts = clientCountsStmt.get(tenantId);
+  const usersWithOrders = clientsWithOrdersStmt.get(tenantId).count;
 
   res.json({
     users,
@@ -95,18 +95,21 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   });
 });
 
+const exportClientsStmt = db.prepare(
+  `SELECT u.id, u.name, u.email, u.role, u.phone, u.address, u.created_at, u.status,
+          u.client_group, u.notes,
+          COUNT(o.id) AS orderCount,
+          COALESCE(SUM(o.total), 0) AS totalSpent,
+          MAX(o.created_at) AS lastOrderAt
+   FROM users u
+   LEFT JOIN orders o ON o.user_id = u.id
+   WHERE u.role = 'user' AND u.tenant_id = ?
+   GROUP BY u.id
+   ORDER BY u.name COLLATE NOCASE`
+);
+
 router.get('/export', authenticate, requireAdmin, (req, res) => {
-  const exportSql = `SELECT u.id, u.name, u.email, u.role, u.phone, u.address, u.created_at, u.status,
-                            u.client_group, u.notes,
-                            COUNT(o.id) AS orderCount,
-                            COALESCE(SUM(o.total), 0) AS totalSpent,
-                            MAX(o.created_at) AS lastOrderAt
-                     FROM users u
-                     LEFT JOIN orders o ON o.user_id = u.id
-                     WHERE u.role = 'user' AND u.tenant_id = ?
-                     GROUP BY u.id
-                     ORDER BY u.name COLLATE NOCASE`;
-  const rows = db.prepare(exportSql).all(req.user.tenant_id).map(mapUser);
+  const rows = exportClientsStmt.all(req.user.tenant_id).map(mapUser);
 
   const header = [
     'Name',

@@ -24,6 +24,18 @@
   line-height: 1.55;
 }
 
+.flow {
+  margin: 0 0 1.4rem;
+}
+
+.flow img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

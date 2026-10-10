@@ -77,6 +77,18 @@ function section(number, title, summary, steps, shotName) {
     </section>`;
 }
 
+const reuseShots = process.env.REUSE_SHOTS === '1';
+if (reuseShots) {
+  for (const name of [
+    'catalogue', 'register', 'register-sent', 'login', 'login-black-theme', 'shop', 'cart', 'bill',
+    'my-orders', 'admin-dashboard', 'admin-products', 'admin-orders', 'admin-clients',
+    'admin-employees-add', 'admin-employees-view', 'admin-reports', 'super-settings',
+    'super-tenants', 'super-feedback',
+  ]) {
+    const file = join(shotDir, `${name}.png`);
+    if (existsSync(file)) shots[name] = file;
+  }
+} else {
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
@@ -190,6 +202,7 @@ await page.waitForTimeout(500);
 await shot(page, 'super-feedback');
 
 await browser.close();
+}
 
 const required = [
   'catalogue',
@@ -218,6 +231,8 @@ if (missing.length) {
 const hasLoginBlack = existsSync(shots['login-black-theme']);
 
 const today = new Date().toLocaleDateString('en-IN');
+const logoSrc = `data:image/jpeg;base64,${readFileSync(join(__dirname, 'cover-logo.jpg')).toString('base64')}`;
+const flowSrc = `data:image/jpeg;base64,${readFileSync(join(__dirname, 'flow-diagram.jpg')).toString('base64')}`;
 
 const html = `<!doctype html>
 <html>
@@ -242,13 +257,21 @@ const html = `<!doctype html>
       color: #fff;
     }
     .cover h1 { font-size: 32pt; margin: 0 0 8px; letter-spacing: -0.03em; }
-    .cover .tag { font-size: 14pt; opacity: 0.92; margin: 0 0 40mm; }
+    .cover-logo {
+      display: block;
+      width: 46mm;
+      height: auto;
+      margin: 2mm auto 5mm;
+      border: 0;
+      border-radius: 8px;
+    }
+    .cover .tag { font-size: 14pt; opacity: 0.92; margin: 0 0 10mm; }
     .cover .meta {
       background: #fff;
       color: #1f2933;
       border-radius: 12px;
       padding: 18px 22px;
-      margin-top: 48mm;
+      margin-top: 12mm;
     }
     .cover table { width: 100%; border-collapse: collapse; }
     .cover td { padding: 6px 0; border-bottom: 1px solid #e5e7eb; }
@@ -265,6 +288,17 @@ const html = `<!doctype html>
       border-radius: 8px;
     }
     figcaption { font-size: 9pt; color: #52606d; margin-top: 4px; }
+    .flow-page {
+      page-break-before: always;
+      page-break-after: always;
+    }
+    .flow-page img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 0;
+      border-radius: 8px;
+    }
     .toc { page-break-after: always; }
     .toc ol { font-size: 12pt; }
     .note { background: #fff7ed; border-left: 4px solid #c2410c; padding: 8px 12px; }
@@ -278,6 +312,7 @@ const html = `<!doctype html>
   <div class="cover">
     <p style="letter-spacing:0.18em;text-transform:uppercase;font-size:10pt;opacity:.8">User manual</p>
     <h1>My Stores Hubs</h1>
+    <img class="cover-logo" src="${logoSrc}" alt="My Stores Hubs logo" />
     <p class="tag">Your name, your products, your customers.<br/>A complete, step-by-step guide to every screen</p>
     <div class="meta">
       <table>
@@ -289,6 +324,10 @@ const html = `<!doctype html>
       </table>
     </div>
   </div>
+
+  <section class="flow-page">
+    <img src="${flowSrc}" alt="My Stores Hubs flow: Super Admin creates Hubs, Hubs create Products, Stores and Employees, and Stores shop, add to cart and view order reports." />
+  </section>
 
   <section class="toc">
     <h2>Contents</h2>

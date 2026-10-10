@@ -1,15 +1,22 @@
 /** Drop a dark photo backdrop so the emblem sits on white and can scale to fit. */
 export function fitLogoOnWhite(img: HTMLImageElement): string | null {
-  const width = img.naturalWidth;
-  const height = img.naturalHeight;
-  if (!width || !height) return null;
+  const sourceWidth = img.naturalWidth;
+  const sourceHeight = img.naturalHeight;
+  if (!sourceWidth || !sourceHeight) return null;
+
+  // The emblem is shown small. Working on a capped canvas keeps the crop accurate
+  // without scanning a multi-megapixel photo on the main thread.
+  const maxEdge = 720;
+  const scale = Math.min(1, maxEdge / Math.max(sourceWidth, sourceHeight));
+  const width = Math.max(1, Math.round(sourceWidth * scale));
+  const height = Math.max(1, Math.round(sourceHeight * scale));
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return null;
-  ctx.drawImage(img, 0, 0);
+  ctx.drawImage(img, 0, 0, width, height);
 
   let frame: ImageData;
   try {

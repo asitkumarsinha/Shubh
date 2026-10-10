@@ -437,3 +437,15 @@ In 'http://localhost:4200/feedback' add drop down in 'Contact requests' and 'Web
 also in 'http://localhost:4200/login' add Theme icon - Black / white. if select 
 Black then all page convert into Black Theme and same for white
 also 'http://localhost:4200/login' page logo should be proper fit and visable
+
+
+In 'http://localhost:4200/demo' page 
+after 'One platform to launch and run many branded online stores — a shared Shopping Mall for shoppers, a full desk for every store admin, and a Super Admin who controls them all.'
+add attached image
+rest remain same.
+when website open then  'http://localhost:4200/demo' open as usual, now it's closing in 10 seconds
+ extend time to 30 seconds after that it will close
+
+In login page 'http://localhost:4200/login', after 'A synchronized multi-tier commerce architecture bridging wholesale distribution engines, localized depot employees, and client retail storefronts.'
+add attached image
+and remove same ,don't repeat same image in login page
