@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -123,5 +124,46 @@ router.put(
     res.json(settingsForTenant(tenantId));
   }
 );
+
+const AUDIO_EXT = new Set(['.mp3', '.wav', '.m4a', '.mp4', '.ogg', '.aac', '.webm', '.flac']);
+const audioUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname || '').toLowerCase();
+      cb(null, `demo-music-${Date.now()}${AUDIO_EXT.has(ext) ? ext : '.mp3'}`);
+    },
+  }),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const type = String(file.mimetype || '').toLowerCase();
+    if (AUDIO_EXT.has(ext) || type.startsWith('audio/')) return cb(null, true);
+    const err = new Error('Upload an mp3, wav, or m4a music file');
+    err.status = 400;
+    cb(err);
+  },
+});
+
+const demoMusicRow = db.prepare('SELECT demo_music FROM site_settings WHERE id = 1');
+const saveDemoMusic = db.prepare(
+  `UPDATE site_settings SET demo_music = ?, updated_at = datetime('now') WHERE id = 1`
+);
+
+router.get('/demo-music', (_req, res) => {
+  const row = demoMusicRow.get();
+  res.json({ music: row?.demo_music || '' });
+});
+
+router.post('/demo-music', authenticate, requireSuperAdmin, audioUpload.single('music'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Choose a music file' });
+  const previous = demoMusicRow.get();
+  const music = `/uploads/${req.file.filename}`;
+  if (previous?.demo_music && previous.demo_music.startsWith('/uploads/') && previous.demo_music !== music) {
+    fs.rmSync(path.join(uploadDir, path.basename(previous.demo_music)), { force: true });
+  }
+  saveDemoMusic.run(music);
+  res.json({ music });
+});
 
 module.exports = router;

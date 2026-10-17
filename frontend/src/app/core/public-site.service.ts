@@ -1,6 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+export interface SiteActivity {
+  id: number;
+  kind: 'visit' | 'login';
+  name: string;
+  email: string;
+  role: string;
+  ip: string;
+  user_agent: string;
+  path: string;
+  created_at: string;
+}
+
 export interface SiteFeedback {
   id: number;
   name: string;
@@ -16,12 +28,16 @@ export interface SiteFeedback {
 export class PublicSiteService {
   constructor(private http: HttpClient) {}
 
-  recordHit() {
-    return this.http.post<{ count: number }>('/api/hits', {});
+  recordHit(path = '') {
+    return this.http.post<{ count: number }>('/api/hits', { path });
   }
 
   hits() {
     return this.http.get<{ count: number; updated_at: string | null }>('/api/hits');
+  }
+
+  hitDetails() {
+    return this.http.get<SiteActivity[]>('/api/hits/details');
   }
 
   sendFeedback(payload: { name: string; email: string; message: string }) {

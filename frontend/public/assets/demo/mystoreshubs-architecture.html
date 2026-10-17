@@ -107,6 +107,11 @@
     html.theme-light :is(img, video, canvas) {
       filter: invert(1) hue-rotate(180deg);
     }
+    html, body { overflow-x: hidden; max-width: 100%; }
+    img, svg, video { max-width: 100%; height: auto; }
+    @media (max-width: 720px) {
+      section { padding-top: 1.25rem !important; padding-bottom: 1.5rem !important; }
+    }
   </style>
   <script>
     (function () {
@@ -130,7 +135,7 @@
       <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-40 pointer-events-none"></div>
       <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative w-full mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- HEADER & BADGE: Enterprise B2B2C Architecture Defined                     -->
         <!-- ========================================================================= -->
@@ -164,7 +169,7 @@
         </figure>
 
         <!-- IDENTITY FORMULA BREAKDOWN: MY + STORES + HUBS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mx-auto">
           
           <!-- MY Card -->
           <div class="relative bg-slate-900/90 backdrop-blur-md p-7 rounded-2xl metal-border hover:border-sky-500/60 transition-all duration-300 shadow-xl group">
@@ -223,7 +228,7 @@
     <!-- SECTION 2: INTERACTIVE ARCHITECTURE DIAGRAM (Strict Logic Mapping)         -->
     <!-- ========================================================================= -->
     <section id="architecture-diagram" class="py-16 lg:py-24 bg-[#0a0e17] border-b border-slate-800/80">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
@@ -255,7 +260,7 @@
           </div>
 
           <!-- Hierarchy Visual Layout -->
-          <div class="max-w-4xl mx-auto flex flex-col items-center">
+          <div class="w-full mx-auto flex flex-col items-center">
             
             <!-- TIER 1: SUPER ADMIN -->
             <div id="node-admin" onclick="setFocusTier('admin')" class="architecture-node cursor-pointer w-full max-w-md bg-slate-900 rounded-2xl p-5 border-2 border-amber-500/80 shadow-lg hover:border-amber-400 transition-all relative">
@@ -462,7 +467,7 @@
     <!-- SECTION 3: STEP-BY-STEP ONBOARDING WALKTHROUGH                            -->
     <!-- ========================================================================= -->
     <section class="py-16 lg:py-24 bg-[#080b11] border-b border-slate-800/80">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-3xl mx-auto mb-12">
           <span class="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-950/80 px-3 py-1 rounded-full border border-sky-800/60">Registration Guide</span>
@@ -471,7 +476,7 @@
         </div>
 
         <!-- Step Selector Navigation -->
-        <div class="max-w-4xl mx-auto mb-8">
+        <div class="w-full mx-auto mb-8">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-900 p-1.5 rounded-2xl text-xs font-bold border border-slate-800" id="step-tab-bar">
             <button onclick="goToStep(1)" id="step-btn-1" class="step-nav-btn py-2.5 px-3 rounded-xl bg-sky-600 text-white shadow transition-all flex flex-col items-center gap-0.5">
               <span class="text-[10px] text-sky-200 font-mono">STEP 01</span>
@@ -493,7 +498,7 @@
         </div>
 
         <!-- Dynamic Walkthrough Card -->
-        <div class="max-w-4xl mx-auto bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl transition-all flex flex-col justify-between min-h-[380px]">
+        <div class="w-full mx-auto bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl transition-all flex flex-col justify-between min-h-[380px]">
           
           <div id="step-body-container">
             <!-- Dynamic Content Injected by JS -->
@@ -526,7 +531,7 @@
     <!-- SECTION 4: LIVE MULTI-ROLE SANDBOX SIMULATOR                              -->
     <!-- ========================================================================= -->
     <section class="py-16 lg:py-24 bg-[#0a0e17] border-b border-slate-800/80">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-3xl mx-auto mb-14">
           <span class="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-950/80 px-3 py-1 rounded-full border border-purple-800/60">Interactive Sandbox</span>
@@ -631,7 +636,7 @@
       <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -left-20 -top-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         <div class="text-center max-w-3xl mx-auto mb-10">
           <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30 inline-block mb-4">
@@ -1162,6 +1167,19 @@
       renderStep(1);
       selectPersona('hub');
     };
+  </script>
+  <script>
+    (function () {
+      function report() {
+        var height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+        parent.postMessage({ type: 'msh-architecture-height', height: height }, '*');
+      }
+      window.addEventListener('load', report);
+      window.addEventListener('resize', report);
+      if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+      setTimeout(report, 300);
+      setTimeout(report, 1200);
+    })();
   </script>
 </body>
 </html>

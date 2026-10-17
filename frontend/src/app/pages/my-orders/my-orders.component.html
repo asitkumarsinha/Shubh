@@ -28,6 +28,7 @@
             </div>
             <div class="pill-row">
               <span class="badge" [attr.data-status]="o.status">{{ 'status.' + o.status | t }}</span>
+              <span class="soft-pill">{{ (o.payment_status === 'paid' ? 'orders.paid' : 'orders.unpaid') | t }}</span>
               @if (o.po_number) {
                 <span class="soft-pill">{{ o.po_number }}</span>
               }

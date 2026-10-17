@@ -5,7 +5,7 @@ import { SettingsService } from '../../core/settings.service';
 import { ToastService } from '../../core/toast.service';
 import { Tenant } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
-import { PublicSiteService } from '../../core/public-site.service';
+import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 import { SuperAdminShellComponent } from '../../shared/super-admin-shell/super-admin-shell.component';
 
 @Component({
@@ -29,6 +29,10 @@ export class SuperAdminSettingsComponent implements OnInit {
   message = '';
   error = '';
   hits = 0;
+  hitsOpen = false;
+  hitsLoading = false;
+  hitsError = '';
+  activity: SiteActivity[] = [];
   previewLogo = '';
   previewQr = '';
 
@@ -51,6 +55,41 @@ export class SuperAdminSettingsComponent implements OnInit {
       },
       error: () => this.error = 'Could not load customer list',
     });
+  }
+
+  openHits(): void {
+    this.hitsOpen = true;
+    this.hitsLoading = true;
+    this.hitsError = '';
+    this.publicSite.hitDetails().subscribe({
+      next: (rows) => {
+        this.activity = rows;
+        this.hitsLoading = false;
+      },
+      error: (err) => {
+        this.hitsLoading = false;
+        this.hitsError = err.error?.message || 'Could not load website hit details';
+      },
+    });
+  }
+
+  closeHits(): void {
+    this.hitsOpen = false;
+  }
+
+  roleLabel(role: string): string {
+    if (role === 'super_admin') return 'Super Admin';
+    if (role === 'admin') return 'Customer';
+    if (role === 'user') return 'Client';
+    return 'Guest';
+  }
+
+  browserLabel(agent: string): string {
+    if (/Edg\//.test(agent)) return 'Microsoft Edge';
+    if (/Chrome\//.test(agent)) return 'Chrome';
+    if (/Firefox\//.test(agent)) return 'Firefox';
+    if (/Safari\//.test(agent)) return 'Safari';
+    return agent ? 'Other browser' : '—';
   }
 
   loadCustomerSettings(): void {

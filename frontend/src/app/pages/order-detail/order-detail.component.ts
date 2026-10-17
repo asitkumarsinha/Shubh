@@ -9,11 +9,12 @@ import { SettingsService } from '../../core/settings.service';
 import { DialogService } from '../../core/dialog.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ClientShellComponent } from '../../shared/client-shell/client-shell.component';
+import { AdminShellComponent } from '../../pages/admin-shell/admin-shell.component';
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent, AdminShellComponent],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss',
 })
@@ -108,6 +109,11 @@ export class OrderDetailComponent implements OnInit {
       if (step.at === current) return { ...step, state: 'current' as const };
       return { ...step, state: 'todo' as const };
     });
+  }
+
+  markPaid(): void {
+    if (!this.order) return;
+    this.runAction('Saving…', this.orders.markPaid(this.order.id), (o) => `${o.bill_number} marked paid`);
   }
 
   approve(): void {

@@ -6,10 +6,10 @@
       <h1>Website settings</h1>
       <p>Choose a customer, then set the brand, checkout QR, and visual theme for that customer only.</p>
     </div>
-    <div class="hit-card">
+    <button type="button" class="hit-card" (click)="openHits()">
       <span>Website hits</span>
       <strong>{{ hits }}</strong>
-    </div>
+    </button>
   </header>
 
   @if (error) { <div class="toast bad">{{ error }}</div> }
@@ -89,3 +89,56 @@
   </div>
 </section>
 </app-super-admin-shell>
+
+@if (hitsOpen) {
+  <div class="hits-backdrop" (click)="closeHits()">
+    <section class="hits-dialog" role="dialog" aria-modal="true" aria-label="Website hit details" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p class="eyebrow">Super Admin</p>
+          <h2>Website hits</h2>
+          <p>{{ activity.length }} records · {{ hits }} total visits. Scroll the list for every visit and sign-in.</p>
+        </div>
+        <button type="button" class="hits-close" (click)="closeHits()" aria-label="Close">×</button>
+      </header>
+
+      @if (hitsError) { <div class="toast bad">{{ hitsError }}</div> }
+      @if (hitsLoading) {
+        <p class="muted">Loading details…</p>
+      } @else if (!activity.length) {
+        <p class="muted">No visit or sign-in details yet. New activity appears here.</p>
+      } @else {
+        <div class="hits-table">
+          <table>
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Event</th>
+                <th>Who</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>IP address</th>
+                <th>Browser</th>
+                <th>Page</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of activity; track row.id) {
+                <tr>
+                  <td>{{ row.created_at }}</td>
+                  <td>{{ row.kind === 'login' ? 'Login' : 'Visit' }}</td>
+                  <td>{{ row.name || '—' }}</td>
+                  <td>{{ row.email || '—' }}</td>
+                  <td>{{ roleLabel(row.role) }}</td>
+                  <td>{{ row.ip || '—' }}</td>
+                  <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
+                  <td>{{ row.path || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+}

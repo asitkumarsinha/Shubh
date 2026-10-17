@@ -43,6 +43,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'store/:slug',
+    loadComponent: () =>
+      import('./pages/store-front/store-front.component').then((m) => m.StoreFrontComponent),
+  },
+  {
     path: 'shoppingmall',
     loadComponent: () =>
       import('./pages/medicines/medicines.component').then((m) => m.MedicinesComponent),

@@ -46,6 +46,17 @@ const lowStockItemsStmt = db.prepare(
    ORDER BY stock ASC, name
    LIMIT 8`
 );
+const topProductsStmt = db.prepare(
+  `SELECT oi.medicine_name AS name,
+          SUM(oi.quantity) AS qtySold,
+          SUM(oi.quantity * oi.price) AS revenue
+   FROM order_items oi
+   JOIN orders o ON o.id = oi.order_id
+   WHERE o.tenant_id = ? AND o.status IN ('pending', 'approved', 'dispatched')
+   GROUP BY oi.medicine_name
+   ORDER BY qtySold DESC, revenue DESC
+   LIMIT 5`
+);
 
 router.get('/', authenticate, requireAdmin, (req, res) => {
   const tenantId = req.user.tenant_id;
@@ -57,6 +68,7 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   const newClients = newClientsStmt.get(tenantId).c;
   const pendingOrders = pendingOrdersStmt.all(tenantId);
   const lowStockItems = lowStockItemsStmt.all(tenantId, LOW_STOCK);
+  const topProducts = topProductsStmt.all(tenantId);
 
   res.json({
     summary: {
@@ -70,6 +82,7 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
     },
     pendingOrders,
     lowStockItems,
+    topProducts,
   });
 });
 

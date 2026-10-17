@@ -172,6 +172,7 @@
 </section>
 
 <ng-template #customerCard let-c let-active="active">
+  <div class="card-wrap">
   <button type="button" class="customer-card" [class.active]="active" (click)="selectCustomer(c.id)" [attr.aria-pressed]="active">
     <span class="avatar" [style.background]="avatarColour(c.id)" aria-hidden="true">{{ initials(c.name) }}</span>
     <span class="customer-info">
@@ -190,4 +191,8 @@
       </span>
     }
   </button>
+  @if (c.slug) {
+    <a class="store-link" [routerLink]="['/store', c.slug]">{{ 'mall.storeLink' | t }}</a>
+  }
+  </div>
 </ng-template>

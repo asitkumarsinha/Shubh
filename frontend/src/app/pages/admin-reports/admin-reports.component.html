@@ -7,23 +7,12 @@
     <button class="btn primary" (click)="openEmail()">Email report</button>
   </header>
 
-  @if (!mailConfigured) {
-    <div class="toast warn">
-      Real inbox delivery is not configured yet. Emails are saved to the app outbox
-      (and Ethereal preview). To deliver to Gmail/Outlook, add SMTP settings in
-      <code>backend/.env</code> (see <code>backend/.env.example</code>) and restart the API.
-    </div>
-  }
-
   @if (message) {
     <div class="toast" [class.ok]="delivered" [class.warn]="!delivered">
       <div>{{ message }}</div>
       <div class="email-links">
         @if (outboxUrl) {
           <button class="btn primary" type="button" (click)="openOutbox()">Open saved email</button>
-        }
-        @if (previewUrl) {
-          <button class="btn ghost" type="button" (click)="openPreview()">Open Ethereal preview</button>
         }
       </div>
     </div>
@@ -33,14 +22,21 @@
   @if (showEmailPrompt) {
     <div class="email-box">
       <h3>Send report</h3>
-      <p>Enter the email id that should receive this report.</p>
+      <p>The report is emailed to the address you type.</p>
       <div class="email-row">
-        <input type="email" [(ngModel)]="email" placeholder="user@example.com" />
+        <input type="email" [(ngModel)]="email" placeholder="Who should receive it" />
+        @if (!mailConfigured) {
+          <input type="email" [(ngModel)]="smtpUser" placeholder="Gmail address that sends it" />
+          <input type="password" [(ngModel)]="smtpPass" placeholder="Gmail app password" autocomplete="off" />
+        }
         <button class="btn primary" [disabled]="sending" (click)="sendEmail()">
           {{ saveButtonLabel(sendPhase, 'Send', 'Sending…') }}
         </button>
         <button class="btn ghost" type="button" (click)="showEmailPrompt = false">Close</button>
       </div>
+      @if (!mailConfigured) {
+        <p class="mail-note">Use a Gmail app password from Google Account, not the normal login password. It is saved once, then later sends only need the recipient.</p>
+      }
     </div>
   }
 

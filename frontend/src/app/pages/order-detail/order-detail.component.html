@@ -1,4 +1,14 @@
-<app-client-shell>
+@if (auth.isAdmin()) {
+  <app-admin-shell>
+    <ng-container *ngTemplateOutlet="bill" />
+  </app-admin-shell>
+} @else {
+  <app-client-shell>
+    <ng-container *ngTemplateOutlet="bill" />
+  </app-client-shell>
+}
+
+<ng-template #bill>
 <section class="page">
   @if (loading) {
     <p class="muted">{{ 'orderDetail.loading' | t }}</p>
@@ -33,6 +43,10 @@
           <div><span>{{ 'orderDetail.email' | t }}</span><strong>{{ order.user?.email }}</strong></div>
           <div><span>{{ 'orderDetail.date' | t }}</span><strong>{{ order.created_at }}</strong></div>
           <div><span>{{ 'orderDetail.payment' | t }}</span><strong>{{ paymentLabel(order.payment_method) | t }}</strong></div>
+          <div>
+            <span>{{ 'orderDetail.paid' | t }}</span>
+            <strong>{{ (order.payment_status === 'paid' ? 'orders.paid' : 'orders.unpaid') | t }}</strong>
+          </div>
           @if (order.coupon_code) {
             <div><span>{{ 'orderDetail.discountCode' | t }}</span><strong>{{ order.coupon_code }}</strong></div>
           }
@@ -88,6 +102,9 @@
 
         @if (auth.isAdmin()) {
           <div class="admin-actions">
+            @if (order.payment_status !== 'paid') {
+              <button class="btn ghost" type="button" [disabled]="acting" (click)="markPaid()">{{ 'orderDetail.markPaid' | t }}</button>
+            }
             @if (order.status === 'pending') {
               <button class="btn primary" [disabled]="acting" (click)="approve()">
                 {{ actLabel || ('orderDetail.approveGeneratePo' | t) }}
@@ -108,4 +125,4 @@
     <div class="toast bad">{{ error || ('orderDetail.notFound' | t) }}</div>
   }
 </section>
-</app-client-shell>
+</ng-template>

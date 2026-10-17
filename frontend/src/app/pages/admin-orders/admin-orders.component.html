@@ -50,7 +50,12 @@
                 <small>{{ o.user?.email }}</small>
               </td>
               <td>₹{{ o.total | number: '1.2-2' }}</td>
-              <td>{{ paymentLabel(o.payment_method) }}</td>
+              <td>
+                <div>{{ paymentLabel(o.payment_method) }}</div>
+                <button class="btn ghost pay-btn" type="button" [disabled]="o.payment_status === 'paid' || updatingId === o.id" (click)="markPaid(o)">
+                  {{ o.payment_status === 'paid' ? 'Paid' : 'Payment received' }}
+                </button>
+              </td>
               <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
               <td>
                 <select

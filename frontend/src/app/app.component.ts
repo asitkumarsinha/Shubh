@@ -59,6 +59,7 @@ export class AppComponent implements OnInit {
       path === '/tenants' ||
       path === '/feedback' ||
       path === '/shoppingmall' ||
+      path.startsWith('/store/') ||
       path === '/account' ||
       path === '/shop' ||
       path === '/cart' ||
@@ -71,7 +72,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.settings.load();
     if (!sessionStorage.getItem('site_hit')) {
-      this.publicSite.recordHit().subscribe({
+      this.publicSite.recordHit(location.pathname).subscribe({
         next: () => sessionStorage.setItem('site_hit', '1'),
       });
     }

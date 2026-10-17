@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
@@ -55,8 +55,13 @@ export class AdminShellComponent implements OnInit, OnDestroy {
 
   constructor(
     public auth: AuthService,
-    public settings: SettingsService
+    public settings: SettingsService,
+    private router: Router
   ) {}
+
+  get showHelp(): boolean {
+    return this.router.url.split('?')[0].startsWith('/admin/customers_tenats');
+  }
 
   ngOnInit(): void {
     this.pinned = localStorage.getItem(PIN_KEY) !== '0';

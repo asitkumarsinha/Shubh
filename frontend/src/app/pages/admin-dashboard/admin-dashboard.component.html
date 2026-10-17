@@ -41,6 +41,24 @@
       </a>
     </div>
 
+    <h2 class="section-title">Most ordered</h2>
+    <article class="panel">
+      @if (!data.topProducts.length) {
+        <p class="muted">No orders yet, so there is nothing to rank.</p>
+      } @else {
+        <ul class="action-list">
+          @for (product of data.topProducts; track product.name) {
+            <li>
+              <div>
+                <strong>{{ product.name }}</strong>
+                <span>{{ product.qtySold }} sold · ₹{{ product.revenue | number: '1.2-2' }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </article>
+
     <h2 class="section-title">Quick actions</h2>
     <div class="actions-grid">
       <article class="panel">
@@ -74,7 +92,7 @@
 
       <article class="panel">
         <header>
-          <h3>Restock item</h3>
+          <h3>Nearly out of stock</h3>
           <a routerLink="/admin/Products" class="btn ghost">My Stores Hubs</a>
         </header>
         @if (data.lowStockItems.length === 0) {

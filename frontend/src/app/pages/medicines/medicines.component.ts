@@ -19,6 +19,7 @@ interface CustomerCard {
   name: string;
   email: string;
   phone: string;
+  slug: string;
   orderCount: number;
 }
 
@@ -191,6 +192,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
           name: store.name,
           email: store.contact_email || '',
           phone: store.contact_phone || '',
+          slug: store.slug || '',
           orderCount: store.orderCount,
         }));
         this.customersLoading = false;

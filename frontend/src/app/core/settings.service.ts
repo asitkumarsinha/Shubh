@@ -18,6 +18,7 @@ const defaults: SiteSettings = {
 export class SettingsService {
   private readonly api = '/api/settings';
   private logoRequest = 0;
+  private loadRequest = 0;
   readonly current = signal<SiteSettings>(defaults);
 
   constructor(private http: HttpClient) {}
@@ -27,8 +28,13 @@ export class SettingsService {
   }
 
   loadForTenant(tenantId?: number) {
+    const request = ++this.loadRequest;
     const url = tenantId ? `${this.api}?tenantId=${tenantId}` : this.api;
-    return this.http.get<SiteSettings>(url).pipe(tap((settings) => this.set(settings)));
+    return this.http.get<SiteSettings>(url).pipe(
+      tap((settings) => {
+        if (request === this.loadRequest) this.set(settings);
+      })
+    );
   }
 
   /** Fetch a customer's settings for preview/editing without changing the live site brand. */
@@ -37,8 +43,11 @@ export class SettingsService {
   }
 
   loadForLoginEmail(email: string): void {
+    const request = ++this.loadRequest;
     this.http.get<SiteSettings>(`${this.api}?email=${encodeURIComponent(email)}`).subscribe({
-      next: (settings) => this.set(settings),
+      next: (settings) => {
+        if (request === this.loadRequest) this.set(settings);
+      },
     });
   }
 

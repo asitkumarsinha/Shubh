@@ -449,3 +449,55 @@ when website open then  'http://localhost:4200/demo' open as usual, now it's clo
 In login page 'http://localhost:4200/login', after 'A synchronized multi-tier commerce architecture bridging wholesale distribution engines, localized depot employees, and client retail storefronts.'
 add attached image
 and remove same ,don't repeat same image in login page
+
+
+when login as 'asitkumarsinha@gmail.com'
+when click on 'website hit' open one popup User interface
+ add more details
+who login, ip address and other available detail will display in Grid
+
+add scroll bar in 'Website hits', count is showing 43 but only i can see 5 records, fix it
+
+when login as 'asitkumarsinha@gmail.com' and after logout
+login logo always be same as we landing on http://localhost:4200/login.
+also
+suggest me , how can i improve this website, what features need to add 
+explain step by step
+
+
+
+#In 'http://localhost:4200/login' , 'Register' button text replace with 'Create My Store'
+#'http://localhost:4200/register' page replace 'Register Me' replace with 'Create My Store'
+
+In 'http://localhost:4200/login' add Headline : 'Create your Global Online Store in 5 minutes only - Free'
+and Sub-heading : 'No coding. Sell to USA, UK, UAE from your shop.
+
+
+
+Also create    video of all pages with music. this video will contain all pages screen shot. new user can understand
+the website.. take a example of client / Hubs 'admin@shubhsurgical.com'
+and 'Stores' take example of 'user@shubhsurgical.com' demo with this vide. In login page have button 'Demo' when click on this button then video will play    
+
+In 'http://localhost:4200/admin/customers_tenats' add 'Help Me' button after login name in title bar. when click on this button
+pdf 'http://localhost:4200/assets/help/My-Store-Hub-Training-Manual.pdf' open
+
+implement the same layout in 'http://localhost:4200/orders/11' like 'http://localhost:4200/admin/orders' like title bar, left menu and color and font
+correct the font color of 'Website hits'. as of now it's not visable fix it
+
+when click on email send then, email send to particular email id,as of now sending through 'https://ethereal.email/' fix this
+fix it
+
+
+In 'http://localhost:4200/login' page
+have 2 sections
+In first section, left hand side Headline, after that Sub-heading then logo
+In second section, Right hand side , login winwdow. in login screen , user can see the user interface properly, no need to scroll down 
+
+
+also in video super admin can change the video music , when click on 'Demo'
+
+
+In 'http://localhost:4200/login' page
+'Who We Are — MyStoresHubs' fix horizontal size same as above login screen. fix responsive and better look of this pages
+
+In demo m New music not working as per uploaded sample file, fix it

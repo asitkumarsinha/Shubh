@@ -10,7 +10,7 @@ const DEFAULT_MODULES = {
   employees: true,
   reports: true,
   qrCheckout: true,
-  coupons: false,
+  coupons: true,
   prescriptions: false,
 };
 
@@ -99,7 +99,7 @@ function safeSlug(value) {
 }
 
 const storeDirectory = db.prepare(
-  `SELECT t.id, t.name, t.contact_name, t.contact_email, t.contact_phone,
+  `SELECT t.id, t.name, t.slug, t.contact_name, t.contact_email, t.contact_phone,
           COUNT(o.id) AS orderCount
    FROM tenants t
    LEFT JOIN orders o ON o.tenant_id = t.id
@@ -107,9 +107,22 @@ const storeDirectory = db.prepare(
    GROUP BY t.id
    ORDER BY t.name COLLATE NOCASE`
 );
+const storeBySlug = db.prepare(
+  `SELECT t.id, t.name, t.slug, t.contact_email, t.contact_phone,
+          s.title, s.slogan, s.logo
+   FROM tenants t
+   LEFT JOIN tenant_settings s ON s.tenant_id = t.id
+   WHERE t.slug = ? AND t.status != 'archived'`
+);
 
 router.get('/directory', (_req, res) => {
   res.json(storeDirectory.all());
+});
+
+router.get('/store/:slug', (req, res) => {
+  const store = storeBySlug.get(String(req.params.slug || '').trim().toLowerCase());
+  if (!store) return res.status(404).json({ message: 'Store not found' });
+  res.json(store);
 });
 
 router.use(authenticate, requireSuperAdmin);

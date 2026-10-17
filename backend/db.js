@@ -26,6 +26,8 @@ db.pragma('synchronous = NORMAL');
 db.pragma('foreign_keys = ON');
 db.pragma('temp_store = MEMORY');
 db.pragma('cache_size = -16000');
+db.pragma('mmap_size = 67108864');
+db.pragma('busy_timeout = 5000');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -145,6 +147,13 @@ db.prepare(
    '/assets/MyStoreHub.jfif', '/assets/QR.jpeg')`
 ).run();
 
+(() => {
+  const columns = db.prepare('PRAGMA table_info(site_settings)').all();
+  if (!columns.some((column) => column.name === 'demo_music')) {
+    db.exec(`ALTER TABLE site_settings ADD COLUMN demo_music TEXT DEFAULT ''`);
+  }
+})();
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS tenants (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -246,6 +255,21 @@ db.exec(`
   );
 `);
 db.prepare(`INSERT OR IGNORE INTO site_hits (id, count) VALUES (1, 0)`).run();
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS site_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    role TEXT NOT NULL DEFAULT '',
+    ip TEXT NOT NULL DEFAULT '',
+    user_agent TEXT NOT NULL DEFAULT '',
+    path TEXT NOT NULL DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_site_activity_created ON site_activity(created_at);
+`);
 
 {
   const feedbackColumns = db.prepare('PRAGMA table_info(site_feedback)').all();
@@ -452,7 +476,26 @@ db.exec(`
   add('coupon_code', 'coupon_code TEXT');
   add('discount', 'discount REAL NOT NULL DEFAULT 0');
   add('subtotal', 'subtotal REAL');
+  add('payment_status', "payment_status TEXT NOT NULL DEFAULT 'unpaid'");
 })();
+
+db.exec(`CREATE TABLE IF NOT EXISTS schema_flags (name TEXT PRIMARY KEY)`);
+if (!db.prepare(`SELECT 1 AS ok FROM schema_flags WHERE name = 'coupons_on'`).get()) {
+  for (const row of db.prepare('SELECT id, modules FROM tenants').all()) {
+    let modules = {};
+    try {
+      modules = JSON.parse(row.modules || '{}');
+    } catch {
+      modules = {};
+    }
+    modules.coupons = true;
+    db.prepare('UPDATE tenants SET modules = ? WHERE id = ?').run(JSON.stringify(modules), row.id);
+  }
+  db.prepare(`INSERT INTO schema_flags (name) VALUES ('coupons_on')`).run();
+}
+db.prepare(
+  `INSERT OR IGNORE INTO coupons (tenant_id, code, kind, value) VALUES (1, 'SAVE10', 'percent', 10)`
+).run();
 
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_orders_tenant_status ON orders(tenant_id, status);
@@ -461,6 +504,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
   CREATE INDEX IF NOT EXISTS idx_employees_tenant_created ON employees(tenant_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_created ON medicines(tenant_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_medicines_tenant_stock ON medicines(tenant_id, stock);
 `);
 
 module.exports = db;

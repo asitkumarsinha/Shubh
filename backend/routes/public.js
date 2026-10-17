@@ -1,20 +1,36 @@
 const express = require('express');
 const db = require('../db');
-const { authenticate, requireSuperAdmin } = require('../middleware/auth');
+const { authenticate, requireSuperAdmin, optionalUser } = require('../middleware/auth');
+const { recordActivity, listActivity } = require('../activity');
 
 const router = express.Router();
+const bumpHits = db.prepare(
+  `UPDATE site_hits SET count = count + 1, updated_at = datetime('now') WHERE id = 1`
+);
+const hitCount = db.prepare('SELECT count FROM site_hits WHERE id = 1');
+const hitRow = db.prepare('SELECT count, updated_at FROM site_hits WHERE id = 1');
 
-router.post('/hits', (_req, res) => {
-  db.prepare(
-    `UPDATE site_hits SET count = count + 1, updated_at = datetime('now') WHERE id = 1`
-  ).run();
-  const row = db.prepare('SELECT count FROM site_hits WHERE id = 1').get();
+router.post('/hits', (req, res) => {
+  bumpHits.run();
+  const user = optionalUser(req);
+  recordActivity(req, {
+    kind: 'visit',
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || '',
+    path: req.body?.path || '',
+  });
+  const row = hitCount.get();
   res.json({ count: row?.count || 0 });
 });
 
 router.get('/hits', authenticate, requireSuperAdmin, (_req, res) => {
-  const row = db.prepare('SELECT count, updated_at FROM site_hits WHERE id = 1').get();
+  const row = hitRow.get();
   res.json({ count: row?.count || 0, updated_at: row?.updated_at || null });
+});
+
+router.get('/hits/details', authenticate, requireSuperAdmin, (_req, res) => {
+  res.json(listActivity());
 });
 
 router.post('/feedback', (req, res) => {

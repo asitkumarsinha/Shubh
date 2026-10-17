@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, effect } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -6,8 +6,6 @@ import { AuthService } from '../../core/auth.service';
 import { apiErrorMessage } from '../../core/api-error';
 import { SettingsService } from '../../core/settings.service';
 import { ToastService } from '../../core/toast.service';
-import { fitLogoOnWhite } from '../../core/logo-fit';
-
 import { PublicCtaComponent } from '../../shared/public-cta/public-cta.component';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -34,8 +32,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   resetPassword = '';
   resetError = '';
   resetSaving = false;
-  displayLogo = '';
-  private fittedSource = '';
+  architectureHeight = 1200;
   private loginInitialTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -44,19 +41,15 @@ export class LoginComponent implements OnInit, OnDestroy {
     public settings: SettingsService,
     private toast: ToastService,
     private i18n: TranslationService
-  ) {
-    effect(() => {
-      const logo = this.settings.current().logo;
-      if (!logo || logo === this.fittedSource) return;
-      this.displayLogo = logo;
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
     document.documentElement.classList.add('hub-login');
+    if (!this.email.trim()) this.settings.load();
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.loginInitialTimer);
     document.documentElement.classList.remove('hub-login');
   }
 
@@ -88,6 +81,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   forgotPassword(): void {
     this.resetError = '';
     this.showReset = true;
+  }
+
+  @HostListener('window:message', ['$event'])
+  onArchitectureHeight(event: MessageEvent): void {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== 'msh-architecture-height') return;
+    const height = Number(event.data.height);
+    if (height > 240) this.architectureHeight = Math.ceil(height);
   }
 
   @HostListener('document:keydown.escape')
@@ -127,16 +128,4 @@ export class LoginComponent implements OnInit, OnDestroy {
       });
   }
 
-  onLogoLoad(event: Event): void {
-    const source = this.settings.current().logo;
-    if (!source || this.fittedSource === source) return;
-    const img = event.target as HTMLImageElement;
-    this.fittedSource = source;
-    try {
-      const fitted = fitLogoOnWhite(img);
-      if (fitted) this.displayLogo = fitted;
-    } catch {
-      this.displayLogo = source;
-    }
-  }
 }

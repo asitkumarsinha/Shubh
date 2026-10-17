@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../db');
 const logger = require('../logger');
 const { authenticate, requireAdmin, requireModule } = require('../middleware/auth');
-const { sendReportEmail, listOutbox, getOutboxHtml, hasSmtpConfig } = require('../mail');
+const { sendReportEmail, listOutbox, getOutboxHtml, hasSmtpConfig, saveSmtpAccount } = require('../mail');
 
 const router = express.Router();
 
@@ -96,6 +96,7 @@ router.get('/', authenticate, requireAdmin, requireModule('reports'), (req, res)
   res.json({
     ...buildReport(req.user.tenant_id),
     mailConfigured: hasSmtpConfig(),
+    mailUser: process.env.SMTP_USER || '',
   });
 });
 
@@ -116,6 +117,9 @@ router.post('/email', authenticate, requireAdmin, requireModule('reports'), asyn
   }
 
   try {
+    if (req.body.smtpUser || req.body.smtpPass) {
+      saveSmtpAccount({ user: req.body.smtpUser, pass: req.body.smtpPass });
+    }
     const report = buildReport(req.user.tenant_id);
     const text = formatReportText(report);
     const result = await sendReportEmail({
@@ -133,13 +137,13 @@ router.post('/email', authenticate, requireAdmin, requireModule('reports'), asyn
       outboxId: result.outboxId,
       outboxUrl: result.outboxUrl,
       mailConfigured: hasSmtpConfig(),
+      mailUser: process.env.SMTP_USER || '',
     });
   } catch (err) {
     logger.error('report email failed', { message: err.message });
-    res.status(500).json({
-      message: 'Failed to send report email',
-      error: err.message,
-      hint: 'For real inbox delivery, set SMTP_USER and SMTP_PASS (Gmail App Password) in backend/.env then restart the API.',
+    const status = err.status || 500;
+    res.status(status).json({
+      message: err.message || 'Failed to send report email',
     });
   }
 });

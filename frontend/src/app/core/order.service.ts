@@ -9,6 +9,16 @@ export class OrderService {
 
   constructor(private http: HttpClient) {}
 
+  quote(
+    items: Array<{ medicineId: number; quantity: number }>,
+    couponCode = ''
+  ): Observable<{ subtotal: number; discount: number; total: number; couponCode: string | null }> {
+    return this.http.post<{ subtotal: number; discount: number; total: number; couponCode: string | null }>(
+      `${this.api}/quote`,
+      { items, couponCode }
+    );
+  }
+
   checkout(
     items: Array<{ medicineId: number; quantity: number }>,
     paymentMethod: 'upi' | 'cod' | 'counter',
@@ -62,6 +72,10 @@ export class OrderService {
     return this.http.patch<Order>(`${this.api}/${id}/dispatch`, {});
   }
 
+  markPaid(id: number): Observable<Order> {
+    return this.http.patch<Order>(`${this.api}/${id}/payment`, { payment_status: 'paid' });
+  }
+
   setStatus(
     id: number,
     status: 'pending' | 'approved' | 'dispatched' | 'rejected' | 'cancelled'
@@ -91,7 +105,7 @@ export class ReportService {
     return this.http.get<Report>(this.api);
   }
 
-  email(email: string): Observable<{
+  email(email: string, mailbox?: { user: string; pass: string }): Observable<{
     message: string;
     previewUrl?: string;
     outboxUrl?: string;
@@ -108,7 +122,11 @@ export class ReportService {
       mode?: string;
       delivered?: boolean;
       mailConfigured?: boolean;
-    }>(`${this.api}/email`, { email });
+    }>(`${this.api}/email`, {
+      email,
+      smtpUser: mailbox?.user || undefined,
+      smtpPass: mailbox?.pass || undefined,
+    });
   }
 
   getOutboxHtml(outboxUrl: string): Observable<string> {

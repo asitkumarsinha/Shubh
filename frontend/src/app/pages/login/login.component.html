@@ -31,7 +31,9 @@
 
     <div class="login-body">
       <div class="login-visual">
-        <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
+        <h2>Create your Global Online Store in 5 minutes only - Free</h2>
+        <p>No coding. Sell to USA, UK, UAE from your shop.</p>
+        <img [src]="settings.current().logo" [alt]="settings.current().title" />
       </div>
 
       <div class="login-panel">
@@ -106,6 +108,7 @@
   <section class="login-architecture">
     <iframe
       class="architecture-frame"
+      [style.height.px]="architectureHeight"
       src="/assets/demo/mystoreshubs-architecture.html"
       title="MyStoresHubs Enterprise Architecture & Onboarding"
       loading="lazy"

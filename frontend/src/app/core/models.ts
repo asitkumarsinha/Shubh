@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   address?: string;
   client_group?: 'retail' | 'wholesale';
+  tenant_id?: number;
 }
 
 export interface SiteSettings {
@@ -143,6 +144,12 @@ export interface DashboardLowStockItem {
   image: string | null;
 }
 
+export interface DashboardTopProduct {
+  name: string;
+  qtySold: number;
+  revenue: number;
+}
+
 export interface Dashboard {
   summary: {
     todayOrders: number;
@@ -155,6 +162,7 @@ export interface Dashboard {
   };
   pendingOrders: DashboardPendingOrder[];
   lowStockItems: DashboardLowStockItem[];
+  topProducts: DashboardTopProduct[];
 }
 
 export interface Medicine {
@@ -199,6 +207,7 @@ export interface Order {
   discount?: number;
   coupon_code?: string | null;
   payment_method?: 'upi' | 'cod' | 'counter';
+  payment_status?: 'unpaid' | 'paid';
   status: 'pending' | 'approved' | 'cancelled' | 'rejected' | 'dispatched';
   qr_code: string;
   created_at: string;

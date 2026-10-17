@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
+import { PublicCtaComponent } from '../public-cta/public-cta.component';
 
 interface SuperAdminLink {
   label: string;
@@ -16,7 +17,7 @@ const PIN_KEY = 'msh_super_menu_pinned';
 @Component({
   selector: 'app-super-admin-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, PublicCtaComponent],
   templateUrl: './super-admin-shell.component.html',
   styleUrl: './super-admin-shell.component.scss',
 })

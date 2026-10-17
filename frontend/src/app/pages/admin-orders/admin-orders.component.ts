@@ -41,6 +41,22 @@ export class AdminOrdersComponent implements OnInit {
     this.loadCoupons();
   }
 
+  markPaid(order: Order): void {
+    if (order.payment_status === 'paid') return;
+    this.updatingId = order.id;
+    this.orderService.markPaid(order.id).subscribe({
+      next: (saved) => {
+        this.updatingId = null;
+        this.orders = this.orders.map((row) => (row.id === saved.id ? saved : row));
+        this.toast.success(`${saved.bill_number} marked paid`);
+      },
+      error: (err) => {
+        this.updatingId = null;
+        this.toast.error(err.error?.message || 'Could not mark the payment');
+      },
+    });
+  }
+
   paymentLabel(method: Order['payment_method']): string {
     if (method === 'cod') return 'Cash on delivery';
     if (method === 'counter') return 'Pay at counter';

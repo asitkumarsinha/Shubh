@@ -45,14 +45,14 @@
                     min="1"
                     [max]="item.stock"
                     [ngModel]="item.quantity"
-                    (ngModelChange)="cart.updateQty(item.medicineId, +$event)"
+                    (ngModelChange)="changeQty(item.medicineId, +$event)"
                   />
                 </label>
               </div>
             </div>
             <div class="side">
               <strong>{{ item.quantity }} {{ 'cart.units' | t }}</strong>
-              <button class="delete-item" type="button" (click)="cart.remove(item.medicineId)">{{ 'cart.remove' | t }}</button>
+              <button class="delete-item" type="button" (click)="removeItem(item.medicineId)">{{ 'cart.remove' | t }}</button>
             </div>
           </article>
         }
@@ -64,13 +64,24 @@
         <label><input type="radio" name="payment" value="cod" [(ngModel)]="paymentMethod" /> {{ 'cart.cod' | t }}</label>
         <label><input type="radio" name="payment" value="counter" [(ngModel)]="paymentMethod" /> {{ 'cart.counter' | t }}</label>
       </fieldset>
-      <label class="coupon">
-        {{ 'cart.discountCode' | t }}
-        <input [(ngModel)]="couponCode" name="couponCode" [placeholder]="'cart.optional' | t" maxlength="20" />
-      </label>
+      <div class="coupon">
+        <label for="couponCode">{{ 'cart.discountCode' | t }}</label>
+        <div class="coupon-row">
+          <input id="couponCode" [(ngModel)]="couponCode" name="couponCode" [placeholder]="'cart.optional' | t" maxlength="20" (keyup.enter)="refreshQuote()" />
+          <button class="btn ghost" type="button" (click)="refreshQuote()">{{ 'cart.apply' | t }}</button>
+        </div>
+        @if (quoteError) { <p class="quote-error">{{ quoteError }}</p> }
+      </div>
+
+      <div class="bill-lines">
+        <div><span>{{ 'cart.subtotal' | t }}</span><strong>₹{{ quote.subtotal | number: '1.2-2' }}</strong></div>
+        @if (quote.discount) {
+          <div><span>{{ 'cart.discountLine' | t }} {{ quote.couponCode }}</span><strong>−₹{{ quote.discount | number: '1.2-2' }}</strong></div>
+        }
+      </div>
 
       <div class="order-card__foot">
-        <div class="total">{{ 'cart.total' | t: { amount: cart.total().toFixed(2) } }}</div>
+        <div class="total">{{ 'cart.toPay' | t: { amount: quote.total.toFixed(2) } }}</div>
         <button class="btn ghost" [disabled]="loading" (click)="checkout()">
           {{ saveButtonLabel(savePhase, 'cart.placeOrder' | t, 'cart.saving' | t) }}
         </button>

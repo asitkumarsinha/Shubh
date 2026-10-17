@@ -2,6 +2,7 @@ const express = require('express');
 const QRCode = require('qrcode');
 const db = require('../db');
 const logger = require('../logger');
+const { sendOrderNotice } = require('../mail');
 const { authenticate, requireAdmin, requireTenantLimit } = require('../middleware/auth');
 const { unitPrice } = require('../pricing');
 
@@ -35,8 +36,38 @@ function httpError(status, message) {
   return err;
 }
 
+const tenantModulesStmt = db.prepare('SELECT modules FROM tenants WHERE id = ?');
+const couponStmt = db.prepare(
+  'SELECT * FROM coupons WHERE tenant_id = ? AND code = ? AND active = 1'
+);
+const buyerStmt = db.prepare('SELECT * FROM users WHERE id = ? AND tenant_id = ?');
+const medicineStmt = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?');
+const insertOrder = db.prepare(
+  `INSERT INTO orders
+   (user_id, bill_number, total, status, qr_code, tenant_id, payment_method, coupon_code, discount, subtotal)
+   VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`
+);
+const insertOrderItem = db.prepare(
+  `INSERT INTO order_items
+   (order_id, medicine_id, medicine_name, medicine_image, quantity, price)
+   VALUES (?, ?, ?, ?, ?, ?)`
+);
+const reduceStockStmt = db.prepare(
+  'UPDATE medicines SET stock = stock - ? WHERE id = ? AND tenant_id = ? AND stock >= ?'
+);
+const listCouponsStmt = db.prepare(
+  'SELECT id, code, kind, value, active FROM coupons WHERE tenant_id = ? ORDER BY code'
+);
+const insertCouponStmt = db.prepare(
+  'INSERT INTO coupons (tenant_id, code, kind, value) VALUES (?, ?, ?, ?)'
+);
+const couponByIdStmt = db.prepare(
+  'SELECT id, code, kind, value, active FROM coupons WHERE id = ?'
+);
+const deleteCouponStmt = db.prepare('DELETE FROM coupons WHERE id = ? AND tenant_id = ?');
+
 function tenantModules(tenantId) {
-  const tenant = db.prepare('SELECT modules FROM tenants WHERE id = ?').get(tenantId);
+  const tenant = tenantModulesStmt.get(tenantId);
   try {
     return JSON.parse(tenant?.modules || '{}');
   } catch {
@@ -50,9 +81,7 @@ function priceQuote(tenantId, subtotal, couponCode) {
   if (!tenantModules(tenantId).coupons) {
     throw httpError(400, 'Discount codes are not enabled for this store');
   }
-  const coupon = db.prepare(
-    'SELECT * FROM coupons WHERE tenant_id = ? AND code = ? AND active = 1'
-  ).get(tenantId, code);
+  const coupon = couponStmt.get(tenantId, code);
   if (!coupon) throw httpError(400, 'Discount code is not valid');
   const raw = coupon.kind === 'percent' ? subtotal * (Number(coupon.value) / 100) : Number(coupon.value);
   const discount = Math.min(subtotal, money(raw));
@@ -101,6 +130,58 @@ function mapOrder(order) {
   };
 }
 
+const storeAdminStmt = db.prepare(
+  `SELECT name, email FROM users WHERE tenant_id = ? AND role = 'admin' ORDER BY id LIMIT 1`
+);
+
+function orderNoticeText(order) {
+  const lines = [
+    `Bill ${order.bill_number}`,
+    `Status: ${order.status}`,
+    `Payment: ${PAYMENT_METHODS[order.payment_method] || order.payment_method || ''}`,
+    `Payment received: ${order.payment_status === 'paid' ? 'Yes' : 'No'}`,
+    `Total: ₹${Number(order.total).toFixed(2)}`,
+  ];
+  if (order.coupon_code) {
+    lines.push(`Discount ${order.coupon_code}: -₹${Number(order.discount || 0).toFixed(2)}`);
+  }
+  return lines.join('\n');
+}
+
+async function notifyOrder(order, event) {
+  const buyer = userForOrder.get(order.user_id);
+  const subjects = {
+    placed: `Your order ${order.bill_number}`,
+    approved: `Order ${order.bill_number} accepted`,
+    dispatched: `Order ${order.bill_number} dispatched`,
+  };
+  const text = orderNoticeText(order);
+  const jobs = [];
+  if (buyer?.email) {
+    jobs.push(sendOrderNotice({ to: buyer.email, subject: subjects[event] || subjects.placed, text }));
+  }
+  if (event === 'placed') {
+    const admin = storeAdminStmt.get(order.tenant_id);
+    if (admin?.email && admin.email !== buyer?.email) {
+      jobs.push(sendOrderNotice({
+        to: admin.email,
+        subject: `New order ${order.bill_number}`,
+        text: `${buyer?.name || 'A client'} placed an order.\n${text}`,
+      }));
+    }
+  }
+  await Promise.all(jobs);
+}
+
+async function notifySafely(orderId, event) {
+  try {
+    const order = orderById.get(orderId);
+    if (order) await notifyOrder(order, event);
+  } catch (err) {
+    logger.error('order email failed', { message: err.message });
+  }
+}
+
 function mapOrders(orders) {
   if (!orders.length) return [];
   const itemsByOrder = rowsById(
@@ -118,6 +199,28 @@ function mapOrders(orders) {
   }));
 }
 
+router.post('/quote', authenticate, (req, res) => {
+  try {
+    const { items } = req.body || {};
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty' });
+    }
+    const buyer = buyerStmt.get(req.user.id, req.user.tenant_id);
+    let subtotal = 0;
+    for (const item of items) {
+      const medicine = medicineStmt.get(item.medicineId, req.user.tenant_id);
+      if (!medicine) return res.status(400).json({ message: `Medicine not found: ${item.medicineId}` });
+      const qty = Number(item.quantity);
+      if (!Number.isInteger(qty) || qty < 1) return res.status(400).json({ message: 'Invalid quantity' });
+      subtotal += unitPrice(medicine, buyer) * qty;
+    }
+    res.json(priceQuote(req.user.tenant_id, money(subtotal), req.body?.couponCode));
+  } catch (err) {
+    const status = err.status || 500;
+    res.status(status).json({ message: status >= 500 ? 'Could not price this cart' : err.message });
+  }
+});
+
 router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), async (req, res) => {
   try {
     const { items } = req.body;
@@ -132,12 +235,12 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
-    const buyer = db.prepare('SELECT * FROM users WHERE id = ? AND tenant_id = ?').get(req.user.id, req.user.tenant_id);
+    const buyer = buyerStmt.get(req.user.id, req.user.tenant_id);
     const lineItems = [];
     let subtotal = 0;
 
     for (const item of items) {
-      const medicine = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?').get(item.medicineId, req.user.tenant_id);
+      const medicine = medicineStmt.get(item.medicineId, req.user.tenant_id);
       if (!medicine) {
         return res.status(400).json({ message: `Medicine not found: ${item.medicineId}` });
       }
@@ -162,33 +265,19 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
       : '';
 
     const createOrder = db.transaction(() => {
-      const result = db
-        .prepare(
-          `INSERT INTO orders
-           (user_id, bill_number, total, status, qr_code, tenant_id, payment_method, coupon_code, discount, subtotal)
-           VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`
-        )
-        .run(
-          req.user.id, billNumber, quote.total, qrCode, req.user.tenant_id,
-          paymentMethod, quote.couponCode, quote.discount, quote.subtotal
-        );
+      const result = insertOrder.run(
+        req.user.id, billNumber, quote.total, qrCode, req.user.tenant_id,
+        paymentMethod, quote.couponCode, quote.discount, quote.subtotal
+      );
 
       const orderId = result.lastInsertRowid;
-      const insertItem = db.prepare(
-        `INSERT INTO order_items
-         (order_id, medicine_id, medicine_name, medicine_image, quantity, price)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      );
-      const reduceStock = db.prepare(
-        'UPDATE medicines SET stock = stock - ? WHERE id = ? AND tenant_id = ? AND stock >= ?'
-      );
 
       for (const line of lineItems) {
-        const changed = reduceStock.run(line.qty, line.medicine.id, req.user.tenant_id, line.qty);
+        const changed = reduceStockStmt.run(line.qty, line.medicine.id, req.user.tenant_id, line.qty);
         if (changed.changes !== 1) {
           throw httpError(400, `Insufficient stock for ${line.medicine.name}`);
         }
-        insertItem.run(
+        insertOrderItem.run(
           orderId,
           line.medicine.id,
           line.medicine.name,
@@ -201,6 +290,7 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
     });
 
     const orderId = createOrder();
+    await notifySafely(orderId, 'placed');
     const order = mapOrder(orderById.get(orderId));
     res.status(201).json(order);
   } catch (err) {
@@ -213,7 +303,7 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
 router.get('/coupons', authenticate, requireAdmin, (req, res) => {
   const enabled = Boolean(tenantModules(req.user.tenant_id).coupons);
   const coupons = enabled
-    ? db.prepare('SELECT id, code, kind, value, active FROM coupons WHERE tenant_id = ? ORDER BY code').all(req.user.tenant_id)
+    ? listCouponsStmt.all(req.user.tenant_id)
     : [];
   res.json({ enabled, coupons });
 });
@@ -235,10 +325,8 @@ router.post('/coupons', authenticate, requireAdmin, (req, res) => {
     return res.status(400).json({ message: 'Amount discount must be greater than 0' });
   }
   try {
-    const result = db.prepare(
-      'INSERT INTO coupons (tenant_id, code, kind, value) VALUES (?, ?, ?, ?)'
-    ).run(req.user.tenant_id, code, kind, value);
-    res.status(201).json(db.prepare('SELECT id, code, kind, value, active FROM coupons WHERE id = ?').get(result.lastInsertRowid));
+    const result = insertCouponStmt.run(req.user.tenant_id, code, kind, value);
+    res.status(201).json(couponByIdStmt.get(result.lastInsertRowid));
   } catch (err) {
     if (String(err.message).includes('UNIQUE')) {
       return res.status(409).json({ message: 'That discount code already exists' });
@@ -249,7 +337,7 @@ router.post('/coupons', authenticate, requireAdmin, (req, res) => {
 });
 
 router.delete('/coupons/:id', authenticate, requireAdmin, (req, res) => {
-  const result = db.prepare('DELETE FROM coupons WHERE id = ? AND tenant_id = ?').run(req.params.id, req.user.tenant_id);
+  const result = deleteCouponStmt.run(req.params.id, req.user.tenant_id);
   if (!result.changes) return res.status(404).json({ message: 'Discount code not found' });
   res.json({ message: 'Discount code removed' });
 });
@@ -279,7 +367,7 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   res.json(mapOrders(orders));
 });
 
-router.patch('/:id/approve', authenticate, requireAdmin, (req, res) => {
+router.patch('/:id/approve', authenticate, requireAdmin, async (req, res) => {
   const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'pending') {
@@ -290,6 +378,7 @@ router.patch('/:id/approve', authenticate, requireAdmin, (req, res) => {
     `UPDATE orders SET status = 'approved', po_number = ?, updated_at = datetime('now')
      WHERE id = ?`
   ).run(poNumber, order.id);
+  await notifySafely(order.id, 'approved');
   res.json(mapOrder(orderById.get(order.id)));
 });
 
@@ -340,7 +429,7 @@ router.patch('/:id/cancel', authenticate, requireAdmin, (req, res) => {
   res.json(mapOrder(orderById.get(order.id)));
 });
 
-router.patch('/:id/dispatch', authenticate, requireAdmin, (req, res) => {
+router.patch('/:id/dispatch', authenticate, requireAdmin, async (req, res) => {
   const order = orderForTenant.get(req.params.id, req.user.tenant_id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
   if (order.status !== 'approved') {
@@ -351,6 +440,17 @@ router.patch('/:id/dispatch', authenticate, requireAdmin, (req, res) => {
   db.prepare(
     `UPDATE orders SET status = 'dispatched', updated_at = datetime('now') WHERE id = ?`
   ).run(order.id);
+  await notifySafely(order.id, 'dispatched');
+  res.json(mapOrder(orderById.get(order.id)));
+});
+
+router.patch('/:id/payment', authenticate, requireAdmin, (req, res) => {
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
+  if (!order) return res.status(404).json({ message: 'Order not found' });
+  const paymentStatus = req.body?.payment_status === 'unpaid' ? 'unpaid' : 'paid';
+  db.prepare(
+    `UPDATE orders SET payment_status = ?, updated_at = datetime('now') WHERE id = ?`
+  ).run(paymentStatus, order.id);
   res.json(mapOrder(orderById.get(order.id)));
 });
 
@@ -389,7 +489,7 @@ function reserveStock(orderId, tenantId) {
   }
 }
 
-router.patch('/:id/status', authenticate, requireAdmin, (req, res) => {
+router.patch('/:id/status', authenticate, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body || {};
     if (!ALLOWED_STATUSES.has(status)) {
@@ -431,6 +531,8 @@ router.patch('/:id/status', authenticate, requireAdmin, (req, res) => {
     });
 
     apply();
+    if (status === 'approved') await notifySafely(order.id, 'approved');
+    if (status === 'dispatched') await notifySafely(order.id, 'dispatched');
     res.json(mapOrder(orderById.get(order.id)));
   } catch (err) {
     logger.error('order request failed', { message: err.message });

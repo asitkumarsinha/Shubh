@@ -3,17 +3,31 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { JWT_SECRET, authenticate, BLOCKED_MESSAGE } = require('../middleware/auth');
+const { recordActivity } = require('../activity');
 const { limitLogin, limitRegister, loginLocked, noteLoginFailure, clearLoginFailures } = require('../security');
 
 const router = express.Router();
+const tenantForLoginEmail = db.prepare(
+  `SELECT id FROM tenants
+   WHERE status = 'active' AND login_initial <> '' AND ? LIKE '%' || lower(login_initial) || '%'
+   ORDER BY length(login_initial) DESC LIMIT 1`
+);
+const userByEmail = db.prepare('SELECT * FROM users WHERE email = ?');
+const userIdByEmail = db.prepare('SELECT id FROM users WHERE email = ?');
+const tenantLimit = db.prepare('SELECT max_users AS max FROM tenants WHERE id = ? AND status = ?');
+const clientCountStmt = db.prepare(`SELECT COUNT(*) AS count FROM users WHERE tenant_id = ? AND role = 'user'`);
+const insertUser = db.prepare(
+  `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
+   VALUES (?, ?, ?, 'user', ?, ?, ?)`
+);
+const userByEmailLower = db.prepare('SELECT * FROM users WHERE lower(email) = ?');
+const updatePassword = db.prepare('UPDATE users SET password = ? WHERE id = ?');
+const meStmt = db.prepare(
+  'SELECT id, name, email, role, phone, address, client_group, tenant_id FROM users WHERE id = ?'
+);
 
 function tenantIdForEmail(email) {
-  const match = db.prepare(
-    `SELECT id FROM tenants
-     WHERE status = 'active' AND login_initial <> '' AND ? LIKE '%' || lower(login_initial) || '%'
-     ORDER BY length(login_initial) DESC LIMIT 1`
-  ).get(email);
-  return match?.id || 1;
+  return tenantForLoginEmail.get(email)?.id || 1;
 }
 
 router.post('/register', limitRegister, (req, res) => {
@@ -28,23 +42,18 @@ router.post('/register', limitRegister, (req, res) => {
   if (String(password).length < 6) {
     return res.status(400).json({ message: 'Password must be at least 6 characters' });
   }
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(normalized);
+  const existing = userIdByEmail.get(normalized);
   if (existing) {
     return res.status(409).json({ message: 'Email already registered' });
   }
   const tenantId = tenantIdForEmail(normalized);
-  const tenant = db.prepare('SELECT max_users AS max FROM tenants WHERE id = ? AND status = ?').get(tenantId, 'active');
-  const clientCount = db.prepare(`SELECT COUNT(*) AS count FROM users WHERE tenant_id = ? AND role = 'user'`).get(tenantId).count;
+  const tenant = tenantLimit.get(tenantId, 'active');
+  const clientCount = clientCountStmt.get(tenantId).count;
   if (tenant && clientCount >= tenant.max) {
     return res.status(403).json({ message: 'This store is not accepting new accounts' });
   }
   const hash = bcrypt.hashSync(password, 10);
-  const result = db
-    .prepare(
-      `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
-       VALUES (?, ?, ?, 'user', ?, ?, ?)`
-    )
-    .run(name.trim(), normalized, hash, phone || '', address || '', tenantId);
+  const result = insertUser.run(name.trim(), normalized, hash, phone || '', address || '', tenantId);
 
   const user = { id: result.lastInsertRowid, name: name.trim(), email: normalized, role: 'user', tenant_id: tenantId };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
@@ -60,7 +69,7 @@ router.post('/login', limitLogin, (req, res) => {
   if (loginLocked(normalized)) {
     return res.status(429).json({ message: 'Too many sign-in attempts. Try again later.' });
   }
-  const row = db.prepare('SELECT * FROM users WHERE email = ?').get(normalized);
+  const row = userByEmail.get(normalized);
   if (!row || !bcrypt.compareSync(password, row.password)) {
     noteLoginFailure(normalized);
     return res.status(401).json({ message: 'Invalid email or password' });
@@ -84,6 +93,13 @@ router.post('/login', limitLogin, (req, res) => {
     JWT_SECRET,
     { expiresIn: '7d' }
   );
+  recordActivity(req, {
+    kind: 'login',
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    path: '/login',
+  });
   res.json({ token, user });
 });
 
@@ -98,22 +114,20 @@ router.post('/reset-password', limitLogin, (req, res) => {
   if (password.length < 6) {
     return res.status(400).json({ message: 'Password must be at least 6 characters' });
   }
-  const row = db.prepare('SELECT * FROM users WHERE lower(email) = ?').get(email);
+  const row = userByEmailLower.get(email);
   const sameName = row && String(row.name || '').trim().toLowerCase() === name.toLowerCase();
   const samePhone = row && String(row.phone || '').replace(/\D/g, '') === phone;
   if (!sameName || !samePhone) {
     return res.status(400).json({ message: 'User Name, Email ID and Mobile Number do not match.' });
   }
   const hash = bcrypt.hashSync(password, 10);
-  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, row.id);
+  updatePassword.run(hash, row.id);
   clearLoginFailures(email);
   res.json({ ok: true });
 });
 
 router.get('/me', authenticate, (req, res) => {
-  const row = db
-    .prepare('SELECT id, name, email, role, phone, address, client_group, tenant_id FROM users WHERE id = ?')
-    .get(req.user.id);
+  const row = meStmt.get(req.user.id);
   if (!row) return res.status(404).json({ message: 'User not found' });
   res.json(row);
 });

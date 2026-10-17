@@ -4,7 +4,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: #6b7280;
 }
 
 .pipeline {
@@ -28,7 +28,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.25);
+  background: #d1d5db;
   z-index: 0;
 }
 
@@ -46,8 +46,8 @@
   width: 0.85rem;
   height: 0.85rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: #e5e7eb;
+  border: 2px solid #d1d5db;
 }
 
 .pipeline .label {
@@ -57,21 +57,21 @@
 }
 
 .pipeline li.done .dot {
-  background: #fff;
-  border-color: #fff;
+  background: #0f766e;
+  border-color: #0f766e;
 }
 
-.pipeline li.done .label { color: #fff; }
+.pipeline li.done .label { color: #0f766e; }
 
 .pipeline li.current .dot {
   background: transparent;
-  border-color: #fff;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
+  border-color: #0f766e;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.15);
   animation: pulseDot 1.6s ease-in-out infinite;
 }
 
 .pipeline li.current .label {
-  color: #fff;
+  color: #0f766e;
   font-weight: 700;
 }
 
@@ -111,7 +111,7 @@
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.35);
+  border-bottom: 1px dashed #d1d5db;
 }
 
 .bill-meta span {
@@ -123,12 +123,12 @@
   letter-spacing: 0.04em;
 }
 
-.bill-meta strong { color: #fff; }
+.bill-meta strong { color: #1f2937; }
 
 .section-title {
   margin: 0 0 1rem;
   font-size: 1.1rem;
-  color: #fff;
+  color: #1f2937;
 }
 
 .item {
@@ -154,11 +154,11 @@
 .item h3 {
   margin: 0 0 0.25rem;
   font-size: 1.02rem;
-  color: #fff;
+  color: #1f2937;
 }
 
 .item p { margin: 0; color: var(--muted); }
-.item strong { color: #fff; }
+.item strong { color: #1f2937; }
 
 .total-row {
   display: flex;
@@ -166,9 +166,9 @@
   align-items: center;
   margin-top: 1.1rem;
   padding-top: 1rem;
-  border-top: 1px dashed rgba(255, 255, 255, 0.35);
+  border-top: 1px dashed #d1d5db;
   font-size: 1.1rem;
-  color: #fff;
+  color: #1f2937;
 }
 
 .qr-panel {
@@ -186,9 +186,9 @@
   height: 2.4rem;
   display: grid;
   place-items: center;
-  border: 2px solid rgba(255, 255, 255, 0.55);
+  border: 2px solid #0f766e;
   border-radius: 50%;
-  color: #fff;
+  color: #0f766e;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.04em;

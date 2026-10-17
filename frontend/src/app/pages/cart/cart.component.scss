@@ -195,6 +195,33 @@
   width: 100%;
 }
 
+.coupon-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.coupon-row input {
+  flex: 1;
+}
+
+.quote-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.bill-lines {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+
+.bill-lines div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .order-card__foot {
   display: flex;
   justify-content: space-between;

@@ -42,8 +42,9 @@
   backdrop-filter: blur(var(--blur));
 }
 
-.email-box h3 { margin: 0 0 0.35rem; color: #fff; }
-.email-box p { margin: 0 0 0.85rem; color: var(--muted); }
+.email-box h3 { margin: 0 0 0.35rem; color: #1f2937; }
+.email-box p { margin: 0 0 0.85rem; color: #4b5563; }
+.mail-note { margin-top: 0.75rem; font-size: 0.85rem; }
 
 .email-row {
   display: flex;

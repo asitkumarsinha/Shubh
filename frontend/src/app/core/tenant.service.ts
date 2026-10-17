@@ -21,9 +21,23 @@ export class TenantService {
         contact_name: string;
         contact_email: string;
         contact_phone: string;
+        slug: string;
         orderCount: number;
       }>
     >(`${this.api}/directory`);
+  }
+
+  store(slug: string) {
+    return this.http.get<{
+      id: number;
+      name: string;
+      slug: string;
+      contact_email: string;
+      contact_phone: string;
+      title: string | null;
+      slogan: string | null;
+      logo: string | null;
+    }>(`${this.api}/store/${encodeURIComponent(slug)}`);
   }
 
   create(data: Record<string, unknown>) {

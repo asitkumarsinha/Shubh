@@ -15,6 +15,8 @@ import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.servi
 export class AdminReportsComponent implements OnInit {
   report: Report | null = null;
   email = '';
+  smtpUser = '';
+  smtpPass = '';
   showEmailPrompt = false;
   message = '';
   error = '';
@@ -30,9 +32,10 @@ export class AdminReportsComponent implements OnInit {
 
   ngOnInit(): void {
     this.reportService.get().subscribe({
-      next: (report: Report & { mailConfigured?: boolean }) => {
+      next: (report: Report & { mailConfigured?: boolean; mailUser?: string }) => {
         this.report = report;
         this.mailConfigured = !!report.mailConfigured;
+        this.smtpUser = report.mailUser || this.smtpUser;
       },
       error: () => (this.error = 'Unable to load report'),
     });
@@ -54,6 +57,11 @@ export class AdminReportsComponent implements OnInit {
       this.toast.error(this.error);
       return;
     }
+    if (!this.mailConfigured && (!this.smtpUser.trim() || this.smtpPass.trim().length < 8)) {
+      this.error = 'Enter the Gmail address and its app password, plus who should receive the report.';
+      this.toast.error(this.error);
+      return;
+    }
     this.sending = true;
     this.sendPhase = 'saving';
     this.error = '';
@@ -62,7 +70,9 @@ export class AdminReportsComponent implements OnInit {
     this.outboxUrl = '';
     this.toast.beginSave();
 
-    this.reportService.email(this.email).subscribe({
+    this.reportService
+      .email(this.email, this.mailConfigured ? undefined : { user: this.smtpUser, pass: this.smtpPass })
+      .subscribe({
       next: (res) => {
         this.sending = false;
         this.sendPhase = 'saved';
@@ -70,16 +80,11 @@ export class AdminReportsComponent implements OnInit {
         this.message = res.message;
         this.delivered = !!res.delivered;
         this.mailConfigured = !!res.mailConfigured;
+        this.smtpPass = '';
         this.previewUrl = res.previewUrl || '';
         this.outboxUrl = res.outboxUrl || '';
-        this.toast.success(res.message || 'Report saved');
+        this.toast.success(res.message || 'Report emailed');
         setTimeout(() => (this.sendPhase = 'idle'), 2500);
-
-        if (res.previewUrl) {
-          window.open(res.previewUrl, '_blank');
-        } else if (res.outboxUrl) {
-          this.openOutbox();
-        }
       },
       error: (err) => {
         this.sending = false;

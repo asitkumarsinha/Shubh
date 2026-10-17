@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,12 +16,14 @@ import { ClientShellComponent } from '../../shared/client-shell/client-shell.com
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss',
 })
-export class CartComponent {
+export class CartComponent implements OnInit {
   loading = false;
   savePhase: SavePhase = 'idle';
   error = '';
+  quoteError = '';
   paymentMethod: 'upi' | 'cod' | 'counter' = 'upi';
   couponCode = '';
+  quote = { subtotal: 0, discount: 0, total: 0, couponCode: null as string | null };
   readonly saveButtonLabel = saveButtonLabel;
 
   constructor(
@@ -32,6 +34,44 @@ export class CartComponent {
     private toast: ToastService
   ) {}
 
+  ngOnInit(): void {
+    this.refreshQuote();
+  }
+
+  changeQty(medicineId: number, quantity: number): void {
+    this.cart.updateQty(medicineId, quantity);
+    this.refreshQuote();
+  }
+
+  removeItem(medicineId: number): void {
+    this.cart.remove(medicineId);
+    this.refreshQuote();
+  }
+
+  refreshQuote(): void {
+    const items = this.cart.items().map((item) => ({ medicineId: item.medicineId, quantity: item.quantity }));
+    if (!items.length) {
+      this.quote = { subtotal: 0, discount: 0, total: 0, couponCode: null };
+      this.quoteError = '';
+      return;
+    }
+    this.orders.quote(items, this.couponCode.trim()).subscribe({
+      next: (quote) => {
+        this.quote = quote;
+        this.quoteError = '';
+      },
+      error: (err) => {
+        this.quoteError = err.error?.message || 'Discount code is not valid';
+        this.quote = {
+          subtotal: this.cart.total(),
+          discount: 0,
+          total: this.cart.total(),
+          couponCode: null,
+        };
+      },
+    });
+  }
+
   imageUrl(path: string | null): string {
     return path || 'assets/medicines/default.svg';
   }
@@ -39,6 +79,11 @@ export class CartComponent {
   checkout(): void {
     if (!this.auth.isLoggedIn() || this.auth.isAdmin()) {
       this.error = 'Please login as a customer to checkout';
+      this.toast.error(this.error);
+      return;
+    }
+    if (this.couponCode.trim() && this.quoteError) {
+      this.error = this.quoteError;
       this.toast.error(this.error);
       return;
     }

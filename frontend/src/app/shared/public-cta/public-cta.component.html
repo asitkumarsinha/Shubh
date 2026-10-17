@@ -1,13 +1,43 @@
+<audio #tune class="demo-audio" preload="none" [attr.src]="musicUrl || null" loop></audio>
+
 <div class="public-cta">
-  <div class="cta-row">
-    <a
-      href="assets/help/My-Store-Hub-Training-Manual.pdf"
-      target="_blank"
-      rel="noopener"
-      class="btn primary"
-      title="Open the full step-by-step user manual (PDF)"
-      >{{ 'cta.demo' | t }}</a
-    >
-    <a routerLink="/register" class="btn ghost">{{ 'cta.feedback' | t }}</a>
-  </div>
+  @if (demoOnly) {
+    <button type="button" class="demo-launch" (click)="openDemo()">{{ 'cta.demo' | t }}</button>
+  } @else {
+    <div class="cta-row">
+      <button type="button" class="btn primary" (click)="openDemo()" title="Play the website demo">{{ 'cta.demo' | t }}</button>
+      <a routerLink="/register" class="btn ghost">{{ 'cta.feedback' | t }}</a>
+    </div>
+  }
 </div>
+
+@if (playDemo) {
+  <div class="demo-backdrop" (click)="closeDemo()">
+    <div class="demo-player" (click)="$event.stopPropagation()">
+      <button type="button" class="demo-close" (click)="closeDemo()" aria-label="Close">×</button>
+      <video
+        #clip
+        [src]="demoVideo"
+        controls
+        autoplay
+        playsinline
+        [muted]="!!musicUrl"
+        (play)="syncFromVideo()"
+        (pause)="pauseMusic()"
+        (seeked)="syncFromVideo()"
+        (ended)="pauseMusic()"
+      ></video>
+      @if (auth.isSuperAdmin()) {
+        <div class="music-bar">
+          <label class="music-change">
+            {{ savingMusic ? 'Saving music…' : 'Change music' }}
+            <input type="file" accept="audio/*" (change)="onMusic($event)" [disabled]="savingMusic" />
+          </label>
+          @if (musicError) {
+            <p>{{ musicError }}</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

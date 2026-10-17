@@ -1,0 +1,53 @@
+<section class="store-screen">
+  <div class="store-shell">
+    <header class="store-top">
+      <a routerLink="/shoppingmall">Shopping Mall</a>
+      <a routerLink="/login">Sign in</a>
+      @if (auth.isLoggedIn() && !auth.isAdmin() && !auth.isSuperAdmin()) {
+        <a routerLink="/cart">Cart ({{ cart.count() }})</a>
+      }
+    </header>
+
+    @if (loading) {
+      <p class="muted">Loading store…</p>
+    } @else if (!store) {
+      <div class="empty">
+        <h1>{{ 'store.notFound' | t }}</h1>
+        <a routerLink="/shoppingmall">Back to the Shopping Mall</a>
+      </div>
+    } @else {
+      <div class="store-head">
+        @if (store.logo) {
+          <img class="logo" [src]="store.logo" [alt]="store.name" />
+        }
+        <div>
+          <p class="eyebrow">My Stores Hubs</p>
+          <h1>{{ store.title || store.name }}</h1>
+          @if (store.slogan) { <p>{{ store.slogan }}</p> }
+          <p class="contact">{{ store.contact_email }} @if (store.contact_phone) { · {{ store.contact_phone }} }</p>
+          <button type="button" class="copy" (click)="copyLink()">{{ 'store.copy' | t }}</button>
+        </div>
+      </div>
+
+      <h2>{{ 'store.products' | t }}</h2>
+      @if (error) { <p class="warn">{{ error }}</p> }
+      @if (!medicines.length) {
+        <p class="muted">This store has no products yet.</p>
+      } @else {
+        <div class="grid">
+          @for (item of medicines; track item.id) {
+            <article>
+              <img [src]="imageUrl(item.image)" [alt]="item.name" loading="lazy" decoding="async" />
+              <h3>{{ item.name }}</h3>
+              <p class="price">₹{{ item.price | number: '1.2-2' }}</p>
+              <p [class.low]="item.stock < 5">{{ item.stock }} in stock</p>
+              <button type="button" [disabled]="item.stock < 1" (click)="addToCart(item)">
+                {{ item.stock < 1 ? 'Out of stock' : 'Add to cart' }}
+              </button>
+            </article>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>

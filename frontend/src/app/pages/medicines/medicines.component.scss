@@ -193,6 +193,24 @@
   color: #4b5563;
 }
 
+.card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.store-link {
+  align-self: flex-start;
+  color: #0f766e;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.store-link:hover {
+  text-decoration: underline;
+}
+
 .customer-card {
   position: relative;
   display: flex;

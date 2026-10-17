@@ -1,3 +1,11 @@
+.demo-audio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .public-cta {
   display: grid;
   gap: 0.75rem;
@@ -11,6 +19,82 @@
 .cta-row .btn {
   flex: 1 1 0;
   min-width: 0;
+}
+
+.demo-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.demo-player {
+  position: relative;
+  width: min(64rem, 100%);
+}
+
+.demo-player video {
+  width: 100%;
+  max-height: 80vh;
+  border-radius: 16px;
+  background: #000;
+}
+
+.demo-close {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #1f2937;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.demo-launch {
+  border: 0;
+  background: #0f766e;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+.music-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+}
+
+.music-change {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f3d4c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.music-change input {
+  display: none;
+}
+
+.music-bar p {
+  margin: 0;
+  color: #fecaca;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 520px) {
