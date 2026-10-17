@@ -18,6 +18,7 @@
         </a>
         <span class="chip-divider" aria-hidden="true"></span>
         <app-public-cta [demoOnly]="true" />
+        <button type="button" class="log-btn" (click)="openLogs()">Log</button>
         <button type="button" class="action-chip" (click)="logout()">
           <span class="icon-circle">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -79,3 +80,55 @@
     </footer>
   </div>
 </section>
+
+@if (logsOpen) {
+  <div class="log-backdrop" (click)="closeLogs()">
+    <section class="log-dialog" role="dialog" aria-modal="true" aria-label="Site log" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p class="eyebrow">Super Admin</p>
+          <h2>Log</h2>
+          <p>{{ logs.length }} records. Scroll to see every page, visit, and sign-in.</p>
+        </div>
+        <button type="button" class="log-close" (click)="closeLogs()" aria-label="Close">×</button>
+      </header>
+      @if (logsError) { <p class="log-error">{{ logsError }}</p> }
+      @if (logsLoading) {
+        <p class="muted">Loading the log…</p>
+      } @else if (!logs.length) {
+        <p class="muted">No log records yet. Open any page and they will appear here.</p>
+      } @else {
+        <div class="log-table">
+          <table>
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Event</th>
+                <th>Who</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>IP address</th>
+                <th>Browser</th>
+                <th>Page</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of logs; track row.id) {
+                <tr>
+                  <td>{{ row.created_at }}</td>
+                  <td>{{ eventLabel(row.kind) }}</td>
+                  <td>{{ row.name || '—' }}</td>
+                  <td>{{ row.email || '—' }}</td>
+                  <td>{{ roleLabel(row.role) }}</td>
+                  <td>{{ row.ip || '—' }}</td>
+                  <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
+                  <td>{{ row.path || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+}

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 export interface SiteActivity {
   id: number;
-  kind: 'visit' | 'login';
+  kind: 'visit' | 'login' | 'page';
   name: string;
   email: string;
   role: string;
@@ -30,6 +30,10 @@ export class PublicSiteService {
 
   recordHit(path = '') {
     return this.http.post<{ count: number }>('/api/hits', { path });
+  }
+
+  recordPage(path: string) {
+    return this.http.post('/api/logs', { path }, { responseType: 'text' });
   }
 
   hits() {

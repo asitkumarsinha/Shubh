@@ -126,7 +126,7 @@
               @for (row of activity; track row.id) {
                 <tr>
                   <td>{{ row.created_at }}</td>
-                  <td>{{ row.kind === 'login' ? 'Login' : 'Visit' }}</td>
+                  <td>{{ row.kind === 'login' ? 'Login' : row.kind === 'page' ? 'Page' : 'Visit' }}</td>
                   <td>{{ row.name || '—' }}</td>
                   <td>{{ row.email || '—' }}</td>
                   <td>{{ roleLabel(row.role) }}</td>

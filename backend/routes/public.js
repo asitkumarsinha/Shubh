@@ -33,6 +33,22 @@ router.get('/hits/details', authenticate, requireSuperAdmin, (_req, res) => {
   res.json(listActivity());
 });
 
+router.post('/logs', (req, res) => {
+  const page = String(req.body?.path || '');
+  if (!page.startsWith('/') || page.startsWith('/api')) {
+    return res.status(400).json({ message: 'Page path is required' });
+  }
+  const user = optionalUser(req);
+  recordActivity(req, {
+    kind: 'page',
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || '',
+    path: page,
+  });
+  res.status(204).end();
+});
+
 router.post('/feedback', (req, res) => {
   const name = String(req.body?.name || '').trim();
   const email = String(req.body?.email || '').trim();
@@ -60,10 +76,14 @@ router.post('/contact', (req, res) => {
   res.status(201).json(db.prepare('SELECT * FROM site_feedback WHERE id = ?').get(result.lastInsertRowid));
 });
 
+const listFeedbackStmt = db.prepare(
+  'SELECT * FROM site_feedback ORDER BY created_at DESC, id DESC LIMIT 500'
+);
+const feedbackById = db.prepare('SELECT * FROM site_feedback WHERE id = ?');
+const setFeedbackStatusStmt = db.prepare('UPDATE site_feedback SET status = ? WHERE id = ?');
+
 router.get('/feedback', authenticate, requireSuperAdmin, (_req, res) => {
-  res.json(
-    db.prepare('SELECT * FROM site_feedback ORDER BY datetime(created_at) DESC LIMIT 500').all()
-  );
+  res.json(listFeedbackStmt.all());
 });
 
 router.patch('/feedback/:id', authenticate, requireSuperAdmin, (req, res) => {
@@ -71,9 +91,10 @@ router.patch('/feedback/:id', authenticate, requireSuperAdmin, (req, res) => {
   if (!['done', 'pending'].includes(status)) {
     return res.status(400).json({ message: 'Action must be Done or Pending' });
   }
-  const result = db.prepare('UPDATE site_feedback SET status = ? WHERE id = ?').run(status, Number(req.params.id));
+  const id = Number(req.params.id);
+  const result = setFeedbackStatusStmt.run(status, id);
   if (!result.changes) return res.status(404).json({ message: 'Request not found' });
-  res.json(db.prepare('SELECT * FROM site_feedback WHERE id = ?').get(Number(req.params.id)));
+  res.json(feedbackById.get(id));
 });
 
 module.exports = router;

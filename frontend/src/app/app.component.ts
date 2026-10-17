@@ -1,5 +1,6 @@
 import { Component, OnInit, effect } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/auth.service';
 import { CartService } from './core/cart.service';
@@ -30,6 +31,7 @@ import { ThemeService } from './core/theme.service';
 })
 export class AppComponent implements OnInit {
   readonly helpManualUrl = 'assets/help/My-Store-Hub-Training-Manual.pdf?v=8';
+  private lastLoggedPath = '';
 
   constructor(
     public auth: AuthService,
@@ -40,6 +42,9 @@ export class AppComponent implements OnInit {
     private i18n: TranslationService,
     _theme: ThemeService
   ) {
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => this.notePage(event.urlAfterRedirects));
     effect(() => {
       const brand = this.settings.current().title || 'My Stores Hubs';
       const user = this.auth.user();
@@ -71,10 +76,17 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.settings.load();
+  }
+
+  private notePage(url: string): void {
+    const path = (url || '/').split('?')[0] || '/';
+    if (path === this.lastLoggedPath) return;
+    this.lastLoggedPath = path;
     if (!sessionStorage.getItem('site_hit')) {
-      this.publicSite.recordHit(location.pathname).subscribe({
-        next: () => sessionStorage.setItem('site_hit', '1'),
-      });
+      sessionStorage.setItem('site_hit', '1');
+      this.publicSite.recordHit(path).subscribe({ error: () => undefined });
+      return;
     }
+    this.publicSite.recordPage(path).subscribe({ error: () => undefined });
   }
 }

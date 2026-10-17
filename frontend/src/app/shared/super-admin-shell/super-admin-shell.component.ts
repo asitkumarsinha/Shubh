@@ -5,6 +5,7 @@ import { SettingsService } from '../../core/settings.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { PublicCtaComponent } from '../public-cta/public-cta.component';
+import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 
 interface SuperAdminLink {
   label: string;
@@ -23,6 +24,10 @@ const PIN_KEY = 'msh_super_menu_pinned';
 })
 export class SuperAdminShellComponent implements OnInit, OnDestroy {
   pinned = true;
+  logsOpen = false;
+  logsLoading = false;
+  logsError = '';
+  logs: SiteActivity[] = [];
 
   readonly links: SuperAdminLink[] = [
     { label: 'Settings', path: '/settings', icon: 'home' },
@@ -30,7 +35,11 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     { label: 'Feedbacks', path: '/feedback', icon: 'user' },
   ];
 
-  constructor(public auth: AuthService, public settings: SettingsService) {}
+  constructor(
+    public auth: AuthService,
+    public settings: SettingsService,
+    private publicSite: PublicSiteService
+  ) {}
 
   ngOnInit(): void {
     this.pinned = localStorage.getItem(PIN_KEY) !== '0';
@@ -48,5 +57,46 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  openLogs(): void {
+    this.logsOpen = true;
+    this.logsLoading = true;
+    this.logsError = '';
+    this.publicSite.hitDetails().subscribe({
+      next: (rows) => {
+        this.logs = rows;
+        this.logsLoading = false;
+      },
+      error: (err) => {
+        this.logsLoading = false;
+        this.logsError = err.error?.message || 'Could not load the log';
+      },
+    });
+  }
+
+  closeLogs(): void {
+    this.logsOpen = false;
+  }
+
+  eventLabel(kind: string): string {
+    if (kind === 'login') return 'Login';
+    if (kind === 'page') return 'Page';
+    return 'Visit';
+  }
+
+  roleLabel(role: string): string {
+    if (role === 'super_admin') return 'Super Admin';
+    if (role === 'admin') return 'Customer';
+    if (role === 'user') return 'Client';
+    return role || 'Guest';
+  }
+
+  browserLabel(agent: string): string {
+    if (/Edg\//.test(agent)) return 'Edge';
+    if (/Chrome\//.test(agent)) return 'Chrome';
+    if (/Firefox\//.test(agent)) return 'Firefox';
+    if (/Safari\//.test(agent)) return 'Safari';
+    return agent ? 'Other browser' : '—';
   }
 }
