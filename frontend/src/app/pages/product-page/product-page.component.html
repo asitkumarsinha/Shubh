@@ -1,0 +1,41 @@
+<section class="product-screen">
+  <div class="product-shell">
+    <header class="product-top">
+      <a routerLink="/">Shopping Mall</a>
+      @if (store) {
+        <a [routerLink]="['/store', store.slug]">{{ store.name }}</a>
+      }
+    </header>
+
+    @if (loading) {
+      <p class="muted">Loading product…</p>
+    } @else if (missing || !product || !store) {
+      <div class="empty">
+        <h1>Product not found</h1>
+        <a routerLink="/">Back to the Shopping Mall</a>
+      </div>
+    } @else {
+      <article class="product">
+        <img [src]="imageUrl(product.image)" [alt]="product.name" (error)="useFallback($event)" />
+        <div>
+          <p class="eyebrow">{{ store.name }}</p>
+          <h1>{{ product.name }}</h1>
+          @if (product.category) { <p class="eyebrow">{{ product.category }}</p> }
+          @if (product.description) {
+            <p class="description">{{ product.description }}</p>
+          }
+          <p class="price">₹{{ product.price | number: '1.2-2' }}</p>
+          <p [class.low]="product.stock < 5">{{ product.stock }} in stock</p>
+          <div class="actions">
+            <button type="button" [disabled]="product.stock < 1" (click)="addToCart()">
+              {{ product.stock < 1 ? 'Out of stock' : 'Add to cart' }}
+            </button>
+            <button type="button" class="ghost" (click)="copyLink()">Copy link</button>
+            <a class="ghost" [href]="whatsappUrl" target="_blank" rel="noopener">Send on WhatsApp</a>
+          </div>
+          <p class="address">{{ pageUrl }}</p>
+        </div>
+      </article>
+    }
+  </div>
+</section>

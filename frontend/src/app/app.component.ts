@@ -51,6 +51,7 @@ export class AppComponent implements OnInit {
       .subscribe((event) => this.notePage(event.urlAfterRedirects));
     effect(() => {
       this.pageTitle.custom();
+      this.pageTitle.detail();
       this.settings.current();
       this.auth.user();
       this.i18n.lang();
@@ -111,9 +112,11 @@ export class AppComponent implements OnInit {
     const title = indexed
       ? custom || brand
       : custom || (user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand);
-    const description = path.startsWith('/store/') && custom && custom !== brand
-      ? `${custom} on My Stores Hubs. Shop this store at www.mystoreshubs.com.`
-      : 'My Stores Hubs at www.mystoreshubs.com is a shopping mall of stores. Browse products and open a store.';
+    const detail = this.pageTitle.detail();
+    const description = detail
+      || (path.startsWith('/store/') && custom && custom !== brand
+        ? `${custom} on My Stores Hubs. Shop this store at www.mystoreshubs.com.`
+        : 'My Stores Hubs at www.mystoreshubs.com is a shopping mall of stores. Browse products and open a store.');
     const canonical = path.startsWith('/store/')
       ? `https://www.mystoreshubs.com${path}`
       : path === '/demo'

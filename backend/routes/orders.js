@@ -3,6 +3,7 @@ const QRCode = require('qrcode');
 const db = require('../db');
 const logger = require('../logger');
 const { sendOrderNotice } = require('../mail');
+const { renderInvoice } = require('../invoice');
 const { authenticate, requireAdmin, requireTenantLimit } = require('../middleware/auth');
 const { unitPrice } = require('../pricing');
 
@@ -44,8 +45,9 @@ const buyerStmt = db.prepare('SELECT * FROM users WHERE id = ? AND tenant_id = ?
 const medicineStmt = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?');
 const insertOrder = db.prepare(
   `INSERT INTO orders
-   (user_id, bill_number, total, status, qr_code, tenant_id, payment_method, coupon_code, discount, subtotal)
-   VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`
+   (user_id, bill_number, total, status, qr_code, tenant_id, payment_method, coupon_code, discount, subtotal,
+    fulfillment, delivery_address)
+   VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)`
 );
 const insertOrderItem = db.prepare(
   `INSERT INTO order_items
@@ -123,16 +125,79 @@ function rowsById(sqlIds, loader) {
 
 function mapOrder(order) {
   if (!order) return order;
-  return {
+  const full = {
     ...order,
     items: itemsForOrder.all(order.id),
     user: userForOrder.get(order.user_id),
   };
+  full.whatsapp = whatsappNote(full, storeForInvoice.get(order.tenant_id));
+  return full;
 }
 
 const storeAdminStmt = db.prepare(
   `SELECT name, email FROM users WHERE tenant_id = ? AND role = 'admin' ORDER BY id LIMIT 1`
 );
+const storeForInvoice = db.prepare(
+  `SELECT t.name, t.address, t.contact_phone, s.title, s.slogan
+   FROM tenants t
+   LEFT JOIN tenant_settings s ON s.tenant_id = t.id
+   WHERE t.id = ?`
+);
+
+function whatsappNumber(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 11 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+  if (digits.length >= 11 && digits.length <= 15) return digits;
+  return '';
+}
+
+function whatsappNote(order, store) {
+  const storeName = store?.title || store?.name || 'My Stores Hubs';
+  const items = (order.items || [])
+    .map((item) => `${item.medicine_name} x ${item.quantity}`)
+    .join(', ');
+  const brief = items.length > 220 ? `${items.slice(0, 217)}...` : items;
+  const total = `₹${Number(order.total).toFixed(2)}`;
+  const paid = order.payment_status === 'paid' ? 'Payment received.' : 'Payment not received yet.';
+  const arrival = order.fulfillment === 'delivery'
+    ? `Deliver to ${order.delivery_address || 'the address on the order'}.`
+    : 'Collect from the shop.';
+  if (order.status === 'pending') {
+    return {
+      to: 'store',
+      url: linkWhatsapp(
+        store?.contact_phone,
+        `New order ${order.bill_number} at ${storeName}. ${brief}. Total ${total}. ${paid} ${arrival}`
+      ),
+    };
+  }
+  if (order.status === 'approved') {
+    return {
+      to: 'client',
+      url: linkWhatsapp(
+        order.user?.phone,
+        `${storeName} accepted order ${order.bill_number}. ${brief}. Total ${total}. ${arrival}`
+      ),
+    };
+  }
+  if (order.status === 'dispatched') {
+    return {
+      to: 'client',
+      url: linkWhatsapp(
+        order.user?.phone,
+        `${storeName} dispatched order ${order.bill_number}. ${brief}. Total ${total}. ${arrival}`
+      ),
+    };
+  }
+  return null;
+}
+
+function linkWhatsapp(phone, text) {
+  const number = whatsappNumber(phone);
+  if (!number) return null;
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+}
 
 function orderNoticeText(order) {
   const lines = [
@@ -141,6 +206,9 @@ function orderNoticeText(order) {
     `Payment: ${PAYMENT_METHODS[order.payment_method] || order.payment_method || ''}`,
     `Payment received: ${order.payment_status === 'paid' ? 'Yes' : 'No'}`,
     `Total: ₹${Number(order.total).toFixed(2)}`,
+    order.fulfillment === 'delivery'
+      ? `Deliver to: ${order.delivery_address || ''}`
+      : 'Collect from the shop',
   ];
   if (order.coupon_code) {
     lines.push(`Discount ${order.coupon_code}: -₹${Number(order.discount || 0).toFixed(2)}`);
@@ -149,7 +217,11 @@ function orderNoticeText(order) {
 }
 
 async function notifyOrder(order, event) {
-  const buyer = userForOrder.get(order.user_id);
+  const full = mapOrder(order);
+  const store = storeForInvoice.get(order.tenant_id);
+  const invoice = renderInvoice(full, store);
+  const filename = `${String(order.bill_number).replace(/[^\w.-]/g, '')}.html`;
+  const buyer = full.user;
   const subjects = {
     placed: `Your order ${order.bill_number}`,
     approved: `Order ${order.bill_number} accepted`,
@@ -158,7 +230,13 @@ async function notifyOrder(order, event) {
   const text = orderNoticeText(order);
   const jobs = [];
   if (buyer?.email) {
-    jobs.push(sendOrderNotice({ to: buyer.email, subject: subjects[event] || subjects.placed, text }));
+    jobs.push(sendOrderNotice({
+      to: buyer.email,
+      subject: subjects[event] || subjects.placed,
+      text,
+      html: invoice,
+      filename,
+    }));
   }
   if (event === 'placed') {
     const admin = storeAdminStmt.get(order.tenant_id);
@@ -167,6 +245,8 @@ async function notifyOrder(order, event) {
         to: admin.email,
         subject: `New order ${order.bill_number}`,
         text: `${buyer?.name || 'A client'} placed an order.\n${text}`,
+        html: invoice,
+        filename,
       }));
     }
   }
@@ -192,11 +272,17 @@ function mapOrders(orders) {
     [...new Set(orders.map((order) => order.user_id))],
     (slots) => `SELECT id, name, email, phone, address FROM users WHERE id IN (${slots})`
   );
-  return orders.map((order) => ({
-    ...order,
-    items: itemsByOrder.get(order.id) || [],
-    user: usersById.get(order.user_id) || null,
-  }));
+  const stores = new Map();
+  return orders.map((order) => {
+    const full = {
+      ...order,
+      items: itemsByOrder.get(order.id) || [],
+      user: usersById.get(order.user_id) || null,
+    };
+    if (!stores.has(order.tenant_id)) stores.set(order.tenant_id, storeForInvoice.get(order.tenant_id));
+    full.whatsapp = whatsappNote(full, stores.get(order.tenant_id));
+    return full;
+  });
 }
 
 router.post('/quote', authenticate, (req, res) => {
@@ -254,6 +340,11 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
     }
 
     const quote = priceQuote(req.user.tenant_id, money(subtotal), req.body?.couponCode);
+    const fulfillment = req.body?.fulfillment === 'delivery' ? 'delivery' : 'pickup';
+    const deliveryAddress = String(req.body?.address || '').trim();
+    if (fulfillment === 'delivery' && deliveryAddress.length < 5) {
+      return res.status(400).json({ message: 'Enter the delivery address' });
+    }
     const billNumber = generateBillNumber();
     const qrCode = paymentMethod === 'upi'
       ? await QRCode.toDataURL(JSON.stringify({
@@ -267,7 +358,8 @@ router.post('/checkout', authenticate, requireTenantLimit('orders', 'orders'), a
     const createOrder = db.transaction(() => {
       const result = insertOrder.run(
         req.user.id, billNumber, quote.total, qrCode, req.user.tenant_id,
-        paymentMethod, quote.couponCode, quote.discount, quote.subtotal
+        paymentMethod, quote.couponCode, quote.discount, quote.subtotal,
+        fulfillment, fulfillment === 'delivery' ? deliveryAddress : ''
       );
 
       const orderId = result.lastInsertRowid;
@@ -345,6 +437,20 @@ router.delete('/coupons/:id', authenticate, requireAdmin, (req, res) => {
 router.get('/my', authenticate, (req, res) => {
   const orders = mapOrders(myOrdersStmt.all(req.user.id, req.user.tenant_id));
   res.json(orders);
+});
+
+router.get('/:id/invoice', authenticate, (req, res) => {
+  const order = orderForTenant.get(req.params.id, req.user.tenant_id);
+  if (!order) return res.status(404).json({ message: 'Order not found' });
+  if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+  const full = mapOrder(order);
+  const html = renderInvoice(full, storeForInvoice.get(order.tenant_id));
+  const filename = `${String(order.bill_number).replace(/[^\w.-]/g, '')}.html`;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(html);
 });
 
 router.get('/:id', authenticate, (req, res) => {

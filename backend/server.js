@@ -19,6 +19,7 @@ const settingsRoutes = require('./routes/settings');
 const tenantRoutes = require('./routes/tenants');
 const publicRoutes = require('./routes/public');
 const db = require('./db');
+const { productSlug } = require('./product-slug');
 const { ensureUploadDir } = require('./uploads');
 
 const app = express();
@@ -87,10 +88,22 @@ app.get('/sitemap.xml', (_req, res) => {
        ORDER BY name COLLATE NOCASE`
     )
     .all();
+  const products = db
+    .prepare(
+      `SELECT m.id, m.name, t.slug AS storeSlug
+       FROM medicines m
+       JOIN tenants t ON t.id = m.tenant_id
+       WHERE t.status != 'archived' AND trim(t.slug) != ''
+       ORDER BY t.name COLLATE NOCASE, m.name COLLATE NOCASE`
+    )
+    .all();
   const urls = [
     `${PUBLIC_SITE}/`,
     `${PUBLIC_SITE}/demo`,
     ...stores.map((row) => `${PUBLIC_SITE}/store/${encodeURIComponent(row.slug)}`),
+    ...products.map(
+      (row) => `${PUBLIC_SITE}/store/${encodeURIComponent(row.storeSlug)}/${productSlug(row.name, row.id)}`
+    ),
   ];
   const body = [
     '<?xml version="1.0" encoding="UTF-8"?>',

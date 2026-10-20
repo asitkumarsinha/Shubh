@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { OrderService, saveDownload } from '../../core/order.service';
 import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 
@@ -35,6 +35,13 @@ export class AdminOrdersComponent implements OnInit {
   ];
 
   constructor(private orderService: OrderService, private toast: ToastService) {}
+
+  download(order: Order): void {
+    this.orderService.downloadInvoice(order.id).subscribe({
+      next: (blob) => saveDownload(blob, `${order.bill_number}.html`),
+      error: () => this.toast.error('Could not download the invoice'),
+    });
+  }
 
   ngOnInit(): void {
     this.reload();
@@ -120,6 +127,9 @@ export class AdminOrdersComponent implements OnInit {
       next: (updated) => {
         this.updatingId = null;
         this.toast.success(`${updated.bill_number} status changed to ${updated.status}`);
+        if ((updated.status === 'approved' || updated.status === 'dispatched') && updated.whatsapp?.url) {
+          window.open(updated.whatsapp.url, '_blank', 'noopener');
+        }
         this.reload();
       },
       error: (err) => {

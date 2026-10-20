@@ -28,6 +28,7 @@
           <p class="store-url">
             <a [href]="storeUrl">{{ storeUrl }}</a>
             <button type="button" class="copy" (click)="copyLink()">{{ 'store.copy' | t }}</button>
+            <button type="button" class="copy" (click)="shareCard()">Copy a message to share</button>
           </p>
         </div>
       </div>
@@ -36,6 +37,17 @@
         <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
         <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="storeSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
       </label>
+      @if (categories.length) {
+        <label class="group-filter">
+          Group
+          <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="storeGroup">
+            <option value="">All groups</option>
+            @for (group of categories; track group) {
+              <option [value]="group">{{ group }}</option>
+            }
+          </select>
+        </label>
+      }
 
       <h2>{{ 'store.products' | t }}</h2>
       @if (error) { <p class="warn">{{ error }}</p> }
@@ -47,10 +59,11 @@
         <div class="grid">
           @for (item of medicines; track item.id) {
             <article>
-              <div class="photo">
+              <a class="photo" [routerLink]="productLink(item)">
                 <img [src]="imageUrl(item.image)" [alt]="item.name" loading="lazy" decoding="async" (error)="useFallback($event)" />
-              </div>
-              <h3>{{ item.name }}</h3>
+              </a>
+              <h3><a [routerLink]="productLink(item)">{{ item.name }}</a></h3>
+              @if (item.category) { <p class="blurb">{{ item.category }}</p> }
               @if (item.description) {
                 <p class="blurb">{{ item.description }}</p>
               }

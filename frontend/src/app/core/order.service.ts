@@ -3,6 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Dashboard, Order, Report } from './models';
 
+export function saveDownload(blob: Blob, name: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly api = '/api/orders';
@@ -22,9 +31,11 @@ export class OrderService {
   checkout(
     items: Array<{ medicineId: number; quantity: number }>,
     paymentMethod: 'upi' | 'cod' | 'counter',
-    couponCode = ''
+    couponCode = '',
+    fulfillment: 'delivery' | 'pickup' = 'pickup',
+    address = ''
   ): Observable<Order> {
-    return this.http.post<Order>(`${this.api}/checkout`, { items, paymentMethod, couponCode });
+    return this.http.post<Order>(`${this.api}/checkout`, { items, paymentMethod, couponCode, fulfillment, address });
   }
 
   myOrders(): Observable<Order[]> {
@@ -33,6 +44,10 @@ export class OrderService {
 
   get(id: number): Observable<Order> {
     return this.http.get<Order>(`${this.api}/${id}`);
+  }
+
+  downloadInvoice(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/${id}/invoice`, { responseType: 'blob' });
   }
 
   all(status?: string): Observable<Order[]> {

@@ -480,6 +480,33 @@ db.exec(`
   add('discount', 'discount REAL NOT NULL DEFAULT 0');
   add('subtotal', 'subtotal REAL');
   add('payment_status', "payment_status TEXT NOT NULL DEFAULT 'unpaid'");
+  add('fulfillment', "fulfillment TEXT NOT NULL DEFAULT 'pickup'");
+  add('delivery_address', "delivery_address TEXT NOT NULL DEFAULT ''");
+})();
+
+(() => {
+  const cols = db.prepare('PRAGMA table_info(medicines)').all();
+  if (!cols.some((col) => col.name === 'category')) {
+    db.exec(`ALTER TABLE medicines ADD COLUMN category TEXT NOT NULL DEFAULT ''`);
+  }
+  const setCategory = db.prepare(
+    `UPDATE medicines SET category = ? WHERE name = ? AND (category IS NULL OR category = '')`
+  );
+  const groups = [
+    ['Clothing', 'Silk Saree'],
+    ['Clothing', 'Linen Kurta'],
+    ['Jewellery', 'Pearl Necklace'],
+    ['Bags', 'Leather Tote'],
+    ['Pottery', 'Blue Pottery Vase'],
+    ['Wood', 'Wooden Elephant'],
+    ['Textile', 'Block-Print Scarf'],
+    ['Brass', 'Brass Diya Set'],
+    ['Whole spices', 'Turmeric Powder'],
+    ['Whole spices', 'Kashmiri Chilli'],
+    ['Whole spices', 'Green Cardamom'],
+    ['Blends', 'Garam Masala'],
+  ];
+  for (const [category, name] of groups) setCategory.run(category, name);
 })();
 
 db.exec(`CREATE TABLE IF NOT EXISTS schema_flags (name TEXT PRIMARY KEY)`);
@@ -508,6 +535,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_employees_tenant_created ON employees(tenant_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_created ON medicines(tenant_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_stock ON medicines(tenant_id, stock);
+  CREATE INDEX IF NOT EXISTS idx_medicines_tenant_category_created ON medicines(tenant_id, category, created_at);
 `);
 
 // Sample hubs a visitor can open and use as a plan for a real shop.

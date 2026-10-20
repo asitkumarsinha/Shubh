@@ -57,6 +57,10 @@
               @if (o.status === 'pending') {
                 <button class="btn danger" type="button" (click)="cancel(o)">{{ 'orders.cancel' | t }}</button>
               }
+              @if (o.status === 'pending' && o.whatsapp?.url; as shopLink) {
+                <a class="btn ghost" [href]="shopLink" target="_blank" rel="noopener">WhatsApp the shop</a>
+              }
+              <button class="btn ghost" type="button" (click)="download(o)">Invoice</button>
               <a class="btn ghost" [routerLink]="['/orders', o.id]">{{ 'orders.viewBill' | t }}</a>
             </div>
           </div>

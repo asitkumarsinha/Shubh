@@ -17,6 +17,9 @@
       <label>Description
         <textarea [(ngModel)]="description" name="description" rows="3"></textarea>
       </label>
+      <label>Group
+        <input [(ngModel)]="category" name="category" placeholder="Clothing, Jewellery, Whole spices" />
+      </label>
       <div class="two">
         <label>Price (₹)
           <input type="number" step="0.01" [(ngModel)]="price" name="price" required />
@@ -41,6 +44,15 @@
       </div>
     </form>
 
+    <form class="panel" (ngSubmit)="importSheet()">
+      <h2>Upload many products</h2>
+      <p>Use a spreadsheet with columns name, price, stock, description, and category. The first row is the header.</p>
+      <label>Spreadsheet
+        <input type="file" accept=".csv,text/csv" (change)="onSheet($event)" />
+      </label>
+      <button class="btn primary" type="submit" [disabled]="importing || !sheet">Upload spreadsheet</button>
+    </form>
+
     <div class="list">
       <label class="list-tools">
         Search products
@@ -56,7 +68,7 @@
           <img [src]="imageUrl(m)" [alt]="m.name" loading="lazy" decoding="async" />
           <div>
             <h3>{{ m.name }}</h3>
-            <p>Retail ₹{{ (m.listPrice || m.price) | number: '1.2-2' }} · Wholesale ₹{{ m.wholesale_price | number: '1.2-2' }} · Stock {{ m.stock }}</p>
+            <p>Retail ₹{{ (m.listPrice || m.price) | number: '1.2-2' }} · Wholesale ₹{{ m.wholesale_price | number: '1.2-2' }} · Stock {{ m.stock }}@if (m.category) { · {{ m.category }} }</p>
           </div>
           <div class="row-actions">
             <button class="btn ghost" (click)="edit(m)">Edit</button>

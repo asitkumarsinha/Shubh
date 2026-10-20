@@ -22,6 +22,8 @@ export class CartComponent implements OnInit {
   error = '';
   quoteError = '';
   paymentMethod: 'upi' | 'cod' | 'counter' = 'upi';
+  fulfillment: 'delivery' | 'pickup' = 'pickup';
+  deliveryAddress = '';
   couponCode = '';
   quote = { subtotal: 0, discount: 0, total: 0, couponCode: null as string | null };
   readonly saveButtonLabel = saveButtonLabel;
@@ -35,6 +37,8 @@ export class CartComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const saved = this.auth.user() as { address?: string } | null;
+    this.deliveryAddress = saved?.address || '';
     this.refreshQuote();
   }
 
@@ -87,6 +91,11 @@ export class CartComponent implements OnInit {
       this.toast.error(this.error);
       return;
     }
+    if (this.fulfillment === 'delivery' && this.deliveryAddress.trim().length < 5) {
+      this.error = 'Enter the delivery address';
+      this.toast.error(this.error);
+      return;
+    }
     const items = this.cart.items().map((i) => ({
       medicineId: i.medicineId,
       quantity: i.quantity,
@@ -95,12 +104,19 @@ export class CartComponent implements OnInit {
     this.savePhase = 'saving';
     this.error = '';
     this.toast.beginSave();
-    this.orders.checkout(items, this.paymentMethod, this.couponCode.trim()).subscribe({
+    this.orders.checkout(
+      items,
+      this.paymentMethod,
+      this.couponCode.trim(),
+      this.fulfillment,
+      this.deliveryAddress.trim()
+    ).subscribe({
       next: (order) => {
         this.cart.clear();
         this.loading = false;
         this.savePhase = 'saved';
         this.toast.success(`Order saved · bill ${order.bill_number}`);
+        if (order.whatsapp?.url) window.open(order.whatsapp.url, '_blank', 'noopener');
         this.router.navigate(['/orders', order.id]);
       },
       error: (err) => {

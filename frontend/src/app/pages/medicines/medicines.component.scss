@@ -352,7 +352,8 @@
   color: #6b7280;
 }
 
-.mall-search input {
+.mall-search input,
+.mall-search select {
   flex: 1;
   border: none;
   outline: none;
@@ -404,6 +405,11 @@
   background: linear-gradient(180deg, #e5e7eb 0%, #cfd4da 100%);
 }
 
+.product-thumb a {
+  display: block;
+  height: 100%;
+}
+
 .product-thumb img {
   width: 100%;
   height: 100%;
@@ -440,6 +446,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.product-info h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.product-info h3 a:hover {
+  text-decoration: underline;
 }
 
 .product-info .price {

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { OrderService, saveDownload } from '../../core/order.service';
 import { Order } from '../../core/models';
 import { DialogService } from '../../core/dialog.service';
 import { ToastService } from '../../core/toast.service';
@@ -24,6 +24,13 @@ export class MyOrdersComponent implements OnInit {
     private dialog: DialogService,
     private toast: ToastService
   ) {}
+
+  download(order: Order): void {
+    this.orderService.downloadInvoice(order.id).subscribe({
+      next: (blob) => saveDownload(blob, `${order.bill_number}.html`),
+      error: () => this.toast.error('Could not download the invoice'),
+    });
+  }
 
   async cancel(order: Order): Promise<void> {
     const confirmed = await this.dialog.confirm(

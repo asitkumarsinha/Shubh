@@ -13,6 +13,7 @@ import { ToastService } from '../../core/toast.service';
 import { fitLogoOnWhite } from '../../core/logo-fit';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
+import { productSlug } from '../../core/product-slug';
 
 interface CustomerCard {
   id: number;
@@ -37,6 +38,8 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   loading = true;
   error = '';
   query = '';
+  category = '';
+  categories: string[] = [];
   page = 1;
   pages = 1;
   total = 0;
@@ -88,7 +91,25 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     this.selectedId = id;
     this.page = 1;
     this.query = '';
+    this.category = '';
+    this.loadCategories();
     this.load();
+  }
+
+  onCategory(): void {
+    this.page = 1;
+    this.load();
+  }
+
+  private loadCategories(): void {
+    if (!this.selectedId) {
+      this.categories = [];
+      return;
+    }
+    this.medicineService.categories(this.selectedId).subscribe({
+      next: (groups) => { this.categories = groups; },
+      error: () => { this.categories = []; },
+    });
   }
 
   openMall(): void {
@@ -142,7 +163,13 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   load(): void {
     this.loading = true;
-    this.medicineService.list({ q: this.query.trim(), page: this.page, limit: 12, tenantId: this.selectedId ?? undefined }).subscribe({
+    this.medicineService.list({
+      q: this.query.trim(),
+      category: this.category,
+      page: this.page,
+      limit: 12,
+      tenantId: this.selectedId ?? undefined,
+    }).subscribe({
       next: (data) => {
         this.medicines = data.items;
         this.total = data.total;
@@ -159,6 +186,12 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   imageUrl(path: string | null): string {
     return path || 'assets/medicines/default.svg';
+  }
+
+  productLink(medicine: Medicine): string[] {
+    const slug = this.selected?.slug;
+    if (!slug) return ['/'];
+    return ['/store', slug, productSlug(medicine.name, medicine.id)];
   }
 
   addToCart(m: Medicine): void {

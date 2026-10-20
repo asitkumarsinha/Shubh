@@ -68,6 +68,7 @@ export class AdminDashboardComponent implements OnInit {
       next: (order) => {
         this.approvingId = null;
         this.toast.success(`${order.bill_number} approved`);
+        if (order.whatsapp?.url) window.open(order.whatsapp.url, '_blank', 'noopener');
         this.reload();
       },
       error: (err) => {

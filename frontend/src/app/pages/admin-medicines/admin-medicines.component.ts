@@ -20,7 +20,10 @@ export class AdminMedicinesComponent implements OnInit {
   price: number | null = null;
   wholesalePrice: number | null = null;
   stock: number | null = 0;
+  category = '';
   file: File | null = null;
+  sheet: File | null = null;
+  importing = false;
   editingId: number | null = null;
   error = '';
   loading = false;
@@ -72,11 +75,36 @@ export class AdminMedicinesComponent implements OnInit {
     this.file = input.files?.[0] || null;
   }
 
+  onSheet(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.sheet = input.files?.[0] || null;
+  }
+
+  importSheet(): void {
+    if (!this.sheet) return;
+    this.importing = true;
+    this.error = '';
+    this.medicineService.importCsv(this.sheet).subscribe({
+      next: (result) => {
+        this.importing = false;
+        this.sheet = null;
+        this.toast.success(`${result.created} products added`);
+        this.reload();
+      },
+      error: (err) => {
+        this.importing = false;
+        this.error = err.error?.message || 'Could not read the spreadsheet';
+        this.toast.error(this.error);
+      },
+    });
+  }
+
   resetForm(): void {
     this.name = '';
     this.description = '';
     this.price = null;
     this.stock = 0;
+    this.category = '';
     this.wholesalePrice = null;
     this.file = null;
     this.editingId = null;
@@ -88,6 +116,7 @@ export class AdminMedicinesComponent implements OnInit {
     this.description = m.description;
     this.price = m.price;
     this.stock = m.stock;
+    this.category = m.category || '';
     this.wholesalePrice = m.wholesale_price ?? null;
     this.file = null;
   }
@@ -103,6 +132,7 @@ export class AdminMedicinesComponent implements OnInit {
     form.append('description', this.description || '');
     form.append('price', String(this.price));
     form.append('stock', String(this.stock ?? 0));
+    form.append('category', this.category || '');
     if (this.wholesalePrice != null && this.wholesalePrice !== ('' as unknown as number)) {
       form.append('wholesale_price', String(this.wholesalePrice));
     }

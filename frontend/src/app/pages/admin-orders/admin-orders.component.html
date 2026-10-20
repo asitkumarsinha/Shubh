@@ -48,6 +48,10 @@
               <td>
                 <div>{{ o.user?.name }}</div>
                 <small>{{ o.user?.email }}</small>
+                <small>
+                  @if (o.fulfillment === 'delivery') { Deliver to {{ o.delivery_address }} }
+                  @else { Collect from the shop }
+                </small>
               </td>
               <td>₹{{ o.total | number: '1.2-2' }}</td>
               <td>
@@ -72,6 +76,10 @@
               <td>{{ o.po_number || '—' }}</td>
               <td>
                 <a class="btn ghost" [routerLink]="['/orders', o.id]">Bill / QR</a>
+                <button class="btn ghost" type="button" (click)="download(o)">Invoice</button>
+                @if ((o.status === 'approved' || o.status === 'dispatched') && o.whatsapp?.url; as clientLink) {
+                  <a class="btn ghost" [href]="clientLink" target="_blank" rel="noopener">WhatsApp the client</a>
+                }
               </td>
             </tr>
           }

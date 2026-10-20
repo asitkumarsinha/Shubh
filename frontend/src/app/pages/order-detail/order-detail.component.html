@@ -22,7 +22,10 @@
           <span class="badge" [attr.data-status]="order.status">{{ 'status.' + order.status | t }}</span>
         </p>
       </div>
-      <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">{{ 'orderDetail.back' | t }}</a>
+      <div class="row-actions">
+        <button class="btn ghost" type="button" (click)="downloadInvoice()">Download invoice</button>
+        <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">{{ 'orderDetail.back' | t }}</a>
+      </div>
     </header>
 
     <ol class="pipeline" aria-label="Order pipeline">
@@ -46,6 +49,13 @@
           <div>
             <span>{{ 'orderDetail.paid' | t }}</span>
             <strong>{{ (order.payment_status === 'paid' ? 'orders.paid' : 'orders.unpaid') | t }}</strong>
+          </div>
+          <div>
+            <span>Receiving</span>
+            <strong>
+              @if (order.fulfillment === 'delivery') { Deliver to {{ order.delivery_address }} }
+              @else { Collect from the shop }
+            </strong>
           </div>
           @if (order.coupon_code) {
             <div><span>{{ 'orderDetail.discountCode' | t }}</span><strong>{{ order.coupon_code }}</strong></div>
@@ -94,6 +104,10 @@
           <h2>{{ 'orderDetail.checkoutQr' | t }}</h2>
           <p>{{ 'orderDetail.presentQr' | t }}</p>
           <img class="qr" [src]="settings.current().qr_code" alt="Order QR code" />
+        }
+        @if (whatsappUrl(); as noteLink) {
+          <a class="btn primary" [href]="noteLink" target="_blank" rel="noopener">{{ whatsappLabel() }}</a>
+          <p class="muted small">Opens WhatsApp with the order note. Press send.</p>
         }
         <p class="muted small">{{ 'orderDetail.awaitingApproval' | t }}</p>
         @if (!auth.isAdmin() && order.status === 'pending') {

@@ -147,9 +147,12 @@ async function createTransporter() {
   });
 }
 
-async function sendOrderNotice({ to, subject, text }) {
-  const html = buildHtmlEmail({ to, subject, text, title: 'My Stores Hubs' });
-  const outbox = saveOutbox({ to, subject, text, html });
+async function sendOrderNotice({ to, subject, text, html, filename }) {
+  const body = html || buildHtmlEmail({ to, subject, text, title: 'My Stores Hubs' });
+  const attachments = html && filename
+    ? [{ filename, content: html, contentType: 'text/html; charset=utf-8' }]
+    : undefined;
+  const outbox = saveOutbox({ to, subject, text, html: body });
   if (!hasSmtpConfig() || !process.env.SMTP_PASS) {
     return {
       delivered: false,
@@ -161,7 +164,7 @@ async function sendOrderNotice({ to, subject, text }) {
   try {
     const transporter = await createTransporter();
     const from = process.env.MAIL_FROM || process.env.SMTP_USER || '"My Stores Hubs" <orders@mystoreshubs.local>';
-    const info = await transporter.sendMail({ from, to, subject, text, html });
+    const info = await transporter.sendMail({ from, to, subject, text, html: body, attachments });
     return {
       delivered: true,
       messageId: info.messageId,

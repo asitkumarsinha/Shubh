@@ -10,6 +10,7 @@ import { ToastService } from '../../core/toast.service';
 import { PageTitleService } from '../../core/page-title.service';
 import { Medicine } from '../../core/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { productSlug } from '../../core/product-slug';
 
 interface PublicStore {
   id: number;
@@ -36,6 +37,8 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
   productsLoading = false;
   error = '';
   query = '';
+  category = '';
+  categories: string[] = [];
   page = 1;
   pages = 1;
   total = 0;
@@ -64,6 +67,7 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
         this.store = store;
         this.pageTitle.set(store.name || store.title || 'Store');
         this.loading = false;
+        this.loadCategories();
         this.loadProducts();
       },
       error: () => {
@@ -94,12 +98,26 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
     this.loadProducts();
   }
 
+  onCategory(): void {
+    this.page = 1;
+    this.loadProducts();
+  }
+
+  private loadCategories(): void {
+    if (!this.store) return;
+    this.medicinesApi.categories(this.store.id).subscribe({
+      next: (groups) => { this.categories = groups; },
+      error: () => { this.categories = []; },
+    });
+  }
+
   private loadProducts(): void {
     if (!this.store) return;
     this.productsLoading = true;
     this.medicinesApi.list({
       tenantId: this.store.id,
       q: this.query.trim(),
+      category: this.category,
       page: this.page,
       limit: 12,
     }).subscribe({
@@ -121,6 +139,11 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
     return path || 'assets/medicines/default.svg';
   }
 
+  productLink(medicine: Medicine): string[] {
+    if (!this.store) return ['/'];
+    return ['/store', this.store.slug, productSlug(medicine.name, medicine.id)];
+  }
+
   useFallback(event: Event): void {
     const img = event.target as HTMLImageElement;
     if (!img.src.endsWith('assets/medicines/default.svg')) {
@@ -129,11 +152,47 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
   }
 
   copyLink(): void {
-    const url = location.href;
-    navigator.clipboard.writeText(url).then(
-      () => this.toast.success('Store link copied'),
-      () => this.toast.error(url)
-    );
+    this.copyText(location.href, 'Store link copied');
+  }
+
+  shareCard(): void {
+    if (!this.store) return;
+    this.copyText(this.shareMessage(), 'Share message copied');
+  }
+
+  private copyText(text: string, success: string): void {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => this.toast.success(success),
+        () => this.copyWithSelection(text, success)
+      );
+      return;
+    }
+    this.copyWithSelection(text, success);
+  }
+
+  private copyWithSelection(text: string, success: string): void {
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.append(field);
+    field.select();
+    const copied = document.execCommand('copy');
+    field.remove();
+    if (copied) {
+      this.toast.success(success);
+      return;
+    }
+    this.toast.error(text);
+  }
+
+  private readonly publicStoreHost = 'https://www.mystoreshubs.com';
+
+  shareMessage(): string {
+    if (!this.store) return '';
+    const name = this.store.title || this.store.name;
+    return `Visit ${name} on My Stores Hubs: ${this.publicStoreHost}/store/${this.store.slug}`;
   }
 
   addToCart(medicine: Medicine): void {

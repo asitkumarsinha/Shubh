@@ -40,6 +40,28 @@ export class TenantService {
     }>(`${this.api}/store/${encodeURIComponent(slug)}`);
   }
 
+  product(storeSlug: string, productSlug: string) {
+    return this.http.get<{
+      slug: string;
+      store: {
+        id: number;
+        name: string;
+        slug: string;
+        title: string | null;
+        slogan: string | null;
+        logo: string | null;
+      };
+      product: {
+        id: number;
+        name: string;
+        description: string;
+        price: number;
+        image: string | null;
+        stock: number;
+      };
+    }>(`${this.api}/store/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(productSlug)}`);
+  }
+
   create(data: Record<string, unknown>) {
     return this.http.post<Tenant>(this.api, data);
   }

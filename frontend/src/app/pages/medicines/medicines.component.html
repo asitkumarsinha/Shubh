@@ -125,6 +125,17 @@
             <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
             <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
           </label>
+          @if (categories.length) {
+            <label class="mall-search">
+              <span class="sr-only">Group</span>
+              <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
+                <option value="">All groups</option>
+                @for (group of categories; track group) {
+                  <option [value]="group">{{ group }}</option>
+                }
+              </select>
+            </label>
+          }
 
           @if (loading) {
             <div class="product-grid">
@@ -141,10 +152,23 @@
               @for (m of medicines; track m.id) {
                 <article class="product-card">
                   <div class="product-thumb">
-                    <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                    @if (selected?.slug) {
+                      <a [routerLink]="productLink(m)">
+                        <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                      </a>
+                    } @else {
+                      <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                    }
                   </div>
                   <div class="product-info">
-                    <h3>{{ m.name }}</h3>
+                    <h3>
+                      @if (selected?.slug) {
+                        <a [routerLink]="productLink(m)">{{ m.name }}</a>
+                      } @else {
+                        {{ m.name }}
+                      }
+                    </h3>
+                    @if (m.category) { <p class="blurb">{{ m.category }}</p> }
                     @if (m.description) {
                       <p class="blurb">{{ m.description }}</p>
                     }

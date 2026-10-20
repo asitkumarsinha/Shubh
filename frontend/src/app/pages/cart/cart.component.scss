@@ -184,6 +184,16 @@
   gap: 0.5rem;
 }
 
+.pay-methods label.delivery-address {
+  display: grid;
+  align-items: stretch;
+}
+
+.pay-methods textarea {
+  width: 100%;
+  font: inherit;
+}
+
 .coupon {
   display: grid;
   gap: 0.35rem;

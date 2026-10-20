@@ -175,6 +175,7 @@ export interface Medicine {
   unitPrice?: number;
   image: string | null;
   stock: number;
+  category?: string;
   created_at?: string;
 }
 
@@ -208,12 +209,15 @@ export interface Order {
   coupon_code?: string | null;
   payment_method?: 'upi' | 'cod' | 'counter';
   payment_status?: 'unpaid' | 'paid';
+  fulfillment?: 'delivery' | 'pickup';
+  delivery_address?: string;
   status: 'pending' | 'approved' | 'cancelled' | 'rejected' | 'dispatched';
   qr_code: string;
   created_at: string;
   updated_at?: string;
   items: OrderItem[];
   user?: User;
+  whatsapp?: { to: 'store' | 'client'; url: string | null } | null;
 }
 
 export interface ReportSummary {

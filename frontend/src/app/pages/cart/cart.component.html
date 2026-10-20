@@ -64,6 +64,16 @@
         <label><input type="radio" name="payment" value="cod" [(ngModel)]="paymentMethod" /> {{ 'cart.cod' | t }}</label>
         <label><input type="radio" name="payment" value="counter" [(ngModel)]="paymentMethod" /> {{ 'cart.counter' | t }}</label>
       </fieldset>
+      <fieldset class="pay-methods">
+        <legend>How the client receives this</legend>
+        <label><input type="radio" name="fulfillment" value="pickup" [(ngModel)]="fulfillment" /> Collect from the shop</label>
+        <label><input type="radio" name="fulfillment" value="delivery" [(ngModel)]="fulfillment" /> Deliver to an address</label>
+        @if (fulfillment === 'delivery') {
+          <label class="delivery-address">Delivery address
+            <textarea [(ngModel)]="deliveryAddress" name="deliveryAddress" rows="3" placeholder="Street, area, city"></textarea>
+          </label>
+        }
+      </fieldset>
       <div class="coupon">
         <label for="couponCode">{{ 'cart.discountCode' | t }}</label>
         <div class="coupon-row">

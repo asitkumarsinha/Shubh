@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
 const logger = require('../logger');
+const { decorateMedicine } = require('../pricing');
+const { productSlug } = require('../product-slug');
 const { authenticate, requireSuperAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -123,6 +125,22 @@ router.get('/store/:slug', (req, res) => {
   const store = storeBySlug.get(String(req.params.slug || '').trim().toLowerCase());
   if (!store) return res.status(404).json({ message: 'Store not found' });
   res.json(store);
+});
+
+const medicineInStore = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?');
+
+router.get('/store/:slug/product/:product', (req, res) => {
+  const store = storeBySlug.get(String(req.params.slug || '').trim().toLowerCase());
+  if (!store) return res.status(404).json({ message: 'Store not found' });
+  const id = Number(String(req.params.product || '').split('-').pop());
+  if (!Number.isInteger(id) || id < 1) return res.status(404).json({ message: 'Product not found' });
+  const medicine = medicineInStore.get(id, store.id);
+  if (!medicine) return res.status(404).json({ message: 'Product not found' });
+  res.json({
+    slug: productSlug(medicine.name, medicine.id),
+    store,
+    product: decorateMedicine(medicine, null),
+  });
 });
 
 router.use(authenticate, requireSuperAdmin);

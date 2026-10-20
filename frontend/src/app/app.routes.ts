@@ -49,6 +49,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'store/:slug/:product',
+    loadComponent: () =>
+      import('./pages/product-page/product-page.component').then((m) => m.ProductPageComponent),
+  },
+  {
     path: 'store/:slug',
     loadComponent: () =>
       import('./pages/store-front/store-front.component').then((m) => m.StoreFrontComponent),

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { OrderService } from '../../core/order.service';
+import { OrderService, saveDownload } from '../../core/order.service';
 import { AuthService } from '../../core/auth.service';
 import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
@@ -67,6 +67,26 @@ export class OrderDetailComponent implements OnInit {
 
   imageUrl(path: string | null): string {
     return path || 'assets/medicines/default.svg';
+  }
+
+  whatsappUrl(): string {
+    const note = this.order?.whatsapp;
+    if (!note?.url) return '';
+    if (this.auth.isAdmin()) return note.to === 'client' ? note.url : '';
+    return note.to === 'store' ? note.url : '';
+  }
+
+  whatsappLabel(): string {
+    return this.order?.whatsapp?.to === 'store' ? 'WhatsApp the shop' : 'WhatsApp the client';
+  }
+
+  downloadInvoice(): void {
+    if (!this.order) return;
+    const bill = this.order.bill_number;
+    this.orders.downloadInvoice(this.order.id).subscribe({
+      next: (blob) => saveDownload(blob, `${bill}.html`),
+      error: () => this.toast.error('Could not download the invoice'),
+    });
   }
 
   itemCount(): number {
@@ -155,6 +175,9 @@ export class OrderDetailComponent implements OnInit {
         this.acting = false;
         this.actLabel = 'Saved';
         this.toast.success(ok(o));
+        if ((o.status === 'approved' || o.status === 'dispatched') && o.whatsapp?.url) {
+          window.open(o.whatsapp.url, '_blank', 'noopener');
+        }
         setTimeout(() => (this.actLabel = ''), 2500);
       },
       error: (err) => {
