@@ -2,36 +2,45 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
 
-const backupDir = path.join(__dirname, 'data', 'backups');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const KEEP = 7;
 
+function backupDir() {
+  if (process.env.SQLITE_PATH) {
+    return path.join(path.dirname(process.env.SQLITE_PATH), 'backups');
+  }
+  return path.join(__dirname, 'data', 'backups');
+}
+
 function newestBackupAge() {
-  if (!fs.existsSync(backupDir)) return Infinity;
-  const files = fs.readdirSync(backupDir).filter((name) => name.endsWith('.db'));
+  const dir = backupDir();
+  if (!fs.existsSync(dir)) return Infinity;
+  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.db'));
   if (!files.length) return Infinity;
   const newest = files
-    .map((name) => fs.statSync(path.join(backupDir, name)).mtimeMs)
+    .map((name) => fs.statSync(path.join(dir, name)).mtimeMs)
     .sort((a, b) => b - a)[0];
   return Date.now() - newest;
 }
 
 function pruneBackups() {
+  const dir = backupDir();
   const files = fs
-    .readdirSync(backupDir)
+    .readdirSync(dir)
     .filter((name) => name.endsWith('.db'))
-    .map((name) => ({ name, time: fs.statSync(path.join(backupDir, name)).mtimeMs }))
+    .map((name) => ({ name, time: fs.statSync(path.join(dir, name)).mtimeMs }))
     .sort((a, b) => a.time - b.time);
   while (files.length > KEEP) {
     const old = files.shift();
-    fs.unlinkSync(path.join(backupDir, old.name));
+    fs.unlinkSync(path.join(dir, old.name));
   }
 }
 
 async function backupDatabase(db) {
-  fs.mkdirSync(backupDir, { recursive: true });
+  const dir = backupDir();
+  fs.mkdirSync(dir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const dest = path.join(backupDir, `medishop-${stamp}.db`);
+  const dest = path.join(dir, `medishop-${stamp}.db`);
   await db.backup(dest);
   pruneBackups();
   logger.info('database backup written', { file: path.basename(dest) });
@@ -46,4 +55,4 @@ function scheduleBackups(db) {
   setInterval(run, DAY_MS);
 }
 
-module.exports = { backupDatabase, scheduleBackups };
+module.exports = { backupDatabase, scheduleBackups, backupDir };

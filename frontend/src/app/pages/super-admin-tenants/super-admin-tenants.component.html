@@ -3,7 +3,7 @@
   <header class="page-head">
     <div>
       <p class="eyebrow">Super Admin</p>
-      <h1>Customers &amp; tenants</h1>
+      <h1>Hubs - Customers &amp; tenants</h1>
       <p>Provision isolated customer stores, plans, modules, limits, billing, and backup access.</p>
     </div>
   </header>
@@ -15,10 +15,10 @@
     <div class="grid">
       <label>Business name <input [(ngModel)]="name" name="name" required /></label>
       <label>Tenant slug / subdomain <input [(ngModel)]="slug" name="slug" placeholder="acme-medical" /></label>
-      <label>First administrator <input [(ngModel)]="adminName" name="adminName" required /></label>
+      <label>User Name <input [(ngModel)]="adminName" name="adminName" required /></label>
       <label>Administrator email <input type="email" [(ngModel)]="adminEmail" name="adminEmail" required /></label>
       <label>Administrator password <input type="password" [(ngModel)]="adminPassword" name="adminPassword" required minlength="6" /></label>
-      <label>Contact phone <input [(ngModel)]="contactPhone" name="contactPhone" /></label>
+      <label>Mobile Number <input [(ngModel)]="contactPhone" name="contactPhone" /></label>
       <label>Plan
         <select [(ngModel)]="plan" name="plan"><option>Basic</option><option>Professional</option><option>Enterprise</option></select>
       </label>

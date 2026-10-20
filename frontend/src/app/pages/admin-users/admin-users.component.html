@@ -1,7 +1,7 @@
 <section class="page">
   <header class="page-head">
     <div>
-      <h1>Clients</h1>
+      <h1>Clients / Stores</h1>
       <p>Client accounts, retail/wholesale groups, and ranking by orders.</p>
     </div>
     <button class="btn primary" type="button" [disabled]="exporting" (click)="exportList()">
@@ -17,10 +17,10 @@
     <h2>Add client</h2>
     <p class="note">Create a shopper account for this store. The password is stored encrypted; share the password you type here with the client.</p>
     <div class="add-grid">
-      <label>Full name <input [(ngModel)]="newName" name="newName" required /></label>
+      <label>User Name <input [(ngModel)]="newName" name="newName" required /></label>
       <label>Email <input type="email" [(ngModel)]="newEmail" name="newEmail" required /></label>
       <label>Password <input type="password" [(ngModel)]="newPassword" name="newPassword" required minlength="6" /></label>
-      <label>Phone <input [(ngModel)]="newPhone" name="newPhone" /></label>
+      <label>Mobile Number <input [(ngModel)]="newPhone" name="newPhone" /></label>
       <label>Address <input [(ngModel)]="newAddress" name="newAddress" /></label>
       <label>Group
         <select class="action-select" [(ngModel)]="newGroup" name="newGroup">
@@ -42,7 +42,7 @@
     </div>
   } @else if (summary) {
     <div class="stats">
-      <div><span>Clients</span><strong>{{ summary.totalUsers }}</strong></div>
+      <div><span>Clients / Stores</span><strong>{{ summary.totalUsers }}</strong></div>
       <div><span>Retail</span><strong>{{ summary.retailClients }}</strong></div>
       <div><span>Wholesale</span><strong>{{ summary.wholesaleClients }}</strong></div>
       <div><span>With orders</span><strong>{{ summary.usersWithOrders }}</strong></div>
@@ -55,7 +55,7 @@
     } @else {
       <div class="top-grid">
         @for (u of topUsers; track u.id) {
-          <a class="top-card" [routerLink]="['/admin/users', u.id]">
+          <a class="top-card" [routerLink]="['/admin/stores', u.id]">
             <span class="rank">#{{ u.rank }} · {{ u.client_group }}</span>
             <h3>{{ u.name }}</h3>
             <p>{{ u.email }}</p>
@@ -79,7 +79,7 @@
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Phone</th>
+            <th>Mobile Number</th>
             <th>Group</th>
             <th>Orders</th>
             <th>Total spent</th>
@@ -120,7 +120,7 @@
                 </select>
               </td>
               <td>
-                <a class="btn ghost" [routerLink]="['/admin/users', u.id]">View</a>
+                <a class="btn ghost" [routerLink]="['/admin/stores', u.id]">View</a>
               </td>
             </tr>
           } @empty {

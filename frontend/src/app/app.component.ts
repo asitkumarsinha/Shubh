@@ -12,6 +12,7 @@ import { WelcomeOverlayComponent } from './shared/welcome-overlay/welcome-overla
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TranslationService } from './core/i18n/translation.service';
 import { ThemeService } from './core/theme.service';
+import { PageTitleService } from './core/page-title.service';
 
 @Component({
   selector: 'app-root',
@@ -40,16 +41,18 @@ export class AppComponent implements OnInit {
     private publicSite: PublicSiteService,
     private router: Router,
     private i18n: TranslationService,
+    private pageTitle: PageTitleService,
     _theme: ThemeService
   ) {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => this.notePage(event.urlAfterRedirects));
     effect(() => {
+      const custom = this.pageTitle.custom();
       const brand = this.settings.current().title || 'My Stores Hubs';
       const user = this.auth.user();
       this.i18n.lang();
-      document.title = user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand;
+      document.title = custom || (user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand);
     });
   }
 
@@ -61,6 +64,7 @@ export class AppComponent implements OnInit {
       path === '/register' ||
       path === '/demo' ||
       path === '/settings' ||
+      path === '/hubs' ||
       path === '/tenants' ||
       path === '/feedback' ||
       path === '/shoppingmall' ||

@@ -31,7 +31,7 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
 
   readonly links: SuperAdminLink[] = [
     { label: 'Settings', path: '/settings', icon: 'home' },
-    { label: 'Tenants', path: '/tenants', icon: 'user-plus' },
+    { label: 'Hubs', path: '/hubs', icon: 'user-plus' },
     { label: 'Feedbacks', path: '/feedback', icon: 'user' },
   ];
 

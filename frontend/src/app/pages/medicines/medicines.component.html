@@ -101,6 +101,9 @@
         <header class="products-head">
           @if (selected) {
             <h2>{{ 'mall.purchasedFor' | t: { name: selected.name } }}</h2>
+            @if (selected.slug) {
+              <a class="store-link" [routerLink]="['/store', selected.slug]">/store/{{ selected.slug }}</a>
+            }
           } @else {
             <h2>{{ 'mall.shoppingMall' | t }}</h2>
           }
@@ -192,7 +195,7 @@
     }
   </button>
   @if (c.slug) {
-    <a class="store-link" [routerLink]="['/store', c.slug]">{{ 'mall.storeLink' | t }}</a>
+    <a class="store-link" [routerLink]="['/store', c.slug]">/store/{{ c.slug }}</a>
   }
   </div>
 </ng-template>

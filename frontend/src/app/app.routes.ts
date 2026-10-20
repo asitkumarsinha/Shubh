@@ -26,8 +26,9 @@ export const routes: Routes = [
         (m) => m.SuperAdminSettingsComponent
       ),
   },
+  { path: 'tenants', redirectTo: 'hubs' },
   {
-    path: 'tenants',
+    path: 'hubs',
     canActivate: [superAdminGuard],
     loadComponent: () =>
       import('./pages/super-admin-tenants/super-admin-tenants.component').then(
@@ -108,13 +109,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin-orders/admin-orders.component').then((m) => m.AdminOrdersComponent),
       },
+      { path: 'users', redirectTo: 'stores' },
+      { path: 'users/:id', redirectTo: 'stores/:id' },
       {
-        path: 'users',
+        path: 'stores',
         loadComponent: () =>
           import('./pages/admin-users/admin-users.component').then((m) => m.AdminUsersComponent),
       },
       {
-        path: 'users/:id',
+        path: 'stores/:id',
         loadComponent: () =>
           import('./pages/admin-client-detail/admin-client-detail.component').then(
             (m) => m.AdminClientDetailComponent

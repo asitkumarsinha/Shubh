@@ -9,7 +9,7 @@ const en: Dict = {
   'nav.dashboard': 'Dashboard',
   'nav.medicines': 'My Stores Hubs',
   'nav.orders': 'Orders',
-  'nav.clients': 'Clients',
+  'nav.clients': 'Clients / Stores',
   'nav.employee': 'Employee',
   'nav.reports': 'Reports',
   'nav.shop': 'Shop',
@@ -324,7 +324,7 @@ const en: Dict = {
   'mall.viewPurchased': 'Purchased',
   'mall.viewShop': 'Shop all products',
 
-  'desk.addClient': 'Clients',
+  'desk.addClient': 'Clients / Stores',
   'desk.viewClient': 'View Client',
   'desk.addProduct': 'Add Product',
   'desk.viewProduct': 'Orders',

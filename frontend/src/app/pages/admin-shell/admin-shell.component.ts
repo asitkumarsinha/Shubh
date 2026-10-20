@@ -31,7 +31,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   readonly sections: DeskSection[] = [
     {
       links: [
-        { label: 'desk.addClient', path: '/admin/users', icon: 'plus' },
+        { label: 'desk.addClient', path: '/admin/stores', icon: 'plus' },
         { label: 'desk.addProduct', path: '/admin/Products', icon: 'box' },
         { label: 'desk.viewProduct', path: '/admin/orders', icon: 'box' },
         { label: 'desk.topProduct', path: '/admin/reports', icon: 'star' },
@@ -49,7 +49,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       ],
     },
     {
-      links: [{ label: 'desk.cloneClient', path: '/admin/users', icon: 'copy', disabled: true }],
+      links: [{ label: 'desk.cloneClient', path: '/admin/stores', icon: 'copy', disabled: true }],
     },
   ];
 

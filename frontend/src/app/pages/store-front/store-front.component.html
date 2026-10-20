@@ -25,19 +25,31 @@
           <h1>{{ store.title || store.name }}</h1>
           @if (store.slogan) { <p>{{ store.slogan }}</p> }
           <p class="contact">{{ store.contact_email }} @if (store.contact_phone) { · {{ store.contact_phone }} }</p>
-          <button type="button" class="copy" (click)="copyLink()">{{ 'store.copy' | t }}</button>
+          <p class="store-url">
+            <a [href]="storeUrl">{{ storeUrl }}</a>
+            <button type="button" class="copy" (click)="copyLink()">{{ 'store.copy' | t }}</button>
+          </p>
         </div>
       </div>
 
+      <label class="store-search">
+        <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+        <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="storeSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
+      </label>
+
       <h2>{{ 'store.products' | t }}</h2>
       @if (error) { <p class="warn">{{ error }}</p> }
-      @if (!medicines.length) {
-        <p class="muted">This store has no products yet.</p>
+      @if (productsLoading) {
+        <p class="muted">Loading store…</p>
+      } @else if (!medicines.length) {
+        <p class="muted">{{ query.trim() ? ('catalogue.noMatch' | t) : 'This store has no products yet.' }}</p>
       } @else {
         <div class="grid">
           @for (item of medicines; track item.id) {
             <article>
-              <img [src]="imageUrl(item.image)" [alt]="item.name" loading="lazy" decoding="async" />
+              <div class="photo">
+                <img [src]="imageUrl(item.image)" [alt]="item.name" loading="lazy" decoding="async" (error)="useFallback($event)" />
+              </div>
               <h3>{{ item.name }}</h3>
               <p class="price">₹{{ item.price | number: '1.2-2' }}</p>
               <p [class.low]="item.stock < 5">{{ item.stock }} in stock</p>
@@ -47,6 +59,13 @@
             </article>
           }
         </div>
+        @if (pages > 1) {
+          <nav class="pager" aria-label="Product pages">
+            <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">{{ 'catalogue.previous' | t }}</button>
+            <span>{{ 'catalogue.pageInfo' | t: { page: page, pages: pages, total: total } }}</span>
+            <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">{{ 'catalogue.next' | t }}</button>
+          </nav>
+        }
       }
     }
   </div>
