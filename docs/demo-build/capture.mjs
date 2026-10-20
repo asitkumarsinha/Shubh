@@ -85,24 +85,50 @@ async function main() {
   });
   await context.addInitScript(() => {
     sessionStorage.setItem('msh_welcome_seen', '1');
+    localStorage.setItem('msh_bot_hidden', '1');
   });
   const page = await context.newPage();
 
-  await page.goto(`${base}/login`, { waitUntil: 'load' });
-  await snap(page, 'Create your store in 5 minutes');
-
-  await page.goto(`${base}/shoppingmall`, { waitUntil: 'load' });
+  await page.goto(`${base}/`, { waitUntil: 'load' });
   await snap(page, 'Shopping Mall — every store');
 
-  await page.goto(`${base}/store/shubh-surgical`, { waitUntil: 'load' });
-  await snap(page, 'A public store page');
+  await page.goto(`${base}/store/spices`, { waitUntil: 'load' });
+  await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'Groups inside a store');
 
-  await signIn(page, sessions['user@shubhsurgical.com']);
-  await page.goto(`${base}/shop`, { waitUntil: 'load' });
-  await snap(page, 'Stores — shop as a client');
+  await page.goto(`${base}/store/spices/turmeric-powder-46`, { waitUntil: 'load' });
+  await snap(page, 'A page for each product');
 
+  await page.goto(`${base}/store/boutique`, { waitUntil: 'load' });
+  await page.getByRole('button', { name: 'Copy a message to share' }).waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'Share the store link');
+
+  const client = sessions['user@shubhsurgical.com'];
+  await signIn(page, client);
+  const require = createRequire(path.resolve(root, '../../backend/package.json'));
+  const Database = require('better-sqlite3');
+  const db = new Database(path.resolve(root, '../../backend/data/mystoreshubs.db'), { readonly: true, fileMustExist: true });
+  const product = db.prepare(
+    'SELECT id, name, price, image, stock FROM medicines WHERE tenant_id = ? ORDER BY id LIMIT 1'
+  ).get(client.user.tenant_id);
+  db.close();
+  await page.evaluate(({ userId, product }) => {
+    localStorage.setItem(`medishop_cart_user_${userId}`, JSON.stringify([{
+      medicineId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+      stock: product.stock,
+    }]));
+  }, { userId: client.user.id, product });
   await page.goto(`${base}/cart`, { waitUntil: 'load' });
-  await snap(page, 'Cart and discount code');
+  const delivery = page.locator('input[value="delivery"]');
+  if (await delivery.count()) {
+    await delivery.check();
+    await page.locator('textarea[name="deliveryAddress"]').fill('12 Market Road, Jaipur');
+  }
+  await snap(page, 'Delivery address or pickup');
 
   await page.goto(`${base}/orders`, { waitUntil: 'load' });
   await snap(page, 'My orders');
@@ -120,7 +146,8 @@ async function main() {
   await snap(page, 'Hubs — store dashboard and Help Me');
 
   await page.goto(`${base}/admin/Products`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — products');
+  await page.getByRole('heading', { name: 'Upload many products' }).scrollIntoViewIfNeeded().catch(() => undefined);
+  await snap(page, 'Upload many products at once');
 
   await page.goto(`${base}/admin/orders`, { waitUntil: 'load' });
   await snap(page, 'Hubs — orders');
@@ -185,6 +212,8 @@ async function main() {
     '-i', audio,
     '-shortest',
     '-c:v', 'libx264',
+    '-preset', 'medium',
+    '-crf', '28',
     '-pix_fmt', 'yuv420p',
     '-c:a', 'aac',
     '-movflags', '+faststart',

@@ -93,9 +93,38 @@ export class HelpBotComponent {
         links: [{ label: 'Shopping Mall', path: '/' }],
       };
     }
-    if (has('order', 'cart', 'buy', 'checkout', 'dispatch', 'payment')) {
+    if (has('product page', 'own page', 'share link', 'whatsapp the product')) {
       return {
-        text: 'Sign in as a client, add a product to the cart, and place the order. The store accepts it and then marks it dispatched. You can watch that flow in any sample store.',
+        text: 'Every product has its own page with a photo, price, description, and a link you can send on WhatsApp.',
+        links: [{ label: 'Turmeric Powder', path: '/store/spices/turmeric-powder-46' }],
+      };
+    }
+    if (has('category', 'group', 'clothing', 'jewellery', 'blend')) {
+      return {
+        text: 'A store can group its catalogue. Spices uses Whole spices and Blends. Boutique uses Clothing, Jewellery, and Bags.',
+        links: [{ label: 'Spices', path: '/store/spices' }],
+      };
+    }
+    if (has('delivery', 'pickup', 'collect', 'address')) {
+      return {
+        text: 'At checkout the client can enter a delivery address or choose to collect from the shop. The store sees that choice on the order.',
+      };
+    }
+    if (has('invoice', 'bill download', 'download')) {
+      return { text: 'After an order is placed, the client and the store can download a one-page invoice with the items, total, and payment status.' };
+    }
+    if (has('spreadsheet', 'csv', 'upload many', 'import')) {
+      return { text: 'A store can upload a spreadsheet with columns for name, price, stock, description, and category, instead of typing each product.' };
+    }
+    if (has('share', 'instagram', 'google business')) {
+      return {
+        text: 'On the store page, Copy a message to share puts a short note and the public store link on the clipboard, ready for WhatsApp, Instagram, or a Google Business profile.',
+        links: [{ label: 'Spices', path: '/store/spices' }],
+      };
+    }
+    if (has('order', 'cart', 'buy', 'checkout', 'dispatch', 'payment', 'whatsapp')) {
+      return {
+        text: 'Sign in as a client, add a product, and choose delivery or pickup. When the order is placed, accepted, or dispatched, a WhatsApp note is ready for the shop or the client.',
       };
     }
     if (has('login', 'log in', 'sign in', 'register', 'password', 'account')) {
