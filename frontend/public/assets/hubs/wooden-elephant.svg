@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Wooden elephant">
+  <rect width="320" height="240" fill="#fef3c7"/>
+  <path d="M70 150c10-40 40-70 78-74 20-2 28 10 36 10 18 0 40 16 52 40 8 8 28 10 36 22 6 10-2 22-16 22h-16l6 28h-28l-6-28H96l-6 28H62l8-28H48c-10 0-16-12-8-22z" fill="#92400e"/>
+  <circle cx="168" cy="118" r="4" fill="#fef3c7"/>
+  <path d="M118 150v28M210 150v28" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
+</svg>

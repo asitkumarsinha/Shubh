@@ -69,6 +69,39 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api', publicRoutes);
 
+const PUBLIC_SITE = (process.env.PUBLIC_SITE_URL || 'https://www.mystoreshubs.com').replace(/\/$/, '');
+
+function xmlEscape(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+app.get('/sitemap.xml', (_req, res) => {
+  const stores = db
+    .prepare(
+      `SELECT slug FROM tenants
+       WHERE status != 'archived' AND trim(slug) != ''
+       ORDER BY name COLLATE NOCASE`
+    )
+    .all();
+  const urls = [
+    `${PUBLIC_SITE}/`,
+    `${PUBLIC_SITE}/demo`,
+    ...stores.map((row) => `${PUBLIC_SITE}/store/${encodeURIComponent(row.slug)}`),
+  ];
+  const body = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map((loc) => `  <url><loc>${xmlEscape(loc)}</loc></url>`),
+    '</urlset>',
+    '',
+  ].join('\n');
+  res.type('application/xml').send(body);
+});
+
 function resolveDistPath() {
   const candidates = [
     // Preferred: copied next to the API for hosting portals

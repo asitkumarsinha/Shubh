@@ -22,6 +22,7 @@ import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.com
 export class LoginComponent implements OnInit, OnDestroy {
   email = '';
   password = '';
+  showPassword = false;
   remember = false;
   error = '';
   loading = false;

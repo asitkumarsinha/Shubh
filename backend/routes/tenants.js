@@ -233,6 +233,22 @@ router.patch('/:id', (req, res) => {
   const current = db.prepare('SELECT * FROM tenants WHERE id = ?').get(id);
   if (!current) return res.status(404).json({ message: 'Tenant not found' });
   const body = req.body || {};
+  if (body.name != null || body.admin_name != null || body.contact_phone != null) {
+    const business = String(body.name ?? current.name).trim();
+    const userName = String(body.admin_name ?? tenantAdmin(id)?.name ?? current.contact_name ?? '').trim();
+    const mobile = String(body.contact_phone ?? current.contact_phone ?? '').trim();
+    if (!business || !userName || !mobile) {
+      return res.status(400).json({ message: 'Business name, User Name, and Mobile Number are required' });
+    }
+    body.name = business;
+    body.admin_name = userName;
+    body.contact_name = userName;
+    body.contact_phone = mobile;
+    const admin = tenantAdmin(id);
+    if (admin) {
+      db.prepare('UPDATE users SET name = ?, phone = ? WHERE id = ?').run(userName, mobile, admin.id);
+    }
+  }
   const modules = body.modules ? JSON.stringify({ ...DEFAULT_MODULES, ...body.modules }) : current.modules;
   const status = ['active', 'suspended', 'archived'].includes(body.status) ? body.status : current.status;
   let contactEmail = body.contact_email ?? current.contact_email;

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Kashmiri chilli">
+  <rect width="320" height="240" fill="#fff1f2"/>
+  <path d="M70 120c30-50 70-50 90-10 16-40 60-48 90-8-10 40-40 78-90 78S80 160 70 120z" fill="#dc2626"/>
+  <path d="M150 70c8-20 8-30 0-42" fill="none" stroke="#166534" stroke-width="6" stroke-linecap="round"/>
+</svg>

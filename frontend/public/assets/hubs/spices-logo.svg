@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Spices">
+  <rect width="64" height="64" rx="14" fill="#b45309"/>
+  <ellipse cx="32" cy="38" rx="16" ry="8" fill="#fde68a"/>
+  <path d="M16 38c0-8 7-16 16-16s16 8 16 16" fill="none" stroke="#fff7ed" stroke-width="2.4"/>
+  <circle cx="26" cy="36" r="2" fill="#dc2626"/>
+  <circle cx="34" cy="34" r="2" fill="#15803d"/>
+  <circle cx="38" cy="39" r="2" fill="#7c2d12"/>
+</svg>

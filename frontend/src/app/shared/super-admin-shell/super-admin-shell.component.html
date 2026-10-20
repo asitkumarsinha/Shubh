@@ -77,6 +77,7 @@
 
     <footer class="desk-footer">
       {{ 'login.footer' | t: { title: settings.current().title } }}
+      <span class="version">Version {{ version }}</span>
     </footer>
   </div>
 </section>
@@ -88,7 +89,7 @@
         <div>
           <p class="eyebrow">Super Admin</p>
           <h2>Log</h2>
-          <p>{{ logs.length }} records. Scroll to see every page, visit, and sign-in.</p>
+          <p>{{ logs.length }} records. Scroll to see who hit the website, then every page, visit, and sign-in.</p>
         </div>
         <button type="button" class="log-close" (click)="closeLogs()" aria-label="Close">×</button>
       </header>
@@ -98,6 +99,16 @@
       } @else if (!logs.length) {
         <p class="muted">No log records yet. Open any page and they will appear here.</p>
       } @else {
+        <h3 class="who-title">Who hit this website</h3>
+        <ul class="who-list">
+          @for (person of visitors; track person.key) {
+            <li>
+              <strong>{{ person.who }}</strong>
+              <span>{{ person.role }} · {{ person.email }}</span>
+              <span>{{ person.hits }} {{ person.hits === 1 ? 'hit' : 'hits' }} · last page {{ person.lastPath }} · {{ person.lastAt }}</span>
+            </li>
+          }
+        </ul>
         <div class="log-table">
           <table>
             <thead>

@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /hubs
+Disallow: /tenants
+Disallow: /settings
+Disallow: /feedback
+Disallow: /account
+Disallow: /cart
+Disallow: /orders
+Disallow: /shop
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://www.mystoreshubs.com/sitemap.xml

@@ -71,6 +71,15 @@
           <details>
             <summary>Subscription, store, and feature configuration</summary>
             <div class="grid config">
+              <label>Business name
+                <input [(ngModel)]="tenant.name" [name]="'business' + tenant.id" required />
+              </label>
+              <label>User Name
+                <input [(ngModel)]="tenant.admin_name" [name]="'userName' + tenant.id" required />
+              </label>
+              <label>Mobile Number
+                <input [(ngModel)]="tenant.contact_phone" [name]="'mobile' + tenant.id" required />
+              </label>
               <label>Admin email
                 <input type="email" [(ngModel)]="tenant.admin_email" [name]="'adminEmail' + tenant.id" required />
               </label>

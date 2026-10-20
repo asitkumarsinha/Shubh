@@ -85,6 +85,17 @@ export class SuperAdminTenantsComponent implements OnInit {
   }
 
   saveTenant(tenant: Tenant, patch: Partial<Tenant>, message = 'Customer configuration saved'): void {
+    if ('name' in patch || 'admin_name' in patch || 'contact_phone' in patch) {
+      const business = String(patch.name ?? '').trim();
+      const userName = String(patch.admin_name ?? '').trim();
+      const mobile = String(patch.contact_phone ?? '').trim();
+      if (!business || !userName || !mobile) {
+        this.error = 'Business name, User Name, and Mobile Number are required';
+        this.toast.error(this.error);
+        return;
+      }
+      patch = { ...patch, name: business, admin_name: userName, contact_phone: mobile, contact_name: userName };
+    }
     this.toast.beginSave();
     this.tenantsApi.update(tenant.id, patch).subscribe({
       next: (saved) => {

@@ -3,6 +3,10 @@
     <header class="mall-topbar">
       <div class="topbar-brand">
         <img class="brand-mark" [src]="displayLogo || settings.current().logo" [alt]="settings.current().title" />
+        <div class="brand-copy">
+          <h1 class="brand-name">{{ settings.current().title || 'My Stores Hubs' }}</h1>
+          <p class="brand-tag">www.mystoreshubs.com</p>
+        </div>
         <app-language-switcher variant="light" />
       </div>
 
@@ -141,6 +145,9 @@
                   </div>
                   <div class="product-info">
                     <h3>{{ m.name }}</h3>
+                    @if (m.description) {
+                      <p class="blurb">{{ m.description }}</p>
+                    }
                     <span class="price">
                       ₹{{ m.price | number: '1.2-2' }}
                       @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {

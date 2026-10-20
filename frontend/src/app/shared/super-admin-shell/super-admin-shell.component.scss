@@ -314,6 +314,49 @@
   text-transform: uppercase;
 }
 
+.version {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0f766e;
+}
+
+.who-title {
+  margin: 0 0 0.45rem;
+  color: #0f3d4c;
+  font-size: 0.95rem;
+}
+
+.who-list {
+  max-height: 11rem;
+  margin: 0 0 0.8rem;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid #e7eaee;
+  border-radius: 12px;
+}
+
+.who-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid #e7eaee;
+  color: #1f2937;
+}
+
+.who-list li:last-child {
+  border-bottom: 0;
+}
+
+.who-list span {
+  color: #5b6472;
+  font-size: 0.82rem;
+}
+
 .desk-footer {
   padding: 0.85rem 1.25rem;
   text-align: center;

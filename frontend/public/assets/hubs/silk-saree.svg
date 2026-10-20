@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Silk saree">
+  <rect width="320" height="240" fill="#fff1f2"/>
+  <path d="M70 40c40 20 50 70 40 160h40c10-90 0-140-40-160z" fill="#9f1239"/>
+  <path d="M150 50c30 30 50 80 40 150h36c8-80-10-130-36-160z" fill="#be123c"/>
+  <path d="M110 70h18v130h-18z" fill="#fbbf24"/>
+  <path d="M188 78h10v122h-10z" fill="#fde68a"/>
+</svg>

@@ -378,7 +378,10 @@ for (const [from, to, description] of productRenames) {
 
 // Attach sample catalogue images when missing or pointing at deleted uploads
 (() => {
-  const rows = db.prepare('SELECT id, name, image FROM medicines').all();
+  const rows = db.prepare(
+    `SELECT id, name, image FROM medicines
+     WHERE image IS NULL OR image = '' OR image LIKE '/uploads/%'`
+  ).all();
   const update = db.prepare('UPDATE medicines SET image = ? WHERE id = ?');
   for (const row of rows) {
     const sample = sampleImages[row.name] || '/assets/medicines/default.svg';
@@ -506,5 +509,117 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_created ON medicines(tenant_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_stock ON medicines(tenant_id, stock);
 `);
+
+// Sample hubs a visitor can open and use as a plan for a real shop.
+(() => {
+  const hubs = [
+    {
+      name: 'Boutique',
+      slug: 'boutique',
+      slogan: 'Clothing and accessories a neighbourhood boutique can sell from day one.',
+      logo: '/assets/hubs/boutique-logo.svg',
+      email: 'mira@boutique.mystoreshubs.com',
+      phone: '9800001001',
+      address: '12 Market Lane, Jaipur',
+      initial: '@boutique',
+      color: '#9f1239',
+      products: [
+        ['Silk Saree', 'Maroon silk saree with a gold border. A core piece for a clothing boutique.', 2490, 1990, '/assets/hubs/silk-saree.svg', 24],
+        ['Linen Kurta', 'Ivory linen kurta, ready to wear and easy to restock.', 890, 710, '/assets/hubs/linen-kurta.svg', 40],
+        ['Pearl Necklace', 'Single-strand pearl necklace for the accessories shelf.', 1450, 1160, '/assets/hubs/pearl-necklace.svg', 18],
+        ['Leather Tote', 'Tan leather tote for daily carry.', 1890, 1510, '/assets/hubs/leather-tote.svg', 12],
+      ],
+    },
+    {
+      name: 'Handicraft',
+      slug: 'handicraft',
+      slogan: 'Handmade pottery, wood, and textiles a craft shop can display.',
+      logo: '/assets/hubs/handicraft-logo.svg',
+      email: 'desk@handicraft.mystoreshubs.com',
+      phone: '9800001002',
+      address: '8 Craft Street, Udaipur',
+      initial: '@handicraft',
+      color: '#9a3412',
+      products: [
+        ['Blue Pottery Vase', 'Hand-painted blue pottery vase for a gift display.', 760, 610, '/assets/hubs/pottery-vase.svg', 15],
+        ['Wooden Elephant', 'Carved wooden elephant, a steady gift-shop seller.', 540, 430, '/assets/hubs/wooden-elephant.svg', 30],
+        ['Block-Print Scarf', 'Cotton scarf with a traditional block print.', 420, 340, '/assets/hubs/block-scarf.svg', 36],
+        ['Brass Diya Set', 'Set of three brass diyas for a festive shelf.', 310, 250, '/assets/hubs/brass-diya.svg', 50],
+      ],
+    },
+    {
+      name: 'Spices',
+      slug: 'spices',
+      slogan: 'Whole spices and blends packed for a retail spice shop.',
+      logo: '/assets/hubs/spices-logo.svg',
+      email: 'desk@spices.mystoreshubs.com',
+      phone: '9800001003',
+      address: '4 Spice Bazaar, Kochi',
+      initial: '@spices',
+      color: '#b45309',
+      products: [
+        ['Turmeric Powder', 'Stone-ground turmeric in a 200 g pouch.', 180, 140, '/assets/hubs/turmeric.svg', 80],
+        ['Kashmiri Chilli', 'Mild red chilli for colour and warmth, 200 g.', 220, 175, '/assets/hubs/kashmiri-chilli.svg', 60],
+        ['Green Cardamom', 'Whole green cardamom, 100 g.', 490, 390, '/assets/hubs/cardamom.svg', 40],
+        ['Garam Masala', 'House-blend garam masala, 100 g.', 160, 125, '/assets/hubs/garam-masala.svg', 70],
+      ],
+    },
+  ];
+  const findTenant = db.prepare('SELECT id FROM tenants WHERE slug = ?');
+  const findUser = db.prepare('SELECT id FROM users WHERE email = ?');
+  const insertTenant = db.prepare(
+    `INSERT INTO tenants
+     (name, slug, plan, billing_cycle, price, payment_status, contact_name, contact_email,
+      contact_phone, address, theme_color, homepage_text, login_initial, modules)
+     VALUES (?, ?, 'Basic', 'monthly', 0, 'paid', ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+  const insertSettings = db.prepare(
+    `INSERT OR IGNORE INTO tenant_settings (tenant_id, title, slogan, logo, qr_code)
+     VALUES (?, ?, ?, ?, '/assets/QR.jpeg')`
+  );
+  const insertUser = db.prepare(
+    `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
+     VALUES (?, ?, ?, 'admin', ?, ?, ?)`
+  );
+  const findProduct = db.prepare('SELECT id FROM medicines WHERE tenant_id = ? AND name = ?');
+  const insertProduct = db.prepare(
+    `INSERT INTO medicines
+     (name, description, price, wholesale_price, image, stock, created_by, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+  const insertCoupon = db.prepare(
+    `INSERT OR IGNORE INTO coupons (tenant_id, code, kind, value) VALUES (?, 'SAVE10', 'percent', 10)`
+  );
+  const modules = JSON.stringify({
+    wholesale: true, employees: true, reports: true, qrCheckout: true, coupons: true, prescriptions: false,
+  });
+  const create = db.transaction(() => {
+    for (const hub of hubs) {
+      let tenant = findTenant.get(hub.slug);
+      if (!tenant) {
+        const created = insertTenant.run(
+          hub.name, hub.slug, hub.name, hub.email, hub.phone, hub.address,
+          hub.color, hub.slogan, hub.initial, modules
+        );
+        tenant = { id: Number(created.lastInsertRowid) };
+      }
+      insertSettings.run(tenant.id, hub.name, hub.slogan, hub.logo);
+      let owner = findUser.get(hub.email);
+      if (!owner) {
+        const created = insertUser.run(
+          hub.name, hub.email, bcrypt.hashSync('HubDemo2026', 10), hub.phone, hub.address, tenant.id
+        );
+        owner = { id: Number(created.lastInsertRowid) };
+      }
+      for (const [name, description, price, wholesale, image, stock] of hub.products) {
+        if (!findProduct.get(tenant.id, name)) {
+          insertProduct.run(name, description, price, wholesale, image, stock, owner.id, tenant.id);
+        }
+      }
+      insertCoupon.run(tenant.id);
+    }
+  });
+  create();
+})();
 
 module.exports = db;

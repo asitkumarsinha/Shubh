@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Garam masala">
+  <rect width="320" height="240" fill="#fff7ed"/>
+  <ellipse cx="160" cy="150" rx="78" ry="28" fill="#7c2d12"/>
+  <ellipse cx="160" cy="142" rx="70" ry="22" fill="#9a3412"/>
+  <circle cx="130" cy="140" r="6" fill="#eab308"/>
+  <circle cx="156" cy="132" r="5" fill="#dc2626"/>
+  <circle cx="182" cy="140" r="6" fill="#15803d"/>
+  <circle cx="168" cy="150" r="4" fill="#fde68a"/>
+  <path d="M118 118c12-28 72-28 84 0" fill="none" stroke="#44403c" stroke-width="6" stroke-linecap="round"/>
+</svg>

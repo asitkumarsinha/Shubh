@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { PublicCtaComponent } from '../public-cta/public-cta.component';
 import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
+import { APP_VERSION } from '../../version';
 
 interface SuperAdminLink {
   label: string;
@@ -28,6 +29,7 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   logsLoading = false;
   logsError = '';
   logs: SiteActivity[] = [];
+  readonly version = APP_VERSION;
 
   readonly links: SuperAdminLink[] = [
     { label: 'Settings', path: '/settings', icon: 'home' },
@@ -90,6 +92,44 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     if (role === 'admin') return 'Customer';
     if (role === 'user') return 'Client';
     return role || 'Guest';
+  }
+
+  get visitors(): Array<{
+    key: string;
+    who: string;
+    email: string;
+    role: string;
+    hits: number;
+    lastAt: string;
+    lastPath: string;
+  }> {
+    const people = new Map<string, {
+      key: string;
+      who: string;
+      email: string;
+      role: string;
+      hits: number;
+      lastAt: string;
+      lastPath: string;
+    }>();
+    for (const row of this.logs) {
+      const key = `${row.email || row.ip || 'guest'}|${row.role || ''}`;
+      const current = people.get(key);
+      if (!current) {
+        people.set(key, {
+          key,
+          who: row.name || 'Guest',
+          email: row.email || '—',
+          role: this.roleLabel(row.role),
+          hits: 1,
+          lastAt: row.created_at,
+          lastPath: row.path || '—',
+        });
+      } else {
+        current.hits += 1;
+      }
+    }
+    return [...people.values()];
   }
 
   browserLabel(agent: string): string {

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Blue pottery vase">
+  <rect width="320" height="240" fill="#eff6ff"/>
+  <path d="M140 36h40l8 28c28 10 36 40 28 78-8 36-24 58-56 58s-48-22-56-58c-8-38 0-68 28-78z" fill="#1d4ed8"/>
+  <path d="M132 96h56M128 120h64M136 146h48" stroke="#bfdbfe" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="160" cy="202" rx="36" ry="8" fill="#1e3a8a"/>
+</svg>

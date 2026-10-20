@@ -2,7 +2,12 @@ import { Routes } from '@angular/router';
 import { authGuard, adminGuard, superAdminGuard, guestGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/medicines/medicines.component').then((m) => m.MedicinesComponent),
+  },
   {
     path: 'login',
     canActivate: [guestGuard],

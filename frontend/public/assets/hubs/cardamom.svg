@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Green cardamom">
+  <rect width="320" height="240" fill="#f0fdf4"/>
+  <g fill="#15803d">
+    <ellipse cx="120" cy="120" rx="28" ry="48" transform="rotate(-20 120 120)"/>
+    <ellipse cx="176" cy="112" rx="26" ry="46" transform="rotate(12 176 112)"/>
+    <ellipse cx="220" cy="132" rx="22" ry="40" transform="rotate(-8 220 132)"/>
+  </g>
+  <g stroke="#bbf7d0" stroke-width="2" fill="none">
+    <path d="M108 100v48M168 90v50M214 112v40"/>
+  </g>
+</svg>

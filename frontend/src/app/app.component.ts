@@ -13,6 +13,7 @@ import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TranslationService } from './core/i18n/translation.service';
 import { ThemeService } from './core/theme.service';
 import { PageTitleService } from './core/page-title.service';
+import { HelpBotComponent } from './shared/help-bot/help-bot.component';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ import { PageTitleService } from './core/page-title.service';
     AppDialogComponent,
     LanguageSwitcherComponent,
     WelcomeOverlayComponent,
+    HelpBotComponent,
     TranslatePipe,
   ],
   templateUrl: './app.component.html',
@@ -48,11 +50,11 @@ export class AppComponent implements OnInit {
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => this.notePage(event.urlAfterRedirects));
     effect(() => {
-      const custom = this.pageTitle.custom();
-      const brand = this.settings.current().title || 'My Stores Hubs';
-      const user = this.auth.user();
+      this.pageTitle.custom();
+      this.settings.current();
+      this.auth.user();
       this.i18n.lang();
-      document.title = custom || (user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand);
+      this.syncSeo(this.router.url);
     });
   }
 
@@ -84,6 +86,7 @@ export class AppComponent implements OnInit {
 
   private notePage(url: string): void {
     const path = (url || '/').split('?')[0] || '/';
+    this.syncSeo(path);
     if (path === this.lastLoggedPath) return;
     this.lastLoggedPath = path;
     if (!sessionStorage.getItem('site_hit')) {
@@ -92,5 +95,52 @@ export class AppComponent implements OnInit {
       return;
     }
     this.publicSite.recordPage(path).subscribe({ error: () => undefined });
+  }
+
+  /** Public pages are what Google should list for www.mystoreshubs.com. */
+  private isPublicPage(path: string): boolean {
+    return path === '/' || path === '/shoppingmall' || path === '/demo' || path.startsWith('/store/');
+  }
+
+  private syncSeo(url: string): void {
+    const path = (url || '/').split('?')[0] || '/';
+    const brand = this.settings.current().title || 'My Stores Hubs';
+    const custom = this.pageTitle.custom();
+    const indexed = this.isPublicPage(path);
+    const user = this.auth.user();
+    const title = indexed
+      ? custom || brand
+      : custom || (user ? `${user.name} - ${this.i18n.t(this.auth.categoryKey())}` : brand);
+    const description = path.startsWith('/store/') && custom && custom !== brand
+      ? `${custom} on My Stores Hubs. Shop this store at www.mystoreshubs.com.`
+      : 'My Stores Hubs at www.mystoreshubs.com is a shopping mall of stores. Browse products and open a store.';
+    const canonical = path.startsWith('/store/')
+      ? `https://www.mystoreshubs.com${path}`
+      : path === '/demo'
+        ? 'https://www.mystoreshubs.com/demo'
+        : 'https://www.mystoreshubs.com/';
+    document.title = title;
+    this.setMeta('description', description);
+    this.setMeta('robots', indexed ? 'index, follow' : 'noindex, nofollow');
+    this.setMeta('og:title', title, 'property');
+    this.setMeta('og:description', description, 'property');
+    this.setMeta('og:url', canonical, 'property');
+    let link = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'canonical';
+      document.head.appendChild(link);
+    }
+    link.href = canonical;
+  }
+
+  private setMeta(name: string, content: string, attr: 'name' | 'property' = 'name'): void {
+    let el = document.head.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attr, name);
+      document.head.appendChild(el);
+    }
+    el.content = content;
   }
 }

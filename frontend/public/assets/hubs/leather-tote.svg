@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Leather tote">
+  <rect width="320" height="240" fill="#faf5ef"/>
+  <path d="M90 70h140l16 120H74z" fill="#b45309"/>
+  <path d="M120 70c0-22 18-36 40-36s40 14 40 36" fill="none" stroke="#7c2d12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M110 110h100" stroke="#fde68a" stroke-width="4"/>
+</svg>

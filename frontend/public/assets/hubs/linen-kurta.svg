@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Linen kurta">
+  <rect width="320" height="240" fill="#faf7f2"/>
+  <path d="M118 36l42 16 42-16 28 28-24 16v120H114V80L90 64z" fill="#e7e5e4" stroke="#a8a29e" stroke-width="3"/>
+  <path d="M150 52v28" stroke="#a8a29e" stroke-width="3" stroke-linecap="round"/>
+</svg>

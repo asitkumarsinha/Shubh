@@ -67,6 +67,26 @@ function getOutboxHtml(id) {
 
 const envPath = path.join(__dirname, '.env');
 
+function mailConfigPath() {
+  if (process.env.SQLITE_PATH) {
+    return path.join(path.dirname(process.env.SQLITE_PATH), 'mail.env');
+  }
+  return envPath;
+}
+
+function readEnvFile(file) {
+  const current = {};
+  if (!fs.existsSync(file)) return current;
+  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+    const match = line.match(/^([A-Za-z0-9_]+)=(.*)$/);
+    if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
+    if (match) current[match[1]] = match[2];
+  }
+  return current;
+}
+
+readEnvFile(mailConfigPath());
+
 function hasSmtpConfig() {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS);
 }
@@ -86,13 +106,8 @@ function saveSmtpAccount({ user, pass }) {
     throw err;
   }
 
-  const current = {};
-  if (fs.existsSync(envPath)) {
-    for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^([A-Za-z0-9_]+)=(.*)$/);
-      if (match) current[match[1]] = match[2];
-    }
-  }
+  const file = mailConfigPath();
+  const current = readEnvFile(file);
   current.SMTP_SERVICE = 'gmail';
   current.SMTP_USER = email;
   current.SMTP_PASS = password;
@@ -100,7 +115,8 @@ function saveSmtpAccount({ user, pass }) {
   const text = Object.entries(current)
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
-  fs.writeFileSync(envPath, `${text}\n`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${text}\n`);
 
   process.env.SMTP_SERVICE = 'gmail';
   process.env.SMTP_USER = email;

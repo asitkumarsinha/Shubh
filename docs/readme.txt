@@ -501,3 +501,47 @@ In 'http://localhost:4200/login' page
 'Who We Are — MyStoresHubs' fix horizontal size same as above login screen. fix responsive and better look of this pages
 
 In demo m New music not working as per uploaded sample file, fix it
+
+
+------------
+In tenants page , replace 'Contact phone' with Mobile Number'
+'First administrator' replace with 'User Name'
+'Business Name' replace with 
+
+
+In 'http://localhost:4200/admin/users' 
+'Full Name' replace with 'User Name'
+replace 'Phone' with Mobile Number'
+'Clients' replace with 'Clients / Stores'
+
+ 'http://localhost:4200/admin/users'  replace with  'http://localhost:4200/admin/stores' 
+
+
+'http://localhost:4200/tenants' replace with
+'http://localhost:4200/hubs'
+'Customers & tenants' replace with 'Hubs - Customers & tenants'
+
+git commit and push the code
+
+
+In admin page, when click on 'Log' add more details, who hit this website
+In 'https://www.mystoreshubs.com/login' password add 'Eye' icon, when click on icon see the password
+In 'https://www.mystoreshubs.com/settings' page add Version in 'Footer', after every code deploy add version example 1.0.1
+Show low stock and the best sellers on the store’s phone 
+Make email actually arrive Order and report mail is saved on the server and is not delivered. On the Reports page, enter the Gmail address and a Gmail app password. After that, the client and the store get mail when an order is placed, accepted, and dispatched.
+In 'https://www.mystoreshubs.com/hubs' Super admin can change the 'Business name', 'User Name','Mobile Number' all required field Super admin can update
+
+
+Help me for google ranking 
+
+Create 3 hubs Test data, with proper images 
+1- boutique
+2- Handicraft
+3- Spices
+like vistor can visit and see the real data and plan for their business
+
+add Bot, this Bot icon show left hand down side, if user want to close this bot icon so they can also do.
+Bot can help to new user. User can ask question about MyStoresHubs and Bot reply.
+if any question, out of scope, then Bot reply politley
+
+compress and optimize the code to improve the performance and git commit and push

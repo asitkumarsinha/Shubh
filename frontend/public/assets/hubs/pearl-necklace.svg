@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Pearl necklace">
+  <rect width="320" height="240" fill="#f8fafc"/>
+  <path d="M70 70c40 90 140 90 180 0" fill="none" stroke="#e2e8f0" stroke-width="8"/>
+  <g fill="#f8fafc" stroke="#cbd5e1" stroke-width="2">
+    <circle cx="90" cy="92" r="8"/><circle cx="118" cy="118" r="8"/><circle cx="150" cy="136" r="8"/>
+    <circle cx="180" cy="136" r="8"/><circle cx="210" cy="116" r="8"/><circle cx="236" cy="90" r="8"/>
+  </g>
+  <circle cx="165" cy="156" r="12" fill="#fecdd3" stroke="#9f1239" stroke-width="2"/>
+</svg>

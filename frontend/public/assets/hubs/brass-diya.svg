@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Brass diya set">
+  <rect width="320" height="240" fill="#fffbeb"/>
+  <g fill="#d97706">
+    <ellipse cx="90" cy="150" rx="36" ry="16"/>
+    <ellipse cx="160" cy="156" rx="42" ry="18"/>
+    <ellipse cx="230" cy="150" rx="36" ry="16"/>
+  </g>
+  <g fill="#f59e0b">
+    <path d="M90 134c8-18 8-18 0-36 8 18 8 18 0 36z"/>
+    <path d="M160 136c10-22 10-22 0-44 10 22 10 22 0 44z"/>
+    <path d="M230 134c8-18 8-18 0-36 8 18 8 18 0 36z"/>
+  </g>
+</svg>

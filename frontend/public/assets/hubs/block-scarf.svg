@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Block-print scarf">
+  <rect width="320" height="240" fill="#f0fdf4"/>
+  <path d="M70 30h150l30 180H100z" fill="#166534"/>
+  <path d="M96 48h130M108 78h120M118 108h112M128 138h104M138 168h96" stroke="#bbf7d0" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="150" cy="108" r="8" fill="#fde68a"/>
+  <circle cx="190" cy="140" r="8" fill="#fde68a"/>
+</svg>
