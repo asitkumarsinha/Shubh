@@ -1,18 +1,16 @@
 const express = require('express');
-const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate, requireSuperAdmin, optionalUser } = require('../middleware/auth');
-const { imageFileFilter, safeImageExt } = require('../uploads');
+const { imageFileFilter, safeImageExt, ensureUploadDir, unlinkStored } = require('../uploads');
 
 const router = express.Router();
-const uploadDir = path.join(__dirname, '..', 'uploads');
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadDir),
+    destination: (_req, _file, cb) => cb(null, ensureUploadDir()),
     filename: (_req, file, cb) => {
       cb(null, `${uuidv4()}${safeImageExt(file.originalname)}`);
     },
@@ -128,7 +126,7 @@ router.put(
 const AUDIO_EXT = new Set(['.mp3', '.wav', '.m4a', '.mp4', '.ogg', '.aac', '.webm', '.flac']);
 const audioUpload = multer({
   storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadDir),
+    destination: (_req, _file, cb) => cb(null, ensureUploadDir()),
     filename: (_req, file, cb) => {
       const ext = path.extname(file.originalname || '').toLowerCase();
       cb(null, `demo-music-${Date.now()}${AUDIO_EXT.has(ext) ? ext : '.mp3'}`);
@@ -159,8 +157,8 @@ router.post('/demo-music', authenticate, requireSuperAdmin, audioUpload.single('
   if (!req.file) return res.status(400).json({ message: 'Choose a music file' });
   const previous = demoMusicRow.get();
   const music = `/uploads/${req.file.filename}`;
-  if (previous?.demo_music && previous.demo_music.startsWith('/uploads/') && previous.demo_music !== music) {
-    fs.rmSync(path.join(uploadDir, path.basename(previous.demo_music)), { force: true });
+  if (previous?.demo_music && previous.demo_music !== music) {
+    unlinkStored(previous.demo_music);
   }
   saveDemoMusic.run(music);
   res.json({ music });

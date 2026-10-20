@@ -3,10 +3,11 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 
+const { ensureUploadDir, storedFilePath } = require('./uploads');
+
 const dataDir = path.join(__dirname, 'data');
-const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+ensureUploadDir();
 
 const dbFile = process.env.SQLITE_PATH || path.join(dataDir, 'mystoreshubs.db');
 if (process.env.SQLITE_PATH) {
@@ -386,8 +387,7 @@ for (const [from, to, description] of productRenames) {
       continue;
     }
     if (row.image.startsWith('/uploads/')) {
-      const diskPath = path.join(__dirname, row.image.replace(/^\//, ''));
-      if (!fs.existsSync(diskPath)) {
+      if (!fs.existsSync(storedFilePath(row.image))) {
         update.run(sample, row.id);
       }
     }

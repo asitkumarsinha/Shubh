@@ -1,19 +1,16 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate, requireAdmin, requireTenantLimit, optionalUser } = require('../middleware/auth');
 const { decorateMedicine } = require('../pricing');
 const { pageQuery, pagePayload } = require('../paging');
-const { imageFileFilter, safeImageExt } = require('../uploads');
+const { imageFileFilter, safeImageExt, ensureUploadDir, unlinkStored } = require('../uploads');
 
 const router = express.Router();
-const uploadDir = path.join(__dirname, '..', 'uploads');
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
+  destination: (_req, _file, cb) => cb(null, ensureUploadDir()),
   filename: (_req, file, cb) => {
     cb(null, `${uuidv4()}${safeImageExt(file.originalname)}`);
   },
@@ -96,10 +93,7 @@ router.put('/:id', authenticate, requireAdmin, upload.single('image'), (req, res
   const { name, description, price, wholesale_price, stock } = req.body;
   let image = existing.image;
   if (req.file) {
-    if (existing.image) {
-      const oldPath = path.join(__dirname, '..', existing.image.replace(/^\//, ''));
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
+    unlinkStored(existing.image);
     image = `/uploads/${req.file.filename}`;
   }
 
@@ -139,10 +133,7 @@ router.patch('/:id/restock', authenticate, requireAdmin, (req, res) => {
 router.delete('/:id', authenticate, requireAdmin, (req, res) => {
   const existing = db.prepare('SELECT * FROM medicines WHERE id = ? AND tenant_id = ?').get(req.params.id, req.user.tenant_id);
   if (!existing) return res.status(404).json({ message: 'Medicine not found' });
-  if (existing.image) {
-    const imgPath = path.join(__dirname, '..', existing.image.replace(/^\//, ''));
-    if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-  }
+  unlinkStored(existing.image);
   db.prepare('DELETE FROM medicines WHERE id = ? AND tenant_id = ?').run(req.params.id, req.user.tenant_id);
   res.json({ message: 'Medicine deleted' });
 });
