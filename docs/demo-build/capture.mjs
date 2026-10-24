@@ -140,29 +140,42 @@ async function main() {
     await snap(page, 'Order bill for the client');
   }
 
+  await page.goto(`${base}/shop`, { waitUntil: 'load' });
+  await snap(page, 'Shop — print or download the product grid');
+
   await signOut(page);
   await signIn(page, sessions['admin@shubhsurgical.com']);
-  await page.goto(`${base}/admin/customers_tenats`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — store dashboard and Help Me');
+  await page.goto(`${base}/admin/hubs`, { waitUntil: 'load' });
+  await snap(page, 'Hub home — orders, revenue, and pending bills');
 
-  await page.goto(`${base}/admin/Products`, { waitUntil: 'load' });
-  await page.getByRole('heading', { name: 'Upload many products' }).scrollIntoViewIfNeeded().catch(() => undefined);
-  await snap(page, 'Upload many products at once');
+  await page.goto(`${base}/admin/stores`, { waitUntil: 'load' });
+  await snap(page, 'Hub stores — print or download the list');
+
+  await page.goto(`${base}/admin/clone`, { waitUntil: 'load' });
+  await snap(page, 'Clone a store under a unique name');
+
+  await page.goto(`${base}/admin/products`, { waitUntil: 'load' });
+  await snap(page, 'Search products');
+
+  await page.goto(`${base}/admin/AddProducts`, { waitUntil: 'load' });
+  await page.getByRole('heading', { name: /product/i }).first().waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'Add or import products');
 
   await page.goto(`${base}/admin/orders`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — orders');
+  await snap(page, 'Hub orders — print or download the grid');
 
-  await page.goto(`${base}/orders/11`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — order bill with the same desk');
-
-  await page.goto(`${base}/admin/users`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — clients');
+  const hubBill = page.locator('a[href^="/orders/"]').first();
+  if (await hubBill.count()) {
+    await hubBill.click();
+    await page.waitForLoadState('load');
+    await snap(page, 'Invoice from the bill column');
+  }
 
   await page.goto(`${base}/admin/employees`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — employees');
+  await snap(page, 'Employees — print or download');
 
   await page.goto(`${base}/admin/reports`, { waitUntil: 'load' });
-  await snap(page, 'Hubs — reports and email');
+  await snap(page, 'Reports — sales, low stock, and email');
 
   await signOut(page);
   await signIn(page, sessions['asitkumarsinha@gmail.com']);

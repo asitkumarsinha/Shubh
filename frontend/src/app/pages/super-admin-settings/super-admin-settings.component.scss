@@ -65,7 +65,8 @@ input[type='color'] {
 .brand-preview {
   width: 92px;
   height: 92px;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
   margin: 0.6rem auto;
 }
 
@@ -76,7 +77,7 @@ input[type='color'] {
 .preview-title {
   margin: 0.5rem 0;
   color: #fff;
-  font-family: var(--preview-font, inherit), 'IBM Plex Sans', sans-serif;
+  font-family: var(--preview-font, inherit), sans-serif;
 }
 
 .preview-slogan {
@@ -103,15 +104,16 @@ input[type='color'] {
 }
 
 .hit-card {
-  min-width: 9rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  background: var(--glass);
-  text-align: right;
-  color: inherit;
+  min-width: 11rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  color: #111827;
   cursor: pointer;
   font: inherit;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
 
 .hit-card:hover {
@@ -129,7 +131,7 @@ input[type='color'] {
 }
 
 .hits-dialog {
-  width: min(72rem, 100%);
+  width: min(96rem, 100%);
   max-height: min(86vh, 46rem);
   display: flex;
   flex-direction: column;
@@ -148,13 +150,30 @@ input[type='color'] {
   margin-bottom: 0.8rem;
 }
 
-.hits-dialog h2 {
-  margin: 0.15rem 0;
+.hits-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.hits-dialog p {
+.hits-logo {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.hits-dialog h2,
+.hits-dialog .eyebrow {
+  margin: 0.15rem 0;
+  color: #111827;
+}
+
+.hits-dialog p,
+.hits-dialog .muted {
   margin: 0;
-  color: #5b6472;
+  color: #374151;
 }
 
 .hits-close {
@@ -190,6 +209,7 @@ input[type='color'] {
   border-bottom: 1px solid #e7eaee;
   text-align: left;
   white-space: nowrap;
+  color: #111827;
 }
 
 .hits-table th {
@@ -205,16 +225,17 @@ input[type='color'] {
 
 .hit-card span {
   display: block;
-  color: #6b7280 !important;
-  font-size: 0.78rem;
+  color: #111827 !important;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .hit-card strong {
   color: #111827 !important;
-  font-size: 1.7rem;
+  font-size: 1.9rem;
+  line-height: 1.1;
 }
 
 .qr-preview {

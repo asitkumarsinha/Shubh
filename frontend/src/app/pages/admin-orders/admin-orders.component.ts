@@ -5,13 +5,16 @@ import { RouterLink } from '@angular/router';
 import { OrderService, saveDownload } from '../../core/order.service';
 import { Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { itemCount, matchesOrderQuery, receivingState, receivingText, sortOrders } from './order-grid';
+import { GridSection, inr } from '../../core/grid-export';
+import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 
 type ActionStatus = 'pending' | 'approved' | 'dispatched' | 'rejected';
 
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, GridActionsComponent],
   templateUrl: './admin-orders.component.html',
   styleUrl: './admin-orders.component.scss',
 })
@@ -26,6 +29,30 @@ export class AdminOrdersComponent implements OnInit {
   couponCode = '';
   couponKind: 'percent' | 'amount' = 'percent';
   couponValue = 10;
+  query = '';
+  newestFirst = true;
+  readonly itemCount = itemCount;
+  readonly receivingText = receivingText;
+  readonly receivingState = receivingState;
+
+  get gridSections(): GridSection[] {
+    return [{
+      title: 'Orders',
+      headers: ['Bill', 'Date', 'Client', 'Contact', 'Total', 'Items', 'Receiving', 'State', 'Status', 'Payment'],
+      rows: this.visibleOrders.map((order) => [
+        order.bill_number,
+        order.created_at,
+        order.user?.name || '',
+        order.user?.phone || order.user?.email || '',
+        inr(order.total),
+        String(itemCount(order.items)),
+        receivingText(order),
+        receivingState(order),
+        order.status,
+        order.payment_status || '',
+      ]),
+    }];
+  }
 
   readonly actionOptions: Array<{ value: ActionStatus; label: string }> = [
     { value: 'pending', label: 'Pending' },
@@ -64,12 +91,6 @@ export class AdminOrdersComponent implements OnInit {
     });
   }
 
-  paymentLabel(method: Order['payment_method']): string {
-    if (method === 'cod') return 'Cash on delivery';
-    if (method === 'counter') return 'Pay at counter';
-    return 'UPI QR';
-  }
-
   loadCoupons(): void {
     this.orderService.coupons().subscribe({
       next: (result) => {
@@ -106,6 +127,13 @@ export class AdminOrdersComponent implements OnInit {
       },
       error: () => (this.loading = false),
     });
+  }
+
+  get visibleOrders(): Order[] {
+    return sortOrders(
+      this.orders.filter((order) => matchesOrderQuery(order, this.query)),
+      this.newestFirst
+    );
   }
 
   setFilter(status: string): void {

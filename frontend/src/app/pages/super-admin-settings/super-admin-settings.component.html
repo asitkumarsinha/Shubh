@@ -94,10 +94,13 @@
   <div class="hits-backdrop" (click)="closeHits()">
     <section class="hits-dialog" role="dialog" aria-modal="true" aria-label="Website hit details" (click)="$event.stopPropagation()">
       <header>
-        <div>
-          <p class="eyebrow">Super Admin</p>
-          <h2>Website hits</h2>
-          <p>{{ activity.length }} records · {{ hits }} total visits. Scroll the list for every visit and sign-in.</p>
+        <div class="hits-title">
+          <img class="hits-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
+          <div>
+            <p class="eyebrow">Super Admin</p>
+            <h2>Website hits</h2>
+            <p>{{ activity.length }} records · {{ hits }} total visits. Scroll the list for every visit and sign-in.</p>
+          </div>
         </div>
         <button type="button" class="hits-close" (click)="closeHits()" aria-label="Close">×</button>
       </header>
@@ -118,6 +121,15 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>IP address</th>
+                <th>Hostname</th>
+                <th>ASN</th>
+                <th>ISP</th>
+                <th>Services</th>
+                <th>Country</th>
+                <th>State/Region</th>
+                <th>City</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
                 <th>Browser</th>
                 <th>Page</th>
               </tr>
@@ -131,6 +143,15 @@
                   <td>{{ row.email || '—' }}</td>
                   <td>{{ roleLabel(row.role) }}</td>
                   <td>{{ row.ip || '—' }}</td>
+                  <td>{{ row.hostname || '—' }}</td>
+                  <td>{{ row.asn || '—' }}</td>
+                  <td>{{ row.isp || '—' }}</td>
+                  <td>{{ row.services || '—' }}</td>
+                  <td>{{ row.country || '—' }}</td>
+                  <td>{{ row.region || '—' }}</td>
+                  <td>{{ row.city || '—' }}</td>
+                  <td>{{ row.latitude || '—' }}</td>
+                  <td>{{ row.longitude || '—' }}</td>
                   <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
                   <td>{{ row.path || '—' }}</td>
                 </tr>

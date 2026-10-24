@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { OrderService, saveDownload } from '../../core/order.service';
 import { Order } from '../../core/models';
+import { GridSection, inr } from '../../core/grid-export';
+import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 import { DialogService } from '../../core/dialog.service';
 import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -11,13 +13,28 @@ import { ClientShellComponent } from '../../shared/client-shell/client-shell.com
 @Component({
   selector: 'app-my-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, ClientShellComponent, GridActionsComponent],
   templateUrl: './my-orders.component.html',
   styleUrl: './my-orders.component.scss',
 })
 export class MyOrdersComponent implements OnInit {
   orders: Order[] = [];
   loading = true;
+
+  get gridSections(): GridSection[] {
+    return [{
+      title: 'My orders',
+      headers: ['Bill', 'Status', 'Payment', 'PO', 'Total', 'Items'],
+      rows: this.orders.map((order) => [
+        order.bill_number,
+        order.status,
+        order.payment_status || '',
+        order.po_number || '',
+        inr(order.total),
+        order.items.map((item) => `${item.medicine_name} x${item.quantity}`).join('; '),
+      ]),
+    }];
+  }
 
   constructor(
     private orderService: OrderService,

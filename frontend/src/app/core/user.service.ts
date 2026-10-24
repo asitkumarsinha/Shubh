@@ -43,6 +43,10 @@ export class UserService {
     return this.http.patch<AdminUserDetail>(`${this.api}/${id}`, payload);
   }
 
+  clone(id: number, name: string): Observable<AdminUserDetail> {
+    return this.http.post<AdminUserDetail>(`${this.api}/${id}/clone`, { name });
+  }
+
   exportCsv(): Observable<Blob> {
     return this.http.get(`${this.api}/export`, { responseType: 'blob' });
   }

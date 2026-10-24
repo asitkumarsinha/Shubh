@@ -1,66 +1,71 @@
-<section class="page">
-  <header class="page-head">
+<section class="orders">
+  <header class="orders-head">
     <div>
       <h1>Orders</h1>
-      <p>Dispensary desk — verify payment, approve PO, or dispatch.</p>
+      <p>Manage and track incoming orders for your hub.</p>
     </div>
+    <app-grid-actions file="orders" [sections]="gridSections" />
   </header>
 
   @if (error) { <div class="toast bad">{{ error }}</div> }
 
-  <div class="filters">
-    <button class="btn ghost" [class.active]="filter === ''" (click)="setFilter('')">All</button>
-    <button class="btn ghost" [class.active]="filter === 'pending'" (click)="setFilter('pending')">Pending</button>
-    <button class="btn ghost" [class.active]="filter === 'approved'" (click)="setFilter('approved')">Approved</button>
-    <button class="btn ghost" [class.active]="filter === 'dispatched'" (click)="setFilter('dispatched')">Dispatched</button>
-    <button class="btn ghost" [class.active]="filter === 'rejected'" (click)="setFilter('rejected')">Rejected</button>
-    <button class="btn ghost" [class.active]="filter === 'cancelled'" (click)="setFilter('cancelled')">Cancelled</button>
+  <div class="toolbar">
+    <div class="tabs">
+      <button type="button" [class.on]="filter === ''" (click)="setFilter('')">All</button>
+      <button type="button" [class.on]="filter === 'pending'" (click)="setFilter('pending')">Unfulfilled</button>
+      <button type="button" [class.on]="filter === 'approved'" (click)="setFilter('approved')">Ready to collect</button>
+      <button type="button" [class.on]="filter === 'dispatched'" (click)="setFilter('dispatched')">Completed</button>
+      <button type="button" [class.on]="filter === 'cancelled'" (click)="setFilter('cancelled')">Cancelled</button>
+    </div>
+    <label class="search">
+      <span class="sr">Search orders</span>
+      <input [(ngModel)]="query" name="orderSearch" placeholder="Search orders..." />
+    </label>
+    <label class="sort">
+      Sort
+      <select [(ngModel)]="newestFirst" name="orderSort">
+        <option [ngValue]="true">Newest</option>
+        <option [ngValue]="false">Oldest</option>
+      </select>
+    </label>
   </div>
 
   @if (loading) {
-    <div class="skeleton-list" aria-label="Loading orders">
-      <span class="skeleton"></span>
-      <span class="skeleton"></span>
-    </div>
-  } @else if (orders.length === 0) {
-    <div class="empty-state glass-card">
-      <p>No orders in this view.</p>
-    </div>
+    <p class="muted">Loading orders…</p>
+  } @else if (visibleOrders.length === 0) {
+    <p class="muted">No orders in this view.</p>
   } @else {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Bill</th>
-            <th>User</th>
+            <th>Client</th>
             <th>Total</th>
-            <th>Payment</th>
+            <th>Receiving</th>
             <th>Status</th>
-            <th>Action</th>
-            <th>PO</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (o of orders; track o.id) {
+          @for (o of visibleOrders; track o.id) {
             <tr>
-              <td>{{ o.bill_number }}</td>
               <td>
-                <div>{{ o.user?.name }}</div>
-                <small>{{ o.user?.email }}</small>
-                <small>
-                  @if (o.fulfillment === 'delivery') { Deliver to {{ o.delivery_address }} }
-                  @else { Collect from the shop }
-                </small>
+                <a class="bill" [routerLink]="['/orders', o.id]">#{{ o.bill_number }}</a>
+                <span>{{ o.created_at | date: 'MMM d, y, h:mm a' }}</span>
               </td>
-              <td>₹{{ o.total | number: '1.2-2' }}</td>
               <td>
-                <div>{{ paymentLabel(o.payment_method) }}</div>
-                <button class="btn ghost pay-btn" type="button" [disabled]="o.payment_status === 'paid' || updatingId === o.id" (click)="markPaid(o)">
-                  {{ o.payment_status === 'paid' ? 'Paid' : 'Payment received' }}
-                </button>
+                <strong>{{ o.user?.name }}</strong>
+                <span>{{ o.user?.phone || o.user?.email }}</span>
               </td>
-              <td><span class="badge" [attr.data-status]="o.status">{{ o.status }}</span></td>
+              <td>
+                <strong>₹{{ o.total | number: '1.2-2' }}</strong>
+                <span>{{ itemCount(o.items) }} {{ itemCount(o.items) === 1 ? 'item' : 'items' }}</span>
+              </td>
+              <td>
+                <strong>{{ receivingText(o) }}</strong>
+                <span class="chip">{{ receivingState(o) }}</span>
+              </td>
               <td>
                 <select
                   class="action-select"
@@ -72,13 +77,14 @@
                     <option [ngValue]="opt.value">{{ opt.label }}</option>
                   }
                 </select>
+                <button class="linkish" type="button" [disabled]="o.payment_status === 'paid' || updatingId === o.id" (click)="markPaid(o)">
+                  {{ o.payment_status === 'paid' ? 'Paid' : 'Mark paid' }}
+                </button>
               </td>
-              <td>{{ o.po_number || '—' }}</td>
-              <td>
-                <a class="btn ghost" [routerLink]="['/orders', o.id]">Bill / QR</a>
+              <td class="actions">
                 <button class="btn ghost" type="button" (click)="download(o)">Invoice</button>
-                @if ((o.status === 'approved' || o.status === 'dispatched') && o.whatsapp?.url; as clientLink) {
-                  <a class="btn ghost" [href]="clientLink" target="_blank" rel="noopener">WhatsApp the client</a>
+                @if (o.whatsapp?.url; as clientLink) {
+                  <a class="wa" [href]="clientLink" target="_blank" rel="noopener">WhatsApp the client</a>
                 }
               </td>
             </tr>
@@ -91,7 +97,7 @@
   <section class="coupon-panel">
     <h2>Discount codes</h2>
     @if (!couponsEnabled) {
-      <p class="muted">Coupons are turned off for this store. A Super Admin can enable them on the customer.</p>
+      <p class="muted">Coupons are turned off for this store.</p>
     } @else {
       <form class="coupon-form" (ngSubmit)="addCoupon()">
         <input [(ngModel)]="couponCode" name="couponCode" placeholder="SAVE10" maxlength="20" />

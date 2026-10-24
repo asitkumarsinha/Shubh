@@ -2,6 +2,8 @@
   <div class="login-card-shell">
     <header class="login-topbar">
       <div class="topbar-left">
+        <img class="top-logo" src="assets/mystoreshubs-logo.png" [alt]="settings.current().title" />
+        <strong class="top-name">{{ settings.current().title }}</strong>
         <app-language-switcher variant="light" />
         <app-theme-toggle />
       </div>
@@ -30,13 +32,13 @@
     </header>
 
     <div class="login-body">
-      <div class="login-visual">
-        <h2>Create your Global Online Store in 5 minutes only - Free</h2>
-        <p>No coding. Sell to USA, UK, UAE from your shop.</p>
-        <img [src]="settings.current().logo" [alt]="settings.current().title" />
-      </div>
-
       <div class="login-panel">
+        <span class="card-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <path d="M7 8V7a5 5 0 0 1 10 0v1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <rect x="4.5" y="8" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+        </span>
         <h1>{{ 'login.heading' | t }}</h1>
         <p class="continue-with">{{ 'login.continueWith' | t: { title: settings.current().title } }}</p>
 

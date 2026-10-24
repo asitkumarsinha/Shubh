@@ -259,4 +259,69 @@ router.patch('/:id', authenticate, requireAdmin, (req, res) => {
   res.json(mapUser(updated));
 });
 
+function storeEmail(name) {
+  const base =
+    String(name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '.')
+      .replace(/^\.+|\.+$/g, '')
+      .slice(0, 40) || 'store';
+  const exists = db.prepare('SELECT id FROM users WHERE email = ?');
+  let email = `${base}@mystoreshubs.com`;
+  let n = 2;
+  while (exists.get(email)) {
+    email = `${base}.${n}@mystoreshubs.com`;
+    n += 1;
+  }
+  return email;
+}
+
+router.post('/:id/clone', authenticate, requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ message: 'A unique store name is required' });
+
+  const source = db
+    .prepare(`SELECT * FROM users WHERE id = ? AND tenant_id = ? AND role = 'user'`)
+    .get(id, req.user.tenant_id);
+  if (!source) return res.status(404).json({ message: 'Store not found' });
+
+  const taken = db
+    .prepare(
+      `SELECT id FROM users WHERE tenant_id = ? AND role = 'user' AND lower(trim(name)) = lower(?)`
+    )
+    .get(req.user.tenant_id, name);
+  if (taken) {
+    return res.status(409).json({ message: 'A store with this name already exists. Choose a unique name.' });
+  }
+
+  const tenant = db.prepare('SELECT max_users AS max FROM tenants WHERE id = ?').get(req.user.tenant_id);
+  const clientCount = db
+    .prepare(`SELECT COUNT(*) AS c FROM users WHERE tenant_id = ? AND role = 'user'`)
+    .get(req.user.tenant_id).c;
+  if (tenant && clientCount >= tenant.max) {
+    return res.status(403).json({ message: 'This store has reached its client plan limit' });
+  }
+
+  const email = storeEmail(name);
+  const result = db
+    .prepare(
+      `INSERT INTO users (name, email, password, role, phone, address, client_group, notes, status, tenant_id)
+       VALUES (?, ?, ?, 'user', ?, ?, ?, ?, 'allowed', ?)`
+    )
+    .run(
+      name,
+      email,
+      source.password,
+      source.phone || '',
+      source.address || '',
+      source.client_group === 'wholesale' ? 'wholesale' : 'retail',
+      source.notes || '',
+      req.user.tenant_id
+    );
+
+  const created = db.prepare(`${LIST_SQL} HAVING u.id = ?`).get(req.user.tenant_id, result.lastInsertRowid);
+  res.status(201).json(mapUser(created));
+});
+
 module.exports = router;

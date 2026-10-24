@@ -134,6 +134,9 @@ export interface DashboardPendingOrder {
   status: string;
   userName: string;
   userEmail: string;
+  storeName?: string;
+  itemCount?: number;
+  itemNames?: string;
 }
 
 export interface DashboardLowStockItem {

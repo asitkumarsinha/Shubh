@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/user.service';
-import { AdminUserDetail, AdminUsersResponse } from '../../core/models';
+import { AdminUserDetail } from '../../core/models';
+import { GridSection } from '../../core/grid-export';
 import { ToastService } from '../../core/toast.service';
+import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 
 type AccessStatus = 'allowed' | 'blocked';
 type ClientGroup = 'retail' | 'wholesale';
@@ -12,19 +14,18 @@ type ClientGroup = 'retail' | 'wholesale';
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, GridActionsComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
 })
 export class AdminUsersComponent implements OnInit {
   users: AdminUserDetail[] = [];
-  topUsers: AdminUserDetail[] = [];
-  summary: AdminUsersResponse['summary'] | null = null;
   error = '';
   loading = true;
   updatingId: number | null = null;
   exporting = false;
   creating = false;
+  adding = false;
   newName = '';
   newEmail = '';
   newPassword = '';
@@ -57,6 +58,20 @@ export class AdminUsersComponent implements OnInit {
     return this.users.filter((u) => u.role === 'user');
   }
 
+  get gridSections(): GridSection[] {
+    return [{
+      title: 'Stores',
+      headers: ['Store', 'Email', 'Phone', 'Orders', 'Access'],
+      rows: this.clients().map((store) => [
+        store.name,
+        store.email,
+        store.phone || '',
+        String(store.orderCount),
+        store.status,
+      ]),
+    }];
+  }
+
   onSearch(): void {
     clearTimeout(this.searchTimer);
     this.searchTimer = setTimeout(() => {
@@ -76,8 +91,6 @@ export class AdminUsersComponent implements OnInit {
     this.userService.all({ q: this.query.trim(), page: this.page, limit: 20 }).subscribe({
       next: (res) => {
         this.users = res.users;
-        this.topUsers = res.topUsers;
-        this.summary = res.summary;
         this.total = res.total;
         this.pages = res.pages;
         this.page = res.page;
@@ -117,7 +130,8 @@ export class AdminUsersComponent implements OnInit {
           this.newPhone = '';
           this.newAddress = '';
           this.newGroup = 'retail';
-          this.toast.success(`${created.name} added as a client`);
+          this.adding = false;
+          this.toast.success(`${created.name} added`);
           this.reload();
         },
         error: (err) => {
@@ -145,27 +159,6 @@ export class AdminUsersComponent implements OnInit {
       error: (err) => {
         this.updatingId = null;
         const msg = err.error?.message || 'Failed to update access';
-        this.error = msg;
-        this.toast.error(msg);
-        this.reload();
-      },
-    });
-  }
-
-  onGroupChange(user: AdminUserDetail, group: ClientGroup): void {
-    if (!group || group === user.client_group) return;
-    this.updatingId = user.id;
-    this.error = '';
-    this.toast.beginSave();
-    this.userService.update(user.id, { client_group: group }).subscribe({
-      next: () => {
-        this.updatingId = null;
-        this.toast.success(`${user.name} set to ${group}`);
-        this.reload();
-      },
-      error: (err) => {
-        this.updatingId = null;
-        const msg = err.error?.message || 'Failed to update group';
         this.error = msg;
         this.toast.error(msg);
         this.reload();

@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth.service';
 import { ToastService } from '../../core/toast.service';
 import { PageTitleService } from '../../core/page-title.service';
 import { Medicine } from '../../core/models';
+import { PublicFrameComponent } from '../../shared/public-frame/public-frame.component';
 
 interface ProductStore {
   id: number;
@@ -20,7 +21,7 @@ interface ProductStore {
 @Component({
   selector: 'app-product-page',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PublicFrameComponent],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.scss',
 })

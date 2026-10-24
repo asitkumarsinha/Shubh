@@ -7,10 +7,10 @@ import { fitLogoOnWhite } from './logo-fit';
 const defaults: SiteSettings = {
   title: 'My Stores Hubs',
   slogan: 'Your name, your products, your customers.',
-  logo: 'assets/MyStoreHub.jfif',
+  logo: 'assets/mystoreshubs-logo.png',
   qr_code: 'assets/QR.jpeg',
   theme_color: '#07131c',
-  font_family: 'Syne',
+  font_family: 'IBM Plex Sans',
   login_initial: '',
 };
 
@@ -61,7 +61,7 @@ export class SettingsService {
     const next = logo === settings.logo ? settings : { ...settings, logo };
     this.current.set(next);
     document.documentElement.style.setProperty('--tenant-theme', next.theme_color);
-    document.documentElement.style.setProperty('--tenant-font', `'${next.font_family}', 'IBM Plex Sans', sans-serif`);
+    document.documentElement.style.setProperty('--tenant-font', `'IBM Plex Sans', sans-serif`);
     this.fitBrandLogo(next.logo);
   }
 
@@ -72,7 +72,7 @@ export class SettingsService {
 
   /** Crop a dark photo backdrop so every screen uses the same white emblem as the login page. */
   private fitBrandLogo(url: string): void {
-    if (!url || url.startsWith('data:')) return;
+    if (!url || url.startsWith('data:') || url.includes('mystoreshubs-logo')) return;
     const request = ++this.logoRequest;
     const img = new Image();
     img.onload = () => {

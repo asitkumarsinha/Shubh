@@ -1,10 +1,7 @@
-<section class="page">
+<section class="page reports">
   <header class="page-head">
-    <div>
-      <h1>Reports</h1>
-      <p>Users, price details, and order status overview.</p>
-    </div>
-    <button class="btn primary" (click)="openEmail()">Email report</button>
+    <h1>Reports</h1>
+    <app-grid-actions file="reports" [sections]="gridSections" />
   </header>
 
   @if (message) {
@@ -19,38 +16,73 @@
   }
   @if (error) { <div class="toast bad">{{ error }}</div> }
 
-  @if (showEmailPrompt) {
-    <div class="email-box">
-      <h3>Send report</h3>
-      <p>The report is emailed to the address you type.</p>
-      <div class="email-row">
-        <input type="email" [(ngModel)]="email" placeholder="Who should receive it" />
-        @if (!mailConfigured) {
-          <input type="email" [(ngModel)]="smtpUser" placeholder="Gmail address that sends it" />
-          <input type="password" [(ngModel)]="smtpPass" placeholder="Gmail app password" autocomplete="off" />
-        }
-        <button class="btn primary" [disabled]="sending" (click)="sendEmail()">
-          {{ saveButtonLabel(sendPhase, 'Send', 'Sending…') }}
-        </button>
-        <button class="btn ghost" type="button" (click)="showEmailPrompt = false">Close</button>
+  <div class="report-grid">
+    <article class="report-card">
+      <h2>Sales this month</h2>
+      <p class="range">{{ monthLabel }}</p>
+      <p class="figure">₹{{ monthRevenue | number: '1.2-2' }}</p>
+      <div class="split">
+        <div>
+          <span>Total orders</span>
+          <strong>{{ monthOrders }}</strong>
+        </div>
+        <div>
+          <span>Average order value</span>
+          <strong>₹{{ monthAverage | number: '1.2-2' }}</strong>
+        </div>
       </div>
+    </article>
+
+    <article class="report-card">
+      <div class="card-head">
+        <h2>Low stock</h2>
+        <a routerLink="/admin/products">View all products</a>
+      </div>
+      <p>Products with {{ lowStockThreshold }} or fewer items in stock.</p>
+      @if (!lowStock.length) {
+        <p class="muted">No low-stock products.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Stock</th></tr>
+          </thead>
+          <tbody>
+            @for (item of lowStock; track item.id) {
+              <tr>
+                <td>{{ item.name }}</td>
+                <td [class.low]="item.stock <= lowStockThreshold">{{ item.stock }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </article>
+  </div>
+
+  <article class="report-card email-box">
+    <h2>Email a report</h2>
+    <p>Securely send reports to your email using Gmail SMTP.</p>
+    <div class="email-row">
+      <label>
+        Gmail address
+        <input type="email" [(ngModel)]="email" name="reportEmail" placeholder="yourname@gmail.com" />
+      </label>
       @if (!mailConfigured) {
-        <p class="mail-note">Use a Gmail app password from Google Account, not the normal login password. It is saved once, then later sends only need the recipient.</p>
+        <label>
+          App password
+          <input type="password" [(ngModel)]="smtpPass" name="smtpPass" placeholder="Your Gmail app password" autocomplete="off" />
+        </label>
       }
     </div>
-  }
+    @if (!mailConfigured) {
+      <p class="mail-note">Use a Gmail app password from Google Account, not the normal login password.</p>
+    }
+    <button class="btn primary" [disabled]="sending" (click)="saveReportEmail()">
+      {{ saveButtonLabel(sendPhase, 'Save', 'Sending…') }}
+    </button>
+  </article>
 
   @if (report) {
-    <div class="stats">
-      <div><span>Buyers</span><strong>{{ report.summary.uniqueBuyers }}</strong></div>
-      <div><span>Orders</span><strong>{{ report.summary.totalOrders }}</strong></div>
-      <div><span>Revenue</span><strong>₹{{ report.summary.totalRevenue | number: '1.2-2' }}</strong></div>
-      <div><span>Pending</span><strong>{{ report.summary.pending }}</strong></div>
-      <div><span>Approved</span><strong>{{ report.summary.approved }}</strong></div>
-      <div><span>Dispatched</span><strong>{{ report.summary.dispatched }}</strong></div>
-      <div><span>Rejected</span><strong>{{ report.summary.rejected }}</strong></div>
-      <div><span>Cancelled</span><strong>{{ report.summary.cancelled }}</strong></div>
-    </div>
 
     <h2 class="section-title">Users who purchased</h2>
     <div class="table-wrap">

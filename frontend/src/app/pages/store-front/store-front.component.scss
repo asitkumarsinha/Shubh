@@ -1,5 +1,5 @@
 .store-screen {
-  min-height: 100vh;
+  min-height: 0;
   padding: clamp(0.75rem, 2.5vw, 2rem);
 }
 
@@ -47,6 +47,19 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.brand-line {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.brand-line img {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 h1, h2, h3, p {

@@ -1,0 +1,54 @@
+.board {
+  padding: 0.4rem 0.2rem 1rem;
+}
+
+.board h1 {
+  margin: 0 0 1rem;
+  font-size: 1.85rem;
+  letter-spacing: -0.03em;
+}
+
+.board-card {
+  padding: 1.25rem 1.3rem 0.6rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.lead,
+.muted {
+  margin: 0 0 1rem;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.stats div {
+  padding: 0.9rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.stats span {
+  display: block;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.stats strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.35rem;
+}
+
+.table-wrap a {
+  color: #111827;
+  font-weight: 600;
+}

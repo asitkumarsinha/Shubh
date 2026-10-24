@@ -1,24 +1,76 @@
 .shop-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.shop-head h1 {
+.shop h1 {
   margin: 0;
-  color: #1f2937;
-  font-size: 1.4rem;
+  color: #111827;
+  font-size: 2rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: min(18rem, 100%);
+  padding: 0 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #6b7280;
 }
 
 .search input {
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0.55rem 0.75rem;
+  width: 100%;
+  border: 0;
+  padding: 0.65rem 0;
   font: inherit;
-  color: #1f2937;
+  color: #111827;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chips button,
+.product button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid #d1d5db;
   background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chips button {
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+}
+
+.chips button.on {
+  background: #111827;
+  border-color: #111827;
+  color: #fff;
 }
 
 .muted {
@@ -27,36 +79,38 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
 }
 
 .product {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.75rem;
+  gap: 0.35rem;
+  padding: 0.85rem;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .product img {
   width: 100%;
-  height: 7rem;
+  height: 12rem;
   object-fit: contain;
+  border-radius: 12px;
+  background: #f6f4f1;
 }
 
 .product h2 {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #1f2937;
+  margin: 0.55rem 0 0;
+  color: #111827;
+  font-size: 1.05rem;
 }
 
 .price {
   margin: 0;
+  color: #111827;
   font-weight: 700;
-  color: #0f766e;
 }
 
 .stock {
@@ -65,20 +119,15 @@
   font-size: 0.82rem;
 }
 
-button {
+.product button {
+  width: 100%;
   margin-top: auto;
-  border: none;
-  border-radius: 8px;
-  padding: 0.45rem 0.6rem;
-  background: #0f766e;
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
 }
 
-button:disabled {
-  background: #d1d5db;
+.product button:disabled {
+  color: #9ca3af;
   cursor: not-allowed;
 }
 

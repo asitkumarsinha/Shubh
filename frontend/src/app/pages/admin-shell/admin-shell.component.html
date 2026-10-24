@@ -63,12 +63,21 @@
             >
               <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 @switch (link.icon) {
+                  @case ('home') {
+                    <path d="M4 11.5 12 4l8 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                  }
                   @case ('plus') {
                     <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
                   }
                   @case ('search') {
                     <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.6" />
                     <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  }
+                  @case ('store') {
+                    <path d="M4 9.5 6 4h12l2 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <path d="M4 9.5h16V20H4V9.5Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    <path d="M10 20v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.6" />
                   }
                   @case ('box') {
                     <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />

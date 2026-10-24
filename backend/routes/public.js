@@ -29,8 +29,8 @@ router.get('/hits', authenticate, requireSuperAdmin, (_req, res) => {
   res.json({ count: row?.count || 0, updated_at: row?.updated_at || null });
 });
 
-router.get('/hits/details', authenticate, requireSuperAdmin, (_req, res) => {
-  res.json(listActivity());
+router.get('/hits/details', authenticate, requireSuperAdmin, async (_req, res) => {
+  res.json(await listActivity());
 });
 
 router.post('/logs', (req, res) => {

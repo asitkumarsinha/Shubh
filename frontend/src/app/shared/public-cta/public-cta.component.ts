@@ -30,9 +30,6 @@ export class PublicCtaComponent implements OnInit {
 
   openDemo(): void {
     this.playDemo = true;
-    this.musicError = '';
-    this.startCustomMusic();
-    setTimeout(() => this.startPicture(), 0);
   }
 
   private startPicture(): void {

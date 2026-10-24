@@ -1,6 +1,45 @@
-<section class="desk-screen" [class.plain]="!client">
+<section
+  class="desk-screen"
+  [class.plain]="!client"
+  [class.shop-layout]="layout === 'shop' || layout === 'orders' || layout === 'cart'"
+  [class.account-layout]="layout === 'account'"
+  [class.client-pages]="layout === 'shop' || layout === 'orders' || layout === 'cart' || layout === 'account'"
+>
   <div class="desk-shell">
-    @if (client) {
+    @if (layout === 'shop' || layout === 'account' || layout === 'orders' || layout === 'cart') {
+      <header class="client-shop-bar">
+        <div class="shop-brand-side">
+          <a routerLink="/shop" class="shop-brand">
+            <img [src]="settings.current().logo" [alt]="settings.current().title" />
+            <strong>{{ settings.current().title }}</strong>
+          </a>
+          <app-language-switcher variant="light" />
+        </div>
+        <div class="shop-bar-actions">
+          <button type="button" class="welcome" (click)="logout()">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M5.5 19c1-3 3.3-4.6 6.5-4.6s5.5 1.6 6.5 4.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            {{ 'title.logout' | t }}
+          </button>
+          <a routerLink="/orders" class="orders-link">{{ 'nav.myOrders' | t }}</a>
+          <a routerLink="/cart" class="cart-link">
+            <span class="cart-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="9" cy="19" r="1.3" fill="currentColor" />
+                <circle cx="17" cy="19" r="1.3" fill="currentColor" />
+                <path d="M3 5h2l2.2 10h10.3l2-7H7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              @if (cart.count() > 0) {
+                <span class="cart-count">{{ cart.count() }}</span>
+              }
+            </span>
+            {{ 'account.cart' | t }}
+          </a>
+        </div>
+      </header>
+    } @else if (client) {
       <header class="desk-topbar">
         <div class="topbar-brand">
           <img class="brand-mark" [src]="settings.current().logo" [alt]="settings.current().title" />
@@ -80,6 +119,13 @@
               </svg>
               @if (pinned) { <span>{{ 'account.myOrder' | t }}</span> }
             </a>
+            <a routerLink="/account" routerLinkActive="active" class="nav-link">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M5.5 19c1-3 3.3-4.6 6.5-4.6s5.5 1.6 6.5 4.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              @if (pinned) { <span>{{ 'account.account' | t }}</span> }
+            </a>
           </nav>
         </aside>
       }
@@ -89,7 +135,7 @@
       </div>
     </div>
 
-    @if (client) {
+    @if (client && layout !== 'shop') {
       <footer class="desk-footer">
         {{ 'login.footer' | t: { title: settings.current().title } }}
       </footer>

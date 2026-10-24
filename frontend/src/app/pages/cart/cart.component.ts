@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth.service';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ClientShellComponent } from '../../shared/client-shell/client-shell.component';
+import { SettingsService } from '../../core/settings.service';
 
 @Component({
   selector: 'app-cart',
@@ -31,7 +32,8 @@ export class CartComponent implements OnInit {
   constructor(
     public cart: CartService,
     private orders: OrderService,
-    private auth: AuthService,
+    public auth: AuthService,
+    public settings: SettingsService,
     private router: Router,
     private toast: ToastService
   ) {}

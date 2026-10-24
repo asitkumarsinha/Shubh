@@ -1,36 +1,73 @@
 <section class="demo-screen">
   <div class="demo-card-shell">
-    <header class="demo-topbar">
+    <div class="demo-lang">
       <app-language-switcher variant="light" />
+    </div>
 
-      <div class="topbar-actions">
-        <a routerLink="/shoppingmall" class="action-chip highlight">
-          <span class="icon-circle bag">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              <rect x="4.5" y="9" width="15" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
-            </svg>
-          </span>
-          <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
-        </a>
-        <span class="chip-divider" aria-hidden="true"></span>
-        <a routerLink="/login" class="action-chip">
-          <span class="icon-circle">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
-        </a>
-      </div>
+    <header class="demo-brand">
+      <img class="top-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
+      <strong>{{ settings.current().title }}</strong>
     </header>
 
-    <div class="demo-body">
-      <p class="demo-timer">This page closes in {{ secondsLeft }}s</p>
-      <app-feature-showcase [showGuide]="true" />
+    <h1>{{ 'demo.seeStores' | t }}</h1>
+    <p class="demo-timer">This page closes in {{ secondsLeft }}s</p>
 
-      <p class="muted trail">Open <a routerLink="/shoppingmall">Catalogue</a> to browse sample stock, or <a routerLink="/register">Register</a> to place a demo order.</p>
+    <video
+      #clip
+      class="demo-video"
+      src="assets/demo/mystoreshubs-demo.mp4?v=20261020"
+      controls
+      playsinline
+      muted
+      preload="metadata"
+      [attr.aria-label]="'demo.seeStores' | t"
+      (play)="onVideoPlay()"
+      (pause)="onVideoPause()"
+      (seeked)="onVideoSeek()"
+      (ended)="onVideoPause()"
+    ></video>
+    <audio #score src="assets/demo/success.mp3" loop preload="auto"></audio>
+    <p class="music-credit">
+      Success by <a href="https://mixaund.bandcamp.com" target="_blank" rel="noopener noreferrer">Mixaund</a>
+      · Royalty Free Music by
+      <a href="https://www.free-stock-music.com" target="_blank" rel="noopener noreferrer">free-stock-music.com</a>
+    </p>
+
+    <div class="roles">
+      <article>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 10.5 12 4l8 6.5V20H4v-9.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.6" />
+        </svg>
+        <h2>{{ 'demo.storesTitle' | t }}</h2>
+        <p>{{ 'demo.storesBody' | t }}</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="5" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="19" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="5" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="19" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="M7 8.2 10 11M17 8.2 14 11M7 15.8 10 13M17 15.8 14 13" fill="none" stroke="currentColor" stroke-width="1.4" />
+        </svg>
+        <h2>{{ 'demo.hubsTitle' | t }}</h2>
+        <p>{{ 'demo.hubsBody' | t }}</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.5 19 6.5v5.2c0 4.2-2.8 7.2-7 8.8-4.2-1.6-7-4.6-7-8.8V6.5L12 3.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <circle cx="12" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M9 15.2c.7-1.2 1.7-1.8 3-1.8s2.3.6 3 1.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <h2>{{ 'demo.adminTitle' | t }}</h2>
+        <p>{{ 'demo.adminBody' | t }}</p>
+      </article>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/shoppingmall" class="browse">{{ 'demo.browse' | t }}</a>
+      <a routerLink="/login" class="enter">{{ 'demo.logIn' | t }}</a>
     </div>
 
     <footer class="demo-footer">

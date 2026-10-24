@@ -48,20 +48,52 @@
         </button>
         <img class="menu-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
         @for (link of links; track link.label) {
-          <a [routerLink]="link.path" routerLinkActive="active" class="nav-link">
+          <a [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
               @switch (link.icon) {
-                @case ('home') {
+                @case ('dashboard') {
                   <path d="M4 11.5 12 4l8 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                   <path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                 }
-                @case ('user-plus') {
-                  <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  <path d="M3.5 18c.8-2.6 2.8-4 5.5-4s4.7 1.4 5.5 4M17 8v6M14 11h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                @case ('stores') {
+                  <path d="M4 9.5 6 4h12l2 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                  <path d="M4 9.5h16V20H4V9.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                  <path d="M10 20v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.6" />
                 }
-                @case ('user') {
+                @case ('hubs') {
+                  <circle cx="12" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="6" cy="7" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="18" cy="7" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="6" cy="17" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="18" cy="17" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M7.5 8.2 10.2 11M16.5 8.2 13.8 11M7.5 15.8 10.2 13M16.5 15.8 13.8 13" fill="none" stroke="currentColor" stroke-width="1.4" />
+                }
+                @case ('users') {
                   <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
                   <path d="M5.5 19c1-3 3.4-4.6 6.5-4.6s5.5 1.6 6.5 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                }
+                @case ('billing') {
+                  <rect x="4" y="4" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                }
+                @case ('plans') {
+                  <path d="M7 3.5h7l4 4V20.5H7V3.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                  <path d="M14 3.5V8h4M9 12h6M9 15.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                }
+                @case ('feedback') {
+                  <path d="M5 6.5h14v9H8l-3 3v-12Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                }
+                @case ('health') {
+                  <path d="M3 12h4l2-5 4 10 2-5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                }
+                @case ('reports') {
+                  <path d="M5 19V11M12 19V5M19 19v-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                }
+                @case ('settings') {
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 }
               }
             </svg>
@@ -86,10 +118,13 @@
   <div class="log-backdrop" (click)="closeLogs()">
     <section class="log-dialog" role="dialog" aria-modal="true" aria-label="Site log" (click)="$event.stopPropagation()">
       <header>
-        <div>
-          <p class="eyebrow">Super Admin</p>
-          <h2>Log</h2>
-          <p>{{ logs.length }} records. Scroll to see who hit the website, then every page, visit, and sign-in.</p>
+        <div class="log-title">
+          <img class="log-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
+          <div>
+            <p class="eyebrow">Super Admin</p>
+            <h2>Log</h2>
+            <p>{{ logs.length }} records. Scroll to see who hit the website, then every page, visit, and sign-in.</p>
+          </div>
         </div>
         <button type="button" class="log-close" (click)="closeLogs()" aria-label="Close">×</button>
       </header>
@@ -119,6 +154,15 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>IP address</th>
+                <th>Hostname</th>
+                <th>ASN</th>
+                <th>ISP</th>
+                <th>Services</th>
+                <th>Country</th>
+                <th>State/Region</th>
+                <th>City</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
                 <th>Browser</th>
                 <th>Page</th>
               </tr>
@@ -132,6 +176,15 @@
                   <td>{{ row.email || '—' }}</td>
                   <td>{{ roleLabel(row.role) }}</td>
                   <td>{{ row.ip || '—' }}</td>
+                  <td>{{ row.hostname || '—' }}</td>
+                  <td>{{ row.asn || '—' }}</td>
+                  <td>{{ row.isp || '—' }}</td>
+                  <td>{{ row.services || '—' }}</td>
+                  <td>{{ row.country || '—' }}</td>
+                  <td>{{ row.region || '—' }}</td>
+                  <td>{{ row.city || '—' }}</td>
+                  <td>{{ row.latitude || '—' }}</td>
+                  <td>{{ row.longitude || '—' }}</td>
                   <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
                   <td>{{ row.path || '—' }}</td>
                 </tr>

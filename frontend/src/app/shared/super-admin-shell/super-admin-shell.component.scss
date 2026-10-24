@@ -92,9 +92,9 @@
 
 .desk-body {
   display: grid;
-  grid-template-columns: 12.5rem minmax(0, 1fr);
+  grid-template-columns: 15.5rem minmax(0, 1fr);
   min-height: 32rem;
-  background: #e7f4f2;
+  background: #f3f4f6;
 }
 
 .desk-body.collapsed {
@@ -104,39 +104,35 @@
 .desk-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.2rem;
   padding: 1rem 0.75rem 1.25rem;
-  border-right: 1px solid #d5e6e3;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.42rem 0.55rem;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 8px;
-  color: #4b5563;
+  color: #111827;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.nav-link:hover {
-  background: rgba(255, 255, 255, 0.65);
-  color: #111827;
-}
-
+.nav-link:hover,
 .nav-link.active {
-  background: #fff;
+  background: #f3f4f6;
   color: #111827;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .nav-icon {
   flex: 0 0 auto;
   width: 16px;
   height: 16px;
-  color: #6b7280;
+  color: currentColor;
 }
 
 .menu-logo {
@@ -164,17 +160,17 @@
   width: 1.8rem;
   height: 1.8rem;
   margin-bottom: 0.35rem;
-  border: 1px solid #d5e6e3;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   background: #fff;
-  color: #6b7280;
+  color: #111827;
   cursor: pointer;
 }
 
 .pin.pinned {
-  color: #0f766e;
-  border-color: #99f6e4;
-  background: #ccfbf1;
+  color: #111827;
+  border-color: #d1d5db;
+  background: #f3f4f6;
 }
 
 .desk-body.collapsed .desk-nav {
@@ -224,7 +220,7 @@
 }
 
 .log-dialog {
-  width: min(72rem, 100%);
+  width: min(96rem, 100%);
   max-height: min(86vh, 46rem);
   display: flex;
   flex-direction: column;
@@ -243,9 +239,23 @@
   margin-bottom: 0.8rem;
 }
 
+.log-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.log-logo {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .log-dialog h2 {
   margin: 0.15rem 0;
-  color: #0f3d4c;
+  color: #111827;
 }
 
 .log-dialog p,
@@ -376,6 +386,6 @@
     flex-direction: row;
     flex-wrap: wrap;
     border-right: none;
-    border-bottom: 1px solid #d5e6e3;
+    border-bottom: 1px solid #e5e7eb;
   }
 }

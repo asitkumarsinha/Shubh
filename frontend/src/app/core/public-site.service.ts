@@ -10,6 +10,15 @@ export interface SiteActivity {
   ip: string;
   user_agent: string;
   path: string;
+  hostname: string;
+  asn: string;
+  isp: string;
+  services: string;
+  country: string;
+  region: string;
+  city: string;
+  latitude: string;
+  longitude: string;
   created_at: string;
 }
 

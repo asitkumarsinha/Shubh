@@ -23,7 +23,6 @@
         </p>
       </div>
       <div class="row-actions">
-        <button class="btn ghost" type="button" (click)="downloadInvoice()">Download invoice</button>
         <a [routerLink]="auth.isAdmin() ? '/admin/orders' : '/orders'" class="btn ghost">{{ 'orderDetail.back' | t }}</a>
       </div>
     </header>
@@ -40,59 +39,71 @@
     @if (error) { <div class="toast bad">{{ error }}</div> }
 
     <div class="bill-layout">
-      <div class="bill-sheet">
-        <div class="bill-meta">
-          <div><span>{{ 'orderDetail.customer' | t }}</span><strong>{{ order.user?.name || ('orderDetail.you' | t) }}</strong></div>
-          <div><span>{{ 'orderDetail.email' | t }}</span><strong>{{ order.user?.email }}</strong></div>
-          <div><span>{{ 'orderDetail.date' | t }}</span><strong>{{ order.created_at }}</strong></div>
-          <div><span>{{ 'orderDetail.payment' | t }}</span><strong>{{ paymentLabel(order.payment_method) | t }}</strong></div>
+      <div class="bill-sheet invoice">
+        <header class="invoice-top">
           <div>
-            <span>{{ 'orderDetail.paid' | t }}</span>
-            <strong>{{ (order.payment_status === 'paid' ? 'orders.paid' : 'orders.unpaid') | t }}</strong>
+            <strong class="brand">{{ settings.current().title }}</strong>
+            <p>{{ settings.current().slogan }}</p>
+          </div>
+          <div class="invoice-no">
+            <span>INVOICE</span>
+            <strong>{{ order.bill_number }}</strong>
+            <span>{{ order.created_at | date: 'MMM d, y' }}</span>
+            <span>Invoice #{{ order.bill_number }}</span>
+          </div>
+        </header>
+        <div class="invoice-parties">
+          <div>
+            <span>BILLED TO</span>
+            <strong>{{ order.user?.name || ('orderDetail.you' | t) }}</strong>
           </div>
           <div>
-            <span>Receiving</span>
-            <strong>
-              @if (order.fulfillment === 'delivery') { Deliver to {{ order.delivery_address }} }
-              @else { Collect from the shop }
+            <span>PAYMENT STATUS</span>
+            <strong [class.unpaid]="order.payment_status !== 'paid'" [class.paid]="order.payment_status === 'paid'">
+              {{ (order.payment_status === 'paid' ? 'orders.paid' : 'orders.unpaid') | t }}
             </strong>
           </div>
-          @if (order.coupon_code) {
-            <div><span>{{ 'orderDetail.discountCode' | t }}</span><strong>{{ order.coupon_code }}</strong></div>
-          }
-          @if (order.po_number) {
-            <div><span>{{ 'orderDetail.purchaseOrder' | t }}</span><strong>{{ order.po_number }}</strong></div>
-          }
         </div>
-
-        <h2 class="section-title">{{ 'orderDetail.selectedMedicines' | t }}</h2>
-        <div class="items">
-          @for (item of order.items; track item.id) {
-            <article class="item">
-              <img [src]="imageUrl(item.medicine_image)" [alt]="item.medicine_name" />
-              <div>
-                <h3>{{ item.medicine_name }}</h3>
-                <p>{{ 'orderDetail.qtyTimesPrice' | t: { qty: item.quantity, price: item.price.toFixed(2) } }}</p>
-              </div>
-              <strong>₹{{ item.quantity * item.price | number: '1.2-2' }}</strong>
-            </article>
-          }
-        </div>
-
+        <table class="invoice-items">
+          <thead>
+            <tr><th>ITEM</th><th>PRICE</th></tr>
+          </thead>
+          <tbody>
+            @for (item of order.items; track item.id) {
+              <tr>
+                <td>
+                  <strong>{{ item.medicine_name }}</strong>
+                  <span>{{ item.quantity }} × ₹{{ item.price | number: '1.0-0' }}</span>
+                </td>
+                <td>₹{{ item.quantity * item.price | number: '1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
         @if (order.discount) {
-          <div class="total-row">
-            <span>{{ 'orderDetail.subtotal' | t }}</span>
-            <strong>₹{{ (order.subtotal ?? order.total) | number: '1.2-2' }}</strong>
-          </div>
           <div class="total-row">
             <span>{{ 'orderDetail.discount' | t }}</span>
             <strong>−₹{{ order.discount | number: '1.2-2' }}</strong>
           </div>
         }
-        <div class="total-row">
-          <span>{{ 'orderDetail.totalAmount' | t }}</span>
-          <strong>₹{{ order.total | number: '1.2-2' }}</strong>
+        <div class="total-row grand">
+          <span>TOTAL</span>
+          <strong>₹{{ order.total | number: '1.0-0' }}</strong>
         </div>
+        <p class="deliver">
+          <span>DELIVER TO</span>
+          <strong>
+            @if (order.fulfillment === 'delivery') { {{ order.delivery_address }} }
+            @else { Collect from the shop }
+          </strong>
+        </p>
+        <div class="invoice-actions">
+          <button class="btn primary" type="button" (click)="downloadInvoice()">Download invoice</button>
+          @if (whatsappUrl(); as noteLink) {
+            <a class="btn ghost wa" [href]="noteLink" target="_blank" rel="noopener">{{ whatsappLabel() }}</a>
+          }
+        </div>
+        <p class="thanks">Thank you for shopping with {{ settings.current().title }}.</p>
       </div>
 
       <aside class="qr-panel">

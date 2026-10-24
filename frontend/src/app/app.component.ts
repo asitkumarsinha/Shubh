@@ -70,6 +70,13 @@ export class AppComponent implements OnInit {
       path === '/hubs' ||
       path === '/tenants' ||
       path === '/feedback' ||
+      path === '/dashboard' ||
+      path === '/stores' ||
+      path === '/users' ||
+      path === '/billing' ||
+      path === '/plans' ||
+      path === '/health' ||
+      path === '/reports' ||
       path === '/shoppingmall' ||
       path.startsWith('/store/') ||
       path === '/account' ||

@@ -263,6 +263,162 @@
   border-top: 1px solid #e7eaee;
 }
 
+.desk-screen.account-layout,
+.desk-screen.shop-layout {
+  padding: 0;
+  background: #fff;
+}
+
+.desk-screen.account-layout .desk-shell {
+  max-width: none;
+  min-height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.desk-screen.account-layout .desk-body,
+.desk-screen.client-pages .desk-body {
+  background: #fff;
+}
+
+.desk-screen.account-layout .desk-nav,
+.desk-screen.client-pages .desk-nav {
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+}
+
+.desk-screen.account-layout .menu-logo {
+  width: 4.75rem;
+  height: 4.75rem;
+  margin: 0.25rem auto 0.85rem;
+  object-fit: cover;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.desk-screen.account-layout .desk-body.collapsed .menu-logo {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+}
+
+.desk-screen.account-layout .nav-head h2,
+.desk-screen.account-layout .nav-link,
+.desk-screen.client-pages .nav-head h2,
+.desk-screen.client-pages .nav-link,
+.desk-screen.client-pages .pin {
+  color: #111827;
+}
+
+.desk-screen.account-layout .menu-panel,
+.desk-screen.client-pages .menu-panel {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+
+.desk-screen.client-pages .nav-link:hover,
+.desk-screen.client-pages .nav-link.active {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.desk-screen.client-pages .pin {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+
+.bar-user {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.desk-screen.shop-layout .desk-shell {
+  max-width: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.client-shop-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid #ececec;
+  background: #fff;
+}
+
+.shop-brand-side {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.shop-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #111;
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+
+.shop-brand img {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.shop-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.welcome,
+.orders-link,
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #111;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+button.welcome {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cart-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+.cart-count {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.55rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 0.68rem;
+  line-height: 1.05rem;
+  text-align: center;
+}
+
 @media (max-width: 800px) {
   .desk-body,
   .desk-body.collapsed {

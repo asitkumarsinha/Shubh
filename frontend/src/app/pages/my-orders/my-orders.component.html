@@ -1,10 +1,11 @@
-<app-client-shell>
+<app-client-shell layout="orders">
 <section class="page">
   <header class="page-head">
     <div>
       <h1>{{ 'orders.title' | t }}</h1>
       <p>{{ 'orders.subtitle' | t }}</p>
     </div>
+    <app-grid-actions file="my-orders" [sections]="gridSections" />
   </header>
 
   @if (loading) {

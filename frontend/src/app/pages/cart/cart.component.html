@@ -1,101 +1,98 @@
-<app-client-shell>
-<section class="page">
-  <header class="page-head">
-    <div>
-      <h1>{{ 'cart.title' | t }}</h1>
-      <p>{{ 'cart.subtitle' | t }}</p>
-    </div>
-    <a routerLink="/shop" class="btn ghost">{{ 'cart.continueShopping' | t }}</a>
-  </header>
-
+<app-client-shell layout="cart">
+<section class="checkout">
   @if (error) {
     <div class="toast bad">{{ error }}</div>
   }
 
   @if (cart.items().length === 0) {
-    <div class="empty glass-card">
+    <div class="empty">
       <p>{{ 'cart.empty' | t }}</p>
-      <a routerLink="/shop" class="btn primary">{{ 'cart.browse' | t }}</a>
+      <a routerLink="/shop" class="continue">{{ 'cart.browse' | t }}</a>
     </div>
   } @else {
-    <div class="order-card glass-card">
-      <div class="order-card__head">
-        <div class="title-row">
-          <span class="doc-icon" aria-hidden="true"></span>
-          <h2>{{ 'cart.wholesaleOrder' | t }}</h2>
-        </div>
-        <div class="pill-row">
-          <span class="soft-pill">{{ 'cart.items' | t: { count: cart.count() } }}</span>
-          <span class="soft-pill">{{ 'cart.ready' | t }}</span>
-        </div>
+    <div class="layout">
+      <div class="steps">
+        <h1>{{ 'cart.checkoutTitle' | t }}</h1>
+        <p class="for-brand">{{ 'cart.forBrand' | t: { name: settings.current().title } }}</p>
+
+        <section class="step">
+          <div class="step-title"><span>1</span><h2>{{ 'cart.contact' | t }}</h2></div>
+          <input class="email" type="email" [value]="auth.user()?.email" readonly [attr.aria-label]="'cart.contact' | t" />
+        </section>
+
+        <section class="step">
+          <div class="step-title"><span>2</span><h2>{{ 'cart.delivery' | t }}</h2></div>
+          <label class="choice" [class.on]="fulfillment === 'pickup'">
+            <input type="radio" name="fulfillment" value="pickup" [(ngModel)]="fulfillment" />
+            <span>
+              <strong>{{ 'cart.collect' | t }}</strong>
+              <small>{{ 'cart.collectHint' | t }}</small>
+            </span>
+          </label>
+          <label class="choice" [class.on]="fulfillment === 'delivery'">
+            <input type="radio" name="fulfillment" value="delivery" [(ngModel)]="fulfillment" />
+            <span>
+              <strong>{{ 'cart.deliver' | t }}</strong>
+              <small>{{ 'cart.deliverHint' | t }}</small>
+            </span>
+          </label>
+          @if (fulfillment === 'delivery') {
+            <textarea [(ngModel)]="deliveryAddress" name="deliveryAddress" rows="3" placeholder="Street, area, city"></textarea>
+          }
+        </section>
+
+        <section class="step">
+          <div class="step-title"><span>3</span><h2>{{ 'cart.payment' | t }}</h2></div>
+          <p class="hint">{{ 'cart.payHint' | t }}</p>
+          <button type="button" class="pay-row" [class.on]="paymentMethod === 'upi'" (click)="paymentMethod = 'upi'">
+            <span>{{ 'cart.upi' | t }}</span><span aria-hidden="true">›</span>
+          </button>
+          <button type="button" class="pay-row" [class.on]="paymentMethod === 'cod'" (click)="paymentMethod = 'cod'">
+            <span>{{ 'cart.cod' | t }}</span><span aria-hidden="true">›</span>
+          </button>
+          <button type="button" class="pay-row" [class.on]="paymentMethod === 'counter'" (click)="paymentMethod = 'counter'">
+            <span>{{ 'cart.counter' | t }}</span><span aria-hidden="true">›</span>
+          </button>
+        </section>
+
+        <button type="button" class="continue" [disabled]="loading" (click)="checkout()">
+          {{ saveButtonLabel(savePhase, 'cart.continueBtn' | t, 'cart.saving' | t) }}
+        </button>
+        <p class="secure">{{ 'cart.secure' | t }}</p>
       </div>
 
-      <div class="order-card__body">
+      <aside class="summary">
+        <h2>{{ 'cart.summary' | t }}</h2>
         @for (item of cart.items(); track item.medicineId) {
-          <article class="product-row">
+          <article>
             <img [src]="imageUrl(item.image)" [alt]="item.name" />
-            <div class="info">
-              <h3>{{ item.name }}</h3>
-              <div class="price-line">
-                <span class="price">₹{{ item.price | number: '1.2-2' }}</span>
-                <label class="qty">
-                  {{ 'cart.qty' | t }}
-                  <input
-                    type="number"
-                    min="1"
-                    [max]="item.stock"
-                    [ngModel]="item.quantity"
-                    (ngModelChange)="changeQty(item.medicineId, +$event)"
-                  />
-                </label>
-              </div>
+            <div>
+              <strong>{{ item.name }}</strong>
+              <label>
+                {{ 'cart.qty' | t }}
+                <input type="number" min="1" [max]="item.stock" [ngModel]="item.quantity" (ngModelChange)="changeQty(item.medicineId, +$event)" />
+              </label>
+              <button type="button" class="remove" (click)="removeItem(item.medicineId)">{{ 'cart.remove' | t }}</button>
             </div>
-            <div class="side">
-              <strong>{{ item.quantity }} {{ 'cart.units' | t }}</strong>
-              <button class="delete-item" type="button" (click)="removeItem(item.medicineId)">{{ 'cart.remove' | t }}</button>
-            </div>
+            <b>₹{{ item.price * item.quantity | number: '1.0-0' }}</b>
           </article>
         }
-      </div>
 
-      <fieldset class="pay-methods">
-        <legend>{{ 'cart.payment' | t }}</legend>
-        <label><input type="radio" name="payment" value="upi" [(ngModel)]="paymentMethod" /> {{ 'cart.upi' | t }}</label>
-        <label><input type="radio" name="payment" value="cod" [(ngModel)]="paymentMethod" /> {{ 'cart.cod' | t }}</label>
-        <label><input type="radio" name="payment" value="counter" [(ngModel)]="paymentMethod" /> {{ 'cart.counter' | t }}</label>
-      </fieldset>
-      <fieldset class="pay-methods">
-        <legend>How the client receives this</legend>
-        <label><input type="radio" name="fulfillment" value="pickup" [(ngModel)]="fulfillment" /> Collect from the shop</label>
-        <label><input type="radio" name="fulfillment" value="delivery" [(ngModel)]="fulfillment" /> Deliver to an address</label>
-        @if (fulfillment === 'delivery') {
-          <label class="delivery-address">Delivery address
-            <textarea [(ngModel)]="deliveryAddress" name="deliveryAddress" rows="3" placeholder="Street, area, city"></textarea>
-          </label>
-        }
-      </fieldset>
-      <div class="coupon">
-        <label for="couponCode">{{ 'cart.discountCode' | t }}</label>
-        <div class="coupon-row">
-          <input id="couponCode" [(ngModel)]="couponCode" name="couponCode" [placeholder]="'cart.optional' | t" maxlength="20" (keyup.enter)="refreshQuote()" />
-          <button class="btn ghost" type="button" (click)="refreshQuote()">{{ 'cart.apply' | t }}</button>
+        <div class="coupon">
+          <label for="couponCode">{{ 'cart.discountCode' | t }}</label>
+          <div>
+            <input id="couponCode" [(ngModel)]="couponCode" name="couponCode" [placeholder]="'cart.optional' | t" maxlength="20" (keyup.enter)="refreshQuote()" />
+            <button type="button" (click)="refreshQuote()">{{ 'cart.apply' | t }}</button>
+          </div>
+          @if (quoteError) { <p class="quote-error">{{ quoteError }}</p> }
         </div>
-        @if (quoteError) { <p class="quote-error">{{ quoteError }}</p> }
-      </div>
 
-      <div class="bill-lines">
-        <div><span>{{ 'cart.subtotal' | t }}</span><strong>₹{{ quote.subtotal | number: '1.2-2' }}</strong></div>
+        <p class="line"><span>{{ 'cart.subtotal' | t }}</span><span>₹{{ quote.subtotal | number: '1.2-2' }}</span></p>
         @if (quote.discount) {
-          <div><span>{{ 'cart.discountLine' | t }} {{ quote.couponCode }}</span><strong>−₹{{ quote.discount | number: '1.2-2' }}</strong></div>
+          <p class="line"><span>{{ 'cart.discountLine' | t }} {{ quote.couponCode }}</span><span>−₹{{ quote.discount | number: '1.2-2' }}</span></p>
         }
-      </div>
-
-      <div class="order-card__foot">
-        <div class="total">{{ 'cart.toPay' | t: { amount: quote.total.toFixed(2) } }}</div>
-        <button class="btn ghost" [disabled]="loading" (click)="checkout()">
-          {{ saveButtonLabel(savePhase, 'cart.placeOrder' | t, 'cart.saving' | t) }}
-        </button>
-      </div>
+        <p class="line total"><span>{{ 'cart.totalWord' | t }}</span><b>₹{{ quote.total | number: '1.2-2' }}</b></p>
+      </aside>
     </div>
   }
 </section>

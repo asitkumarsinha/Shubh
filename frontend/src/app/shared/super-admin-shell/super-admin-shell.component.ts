@@ -11,7 +11,7 @@ import { APP_VERSION } from '../../version';
 interface SuperAdminLink {
   label: string;
   path: string;
-  icon: 'home' | 'user-plus' | 'user';
+  icon: 'dashboard' | 'stores' | 'hubs' | 'users' | 'billing' | 'plans' | 'feedback' | 'health' | 'reports' | 'settings';
 }
 
 const PIN_KEY = 'msh_super_menu_pinned';
@@ -32,9 +32,16 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   readonly version = APP_VERSION;
 
   readonly links: SuperAdminLink[] = [
-    { label: 'Settings', path: '/settings', icon: 'home' },
-    { label: 'Hubs', path: '/hubs', icon: 'user-plus' },
-    { label: 'Feedbacks', path: '/feedback', icon: 'user' },
+    { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
+    { label: 'Stores', path: '/stores', icon: 'stores' },
+    { label: 'Hubs', path: '/hubs', icon: 'hubs' },
+    { label: 'Users', path: '/users', icon: 'users' },
+    { label: 'Apps & Billing', path: '/billing', icon: 'billing' },
+    { label: 'Plans', path: '/plans', icon: 'plans' },
+    { label: 'Feedbacks', path: '/feedback', icon: 'feedback' },
+    { label: 'System Health', path: '/health', icon: 'health' },
+    { label: 'Reports', path: '/reports', icon: 'reports' },
+    { label: 'Settings', path: '/settings', icon: 'settings' },
   ];
 
   constructor(

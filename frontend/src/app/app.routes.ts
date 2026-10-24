@@ -49,6 +49,69 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'dashboard',
+    canActivate: [superAdminGuard],
+    data: { section: 'dashboard' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'stores',
+    canActivate: [superAdminGuard],
+    data: { section: 'stores' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'users',
+    canActivate: [superAdminGuard],
+    data: { section: 'users' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'billing',
+    canActivate: [superAdminGuard],
+    data: { section: 'billing' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'plans',
+    canActivate: [superAdminGuard],
+    data: { section: 'plans' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'health',
+    canActivate: [superAdminGuard],
+    data: { section: 'health' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
+    path: 'reports',
+    canActivate: [superAdminGuard],
+    data: { section: 'reports' },
+    loadComponent: () =>
+      import('./pages/super-admin-board/super-admin-board.component').then(
+        (m) => m.SuperAdminBoardComponent
+      ),
+  },
+  {
     path: 'store/:slug/:product',
     loadComponent: () =>
       import('./pages/product-page/product-page.component').then((m) => m.ProductPageComponent),
@@ -98,22 +161,31 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/admin-shell/admin-shell.component').then((m) => m.AdminShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'customers_tenats' },
+      { path: '', pathMatch: 'full', redirectTo: 'hubs' },
+      { path: 'customers_tenats', redirectTo: 'hubs' },
       {
-        path: 'customers_tenats',
+        path: 'hubs',
         loadComponent: () =>
           import('./pages/admin-dashboard/admin-dashboard.component').then(
             (m) => m.AdminDashboardComponent
           ),
       },
+      { path: 'Products', redirectTo: 'AddProducts' },
+      { path: 'medicines', redirectTo: 'AddProducts' },
       {
-        path: 'Products',
+        path: 'AddProducts',
         loadComponent: () =>
           import('./pages/admin-medicines/admin-medicines.component').then(
             (m) => m.AdminMedicinesComponent
           ),
       },
-      { path: 'medicines', redirectTo: 'Products' },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./pages/admin-product-list/admin-product-list.component').then(
+            (m) => m.AdminProductListComponent
+          ),
+      },
       {
         path: 'orders',
         loadComponent: () =>
@@ -125,6 +197,13 @@ export const routes: Routes = [
         path: 'stores',
         loadComponent: () =>
           import('./pages/admin-users/admin-users.component').then((m) => m.AdminUsersComponent),
+      },
+      {
+        path: 'clone',
+        loadComponent: () =>
+          import('./pages/admin-clone-store/admin-clone-store.component').then(
+            (m) => m.AdminCloneStoreComponent
+          ),
       },
       {
         path: 'stores/:id',

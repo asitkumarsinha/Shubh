@@ -145,7 +145,7 @@ db.exec(`
 db.prepare(
   `INSERT OR IGNORE INTO site_settings (id, title, slogan, logo, qr_code)
    VALUES (1, 'My Store Hub', 'Your name, your products, your customers.',
-   '/assets/MyStoreHub.jfif', '/assets/QR.jpeg')`
+   '/assets/mystoreshubs-logo.png', '/assets/QR.jpeg')`
 ).run();
 
 (() => {
@@ -230,8 +230,12 @@ db.prepare(
   `UPDATE site_settings
    SET title = 'My Stores Hubs',
        slogan = 'Your name, your products, your customers.',
-       logo = '/assets/MyStoreHub.jfif'
+       logo = '/assets/mystoreshubs-logo.png'
    WHERE id = 1 AND title IN ('Shubh Surgical', 'Surgical Solution', 'Store Hub / Apna Store', 'My Store Hub', 'MyStoreHub')`
+).run();
+db.prepare(
+  `UPDATE site_settings SET logo = '/assets/mystoreshubs-logo.png'
+   WHERE id = 1 AND logo LIKE '%MyStoreHub.jfif'`
 ).run();
 db.prepare(
   `UPDATE tenant_settings SET title = 'My Stores Hubs'
@@ -271,6 +275,15 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_site_activity_created ON site_activity(created_at);
 `);
+
+{
+  const activityColumns = db.prepare('PRAGMA table_info(site_activity)').all();
+  for (const name of ['hostname', 'asn', 'isp', 'services', 'country', 'region', 'city', 'latitude', 'longitude']) {
+    if (!activityColumns.some((column) => column.name === name)) {
+      db.exec(`ALTER TABLE site_activity ADD COLUMN ${name} TEXT NOT NULL DEFAULT ''`);
+    }
+  }
+}
 
 {
   const feedbackColumns = db.prepare('PRAGMA table_info(site_feedback)').all();

@@ -36,7 +36,7 @@ function platformSettings() {
   return {
     title: row?.title || 'My Store Hub',
     slogan: row?.slogan || 'Your name, your products, your customers.',
-    logo: row?.logo || '/assets/MyStoreHub.jfif',
+    logo: row?.logo || '/assets/mystoreshubs-logo.png',
     qr_code: row?.qr_code || '/assets/QR.jpeg',
     theme_color: '#07131c',
     font_family: 'Syne',

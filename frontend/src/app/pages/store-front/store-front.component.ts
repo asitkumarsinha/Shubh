@@ -8,9 +8,11 @@ import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { ToastService } from '../../core/toast.service';
 import { PageTitleService } from '../../core/page-title.service';
+import { SettingsService } from '../../core/settings.service';
 import { Medicine } from '../../core/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { productSlug } from '../../core/product-slug';
+import { PublicFrameComponent } from '../../shared/public-frame/public-frame.component';
 
 interface PublicStore {
   id: number;
@@ -26,7 +28,7 @@ interface PublicStore {
 @Component({
   selector: 'app-store-front',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, PublicFrameComponent],
   templateUrl: './store-front.component.html',
   styleUrl: './store-front.component.scss',
 })
@@ -51,7 +53,8 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
     public cart: CartService,
     public auth: AuthService,
     private toast: ToastService,
-    private pageTitle: PageTitleService
+    private pageTitle: PageTitleService,
+    public settings: SettingsService
   ) {}
 
   get storeUrl(): string {

@@ -31,9 +31,11 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   readonly sections: DeskSection[] = [
     {
       links: [
-        { label: 'desk.addClient', path: '/admin/stores', icon: 'plus' },
-        { label: 'desk.addProduct', path: '/admin/Products', icon: 'box' },
+        { label: 'desk.home', path: '/admin/hubs', icon: 'home' },
+        { label: 'desk.stores', path: '/admin/stores', icon: 'store' },
         { label: 'desk.viewProduct', path: '/admin/orders', icon: 'box' },
+        { label: 'desk.product', path: '/admin/products', icon: 'box' },
+        { label: 'desk.addProduct', path: '/admin/AddProducts', icon: 'plus' },
         { label: 'desk.topProduct', path: '/admin/reports', icon: 'star' },
       ],
     },
@@ -44,12 +46,12 @@ export class AdminShellComponent implements OnInit, OnDestroy {
     {
       title: 'desk.reminder',
       links: [
-        { label: 'desk.lowStock', path: '/admin/Products', icon: 'alert', disabled: true },
+        { label: 'desk.lowStock', path: '/admin/products', icon: 'alert', disabled: true },
         { label: 'desk.payment', path: '/admin/orders', icon: 'card', disabled: true },
       ],
     },
     {
-      links: [{ label: 'desk.cloneClient', path: '/admin/stores', icon: 'copy', disabled: true }],
+      links: [{ label: 'desk.cloneClient', path: '/admin/clone', icon: 'copy' }],
     },
   ];
 
@@ -60,7 +62,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   ) {}
 
   get showHelp(): boolean {
-    return this.router.url.split('?')[0].startsWith('/admin/customers_tenats');
+    return this.router.url.split('?')[0].startsWith('/admin/hubs');
   }
 
   ngOnInit(): void {

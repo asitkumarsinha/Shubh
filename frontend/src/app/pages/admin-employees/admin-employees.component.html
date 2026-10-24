@@ -11,6 +11,7 @@
       <button class="btn" [class.primary]="mode === 'view'" [class.ghost]="mode !== 'view'" type="button" (click)="showView()">
         View
       </button>
+      <app-grid-actions file="employees" [sections]="gridSections" />
     </div>
   </header>
 

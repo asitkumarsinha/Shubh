@@ -1,8 +1,8 @@
 <section class="page">
   <header class="page-head">
     <div>
-      <h1>Manage products</h1>
-      <p>Upload pack images, set price and stock for the dispensary shelf.</p>
+      <h1>{{ editingId ? 'Edit product' : 'Add product' }}</h1>
+      <p>Upload a pack image, set the price, the group, and the stock.</p>
     </div>
   </header>
 
@@ -53,36 +53,5 @@
       <button class="btn primary" type="submit" [disabled]="importing || !sheet">Upload spreadsheet</button>
     </form>
 
-    <div class="list">
-      <label class="list-tools">
-        Search products
-        <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="productSearch" placeholder="Name or description" />
-      </label>
-      @if (medicines.length === 0) {
-        <div class="empty-state glass-card">
-          <p>{{ query.trim() ? 'No products match this search.' : 'No products have been added yet.' }}</p>
-        </div>
-      }
-      @for (m of medicines; track m.id) {
-        <article class="row-item">
-          <img [src]="imageUrl(m)" [alt]="m.name" loading="lazy" decoding="async" />
-          <div>
-            <h3>{{ m.name }}</h3>
-            <p>Retail ₹{{ (m.listPrice || m.price) | number: '1.2-2' }} · Wholesale ₹{{ m.wholesale_price | number: '1.2-2' }} · Stock {{ m.stock }}@if (m.category) { · {{ m.category }} }</p>
-          </div>
-          <div class="row-actions">
-            <button class="btn ghost" (click)="edit(m)">Edit</button>
-            <button class="btn danger" (click)="remove(m)">Delete</button>
-          </div>
-        </article>
-      }
-      @if (pages > 1) {
-        <nav class="pager" aria-label="Product pages">
-          <button class="btn ghost" type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
-          <span>Page {{ page }} of {{ pages }} · {{ total }} products</span>
-          <button class="btn ghost" type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
-        </nav>
-      }
-    </div>
   </div>
 </section>

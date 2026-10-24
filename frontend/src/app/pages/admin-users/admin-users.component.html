@@ -1,139 +1,93 @@
-<section class="page">
-  <header class="page-head">
-    <div>
-      <h1>Clients / Stores</h1>
-      <p>Client accounts, retail/wholesale groups, and ranking by orders.</p>
-    </div>
-    <button class="btn primary" type="button" [disabled]="exporting" (click)="exportList()">
-      {{ exporting ? 'Saving…' : 'Export client list' }}
-    </button>
+<section class="stores">
+  <header class="stores-head">
+    <h1>Stores</h1>
   </header>
 
-  @if (error) {
-    <div class="toast bad">{{ error }}</div>
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  <div class="toolbar">
+    <button class="btn primary" type="button" (click)="adding = !adding">
+      {{ adding ? 'Close' : 'Add store' }}
+    </button>
+    <label class="search">
+      Search stores
+      <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="storeSearch" placeholder="Search stores..." />
+    </label>
+    <button class="btn ghost" type="button" [disabled]="exporting" (click)="exportList()">
+      {{ exporting ? 'Saving…' : 'Export' }}
+    </button>
+    <app-grid-actions file="stores" [sections]="gridSections" />
+  </div>
+
+  @if (adding) {
+    <form class="panel add-client" (ngSubmit)="addClient()">
+      <h2>Add store</h2>
+      <div class="add-grid">
+        <label>Store name <input [(ngModel)]="newName" name="newName" required /></label>
+        <label>Email <input type="email" [(ngModel)]="newEmail" name="newEmail" required /></label>
+        <label>Password <input type="password" [(ngModel)]="newPassword" name="newPassword" required minlength="6" /></label>
+        <label>Phone <input [(ngModel)]="newPhone" name="newPhone" /></label>
+        <label>Address <input [(ngModel)]="newAddress" name="newAddress" /></label>
+        <label>Group
+          <select [(ngModel)]="newGroup" name="newGroup">
+            @for (opt of groupOptions; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <button class="btn primary" type="submit" [disabled]="creating">
+        {{ creating ? 'Saving…' : 'Add store' }}
+      </button>
+    </form>
   }
 
-  <form class="panel add-client" (ngSubmit)="addClient()">
-    <h2>Add client</h2>
-    <p class="note">Create a shopper account for this store. The password is stored encrypted; share the password you type here with the client.</p>
-    <div class="add-grid">
-      <label>User Name <input [(ngModel)]="newName" name="newName" required /></label>
-      <label>Email <input type="email" [(ngModel)]="newEmail" name="newEmail" required /></label>
-      <label>Password <input type="password" [(ngModel)]="newPassword" name="newPassword" required minlength="6" /></label>
-      <label>Mobile Number <input [(ngModel)]="newPhone" name="newPhone" /></label>
-      <label>Address <input [(ngModel)]="newAddress" name="newAddress" /></label>
-      <label>Group
-        <select class="action-select" [(ngModel)]="newGroup" name="newGroup">
-          @for (opt of groupOptions; track opt.value) {
-            <option [ngValue]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
-      </label>
-    </div>
-    <button class="btn primary" type="submit" [disabled]="creating">
-      {{ creating ? 'Saving…' : 'Add client' }}
-    </button>
-  </form>
-
   @if (loading) {
-    <div class="skeleton-list" aria-label="Loading clients">
-      <span class="skeleton"></span>
-      <span class="skeleton"></span>
-    </div>
-  } @else if (summary) {
-    <div class="stats">
-      <div><span>Clients / Stores</span><strong>{{ summary.totalUsers }}</strong></div>
-      <div><span>Retail</span><strong>{{ summary.retailClients }}</strong></div>
-      <div><span>Wholesale</span><strong>{{ summary.wholesaleClients }}</strong></div>
-      <div><span>With orders</span><strong>{{ summary.usersWithOrders }}</strong></div>
-      <div><span>Blocked</span><strong>{{ summary.blockedUsers }}</strong></div>
-    </div>
-
-    <h2 class="section-title">Top clients by orders</h2>
-    @if (topUsers.length === 0) {
-      <p class="muted">No customer orders yet.</p>
-    } @else {
-      <div class="top-grid">
-        @for (u of topUsers; track u.id) {
-          <a class="top-card" [routerLink]="['/admin/stores', u.id]">
-            <span class="rank">#{{ u.rank }} · {{ u.client_group }}</span>
-            <h3>{{ u.name }}</h3>
-            <p>{{ u.email }}</p>
-            <div class="top-meta">
-              <span>{{ u.orderCount }} {{ u.orderCount === 1 ? 'order' : 'orders' }}</span>
-              <strong>₹{{ u.totalSpent | number: '1.2-2' }}</strong>
-            </div>
-          </a>
-        }
-      </div>
-    }
-
-    <h2 class="section-title">All clients</h2>
-    <label class="list-tools">
-      Search clients
-      <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="clientSearch" placeholder="Name, email, or phone" />
-    </label>
+    <p class="muted">Loading stores…</p>
+  } @else {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Name</th>
+            <th>Store</th>
             <th>Email</th>
-            <th>Mobile Number</th>
-            <th>Group</th>
+            <th>Phone</th>
             <th>Orders</th>
-            <th>Total spent</th>
             <th>Access</th>
-            <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (u of clients(); track u.id) {
+          @for (store of clients(); track store.id) {
             <tr>
-              <td>{{ u.name }}</td>
-              <td>{{ u.email }}</td>
-              <td>{{ u.phone || '—' }}</td>
               <td>
-                <select
-                  class="action-select"
-                  [ngModel]="u.client_group"
-                  [disabled]="updatingId === u.id"
-                  (ngModelChange)="onGroupChange(u, $event)"
-                >
-                  @for (opt of groupOptions; track opt.value) {
-                    <option [ngValue]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
+                <a class="store-name" [routerLink]="['/admin/stores', store.id]">{{ store.name }}</a>
               </td>
-              <td>{{ u.orderCount }}</td>
-              <td>₹{{ u.totalSpent | number: '1.2-2' }}</td>
+              <td><a [href]="'mailto:' + store.email">{{ store.email }}</a></td>
+              <td>{{ store.phone || '—' }}</td>
+              <td>{{ store.orderCount }}</td>
               <td>
                 <select
-                  class="action-select"
-                  [ngModel]="u.status"
-                  [disabled]="updatingId === u.id"
-                  (ngModelChange)="onStatusChange(u, $event)"
+                  [ngModel]="store.status"
+                  [disabled]="updatingId === store.id"
+                  (ngModelChange)="onStatusChange(store, $event)"
                 >
                   @for (opt of accessOptions; track opt.value) {
                     <option [ngValue]="opt.value">{{ opt.label }}</option>
                   }
                 </select>
               </td>
-              <td>
-                <a class="btn ghost" [routerLink]="['/admin/stores', u.id]">View</a>
-              </td>
             </tr>
           } @empty {
-            <tr><td colspan="8">No clients match this search.</td></tr>
+            <tr><td colspan="5">No stores match this search.</td></tr>
           }
         </tbody>
       </table>
     </div>
     @if (pages > 1) {
-      <nav class="pager" aria-label="Client pages">
-        <button class="btn ghost" type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
-        <span>Page {{ page }} of {{ pages }} · {{ total }} clients</span>
-        <button class="btn ghost" type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
+      <nav class="pager" aria-label="Store pages">
+        <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
+        <span>Page {{ page }} of {{ pages }}</span>
+        <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
       </nav>
     }
   }

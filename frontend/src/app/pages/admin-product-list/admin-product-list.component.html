@@ -1,0 +1,78 @@
+<section class="products">
+  <header class="products-head">
+    <h1>Products</h1>
+    <div class="head-actions">
+      <a class="btn ghost" routerLink="/admin/AddProducts">Import</a>
+      <a class="btn primary" routerLink="/admin/AddProducts">Add product</a>
+      <app-grid-actions file="products" [sections]="gridSections" />
+    </div>
+  </header>
+
+  @if (error) { <div class="toast bad">{{ error }}</div> }
+
+  <div class="toolbar">
+    <label class="search">
+      Search products
+      <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="productSearch" placeholder="Search products" />
+    </label>
+    <label class="filter">
+      Filter
+      <select [ngModel]="category" (ngModelChange)="onCategory($event)" name="productGroup">
+        <option value="">All groups</option>
+        @for (group of categories; track group) {
+          <option [value]="group">{{ group }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (loading) {
+    <p class="muted">Loading products…</p>
+  } @else if (!medicines.length) {
+    <p class="muted">{{ query.trim() || category ? 'No products match this search.' : 'No products have been added yet.' }}</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Group</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (medicine of medicines; track medicine.id) {
+            <tr>
+              <td class="product">
+                <img [src]="imageUrl(medicine)" [alt]="medicine.name" />
+                <span>
+                  <strong>{{ medicine.name }}</strong>
+                  <em>{{ medicine.description || '—' }}</em>
+                </span>
+              </td>
+              <td><span class="group">{{ medicine.category || '—' }}</span></td>
+              <td>₹{{ (medicine.listPrice || medicine.price) | number: '1.0-0' }}</td>
+              <td>
+                <strong class="stock">{{ medicine.stock }}</strong>
+                <em>in stock</em>
+              </td>
+              <td class="row-actions">
+                <a [routerLink]="['/admin/AddProducts']" [queryParams]="{ id: medicine.id }">Edit</a>
+                <button type="button" (click)="remove(medicine)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (pages > 1) {
+      <nav class="pager" aria-label="Product pages">
+        <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">Previous</button>
+        <span>{{ total }} products</span>
+        <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">Next</button>
+      </nav>
+    }
+  }
+</section>

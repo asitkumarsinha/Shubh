@@ -1,165 +1,111 @@
+.home-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.home-head h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.now {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.85rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.2rem;
 }
 
 .stat {
-  display: block;
-  padding: 1rem 1.05rem;
-  border-radius: var(--radius-sm);
-  background: var(--glass);
-  backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
   text-decoration: none;
-  color: inherit;
 }
 
-.stat span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #111827;
 }
 
-.stat strong {
-  font-size: 1.35rem;
-  color: #fff;
+.mark svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .stat em {
   display: block;
-  margin-top: 0.3rem;
   font-style: normal;
-  font-size: 0.8rem;
-  color: var(--muted);
+  color: #6b7280;
+  font-size: 0.82rem;
 }
 
-.section-title {
-  margin: 0 0 0.85rem;
-  font-size: 1.2rem;
-  color: #fff;
+.stat strong {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1.35rem;
 }
 
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  align-items: start;
+.pending {
+  padding: 1.1rem 1.15rem 0.4rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
 }
 
-.panel {
-  padding: 1.1rem 1.15rem 1.2rem;
-  background: var(--glass);
-  backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-}
-
-.panel header {
+.pending header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.85rem;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
 }
 
-.panel h3 {
+.pending h2 {
   margin: 0;
   font-size: 1.05rem;
-  color: #fff;
 }
 
-.action-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
+.pending header a {
+  color: #6b7280;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.action-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.7rem;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.action-list li:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.action-list strong {
+.pending td span {
   display: block;
-  color: #fff;
-  font-size: 0.92rem;
+  margin-top: 0.15rem;
+  color: #6b7280;
+  font-size: 0.82rem;
 }
 
-.action-list span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.8rem;
+.pending .btn.primary {
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
 }
 
-.restock {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+.muted {
+  color: #6b7280;
 }
 
-.restock input {
-  width: 4.2rem;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.45rem 0.5rem;
-  font: inherit;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.emp-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.emp-form input {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.7rem 0.85rem;
-  font: inherit;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-@media (max-width: 1100px) {
-  .actions-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .stats {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .action-list li,
-  .panel header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .restock {
-    width: 100%;
-  }
-
-  .restock input {
-    flex: 1;
-    min-width: 0;
   }
 }

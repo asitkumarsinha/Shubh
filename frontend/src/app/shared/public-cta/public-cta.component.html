@@ -15,29 +15,7 @@
   <div class="demo-backdrop" (click)="closeDemo()">
     <div class="demo-player" (click)="$event.stopPropagation()">
       <button type="button" class="demo-close" (click)="closeDemo()" aria-label="Close">×</button>
-      <video
-        #clip
-        [src]="demoVideo"
-        controls
-        autoplay
-        playsinline
-        [muted]="!!musicUrl"
-        (play)="syncFromVideo()"
-        (pause)="pauseMusic()"
-        (seeked)="syncFromVideo()"
-        (ended)="pauseMusic()"
-      ></video>
-      @if (auth.isSuperAdmin()) {
-        <div class="music-bar">
-          <label class="music-change">
-            {{ savingMusic ? 'Saving music…' : 'Change music' }}
-            <input type="file" accept="audio/*" (change)="onMusic($event)" [disabled]="savingMusic" />
-          </label>
-          @if (musicError) {
-            <p>{{ musicError }}</p>
-          }
-        </div>
-      }
+      <iframe class="demo-frame" src="/demo" title="Demo"></iframe>
     </div>
   </div>
 }

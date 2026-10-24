@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MedicineService } from '../../core/medicine.service';
 import { Medicine } from '../../core/models';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
-import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-admin-medicines',
@@ -14,7 +14,6 @@ import { DialogService } from '../../core/dialog.service';
   styleUrl: './admin-medicines.component.scss',
 })
 export class AdminMedicinesComponent implements OnInit {
-  medicines: Medicine[] = [];
   name = '';
   description = '';
   price: number | null = null;
@@ -27,45 +26,22 @@ export class AdminMedicinesComponent implements OnInit {
   editingId: number | null = null;
   error = '';
   loading = false;
-  query = '';
-  page = 1;
-  pages = 1;
-  total = 0;
-  private searchTimer?: ReturnType<typeof setTimeout>;
   savePhase: SavePhase = 'idle';
   readonly saveButtonLabel = saveButtonLabel;
 
   constructor(
     private medicineService: MedicineService,
     private toast: ToastService,
-    private dialog: DialogService
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.reload();
-  }
-
-  onSearch(): void {
-    clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => {
-      this.page = 1;
-      this.reload();
-    }, 300);
-  }
-
-  goTo(page: number): void {
-    if (page < 1 || page > this.pages || page === this.page) return;
-    this.page = page;
-    this.reload();
-  }
-
-  reload(): void {
-    this.medicineService.list({ q: this.query.trim(), page: this.page, limit: 10 }).subscribe({
-      next: (data) => {
-        this.medicines = data.items;
-        this.total = data.total;
-        this.pages = data.pages;
-        this.page = data.page;
+    const id = Number(this.route.snapshot.queryParamMap.get('id'));
+    if (!id) return;
+    this.medicineService.get(id).subscribe({
+      next: (medicine) => this.edit(medicine),
+      error: () => {
+        this.error = 'Could not open that product';
       },
     });
   }
@@ -89,7 +65,6 @@ export class AdminMedicinesComponent implements OnInit {
         this.importing = false;
         this.sheet = null;
         this.toast.success(`${result.created} products added`);
-        this.reload();
       },
       error: (err) => {
         this.importing = false;
@@ -154,7 +129,6 @@ export class AdminMedicinesComponent implements OnInit {
         const msg = this.editingId ? 'Product updated' : 'Product uploaded';
         this.toast.success(msg);
         this.resetForm();
-        this.reload();
         setTimeout(() => (this.savePhase = 'idle'), 2500);
       },
       error: (err) => {
@@ -168,24 +142,4 @@ export class AdminMedicinesComponent implements OnInit {
     });
   }
 
-  async remove(m: Medicine): Promise<void> {
-    const confirmed = await this.dialog.confirm(`Delete ${m.name}? This cannot be undone.`, 'Delete product');
-    if (!confirmed) return;
-    this.toast.beginSave();
-    this.medicineService.remove(m.id).subscribe({
-      next: () => {
-        this.toast.success(`${m.name} deleted`);
-        this.reload();
-      },
-      error: (err) => {
-        const msg = err.error?.message || 'Delete failed';
-        this.error = msg;
-        this.toast.error(msg);
-      },
-    });
-  }
-
-  imageUrl(m: Medicine): string {
-    return m.image || 'assets/medicines/default.svg';
-  }
 }

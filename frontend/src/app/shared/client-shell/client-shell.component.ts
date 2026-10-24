@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { CartService } from '../../core/cart.service';
@@ -16,6 +16,7 @@ const PIN_KEY = 'msh_client_menu_pinned';
   styleUrl: './client-shell.component.scss',
 })
 export class ClientShellComponent implements OnInit, OnDestroy {
+  @Input() layout: 'desk' | 'shop' | 'account' | 'orders' | 'cart' = 'desk';
   pinned = true;
 
   constructor(

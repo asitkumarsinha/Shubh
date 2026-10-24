@@ -1,7 +1,10 @@
-<app-client-shell>
+<app-client-shell layout="account">
   <div class="account-grid">
     <section class="card orders-card">
-      <h2>{{ 'account.recentOrders' | t }}</h2>
+      <header class="card-head">
+        <h2>{{ 'account.recentOrders' | t }}</h2>
+        <app-grid-actions file="account-orders" [sections]="gridSections" />
+      </header>
       @if (loading) {
         <p class="muted">{{ 'account.noOrders' | t }}</p>
       } @else if (orders.length === 0) {

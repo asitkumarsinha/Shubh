@@ -1,3 +1,91 @@
+.reports .page-head {
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.reports h1 {
+  margin: 0 0 1rem;
+  font-size: 1.7rem;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.report-card {
+  padding: 1.1rem 1.2rem 1.2rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.report-card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.range,
+.report-card p,
+.card-head a {
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.figure {
+  margin: 0.6rem 0 1rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.8rem;
+}
+
+.split span,
+.card-head a {
+  display: block;
+}
+
+.split strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.2rem;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.card-head a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.report-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-card td.low {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.email-box .btn.primary {
+  margin-top: 0.8rem;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -71,7 +159,15 @@
 }
 
 code {
-  font-family: Consolas, monospace;
+  font-family: inherit;
   font-size: 0.9em;
   color: #e2e8f0;
+}
+
+@media (max-width: 800px) {
+  .report-grid,
+  .split,
+  .email-row {
+    grid-template-columns: 1fr;
+  }
 }

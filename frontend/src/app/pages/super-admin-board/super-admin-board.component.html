@@ -1,0 +1,136 @@
+<app-super-admin-shell>
+<section class="board">
+  <h1>{{ title }}</h1>
+  <article class="board-card">
+    <p class="lead">{{ lead }}</p>
+    @if (error) { <div class="toast bad">{{ error }}</div> }
+    @if (loading) {
+      <p class="muted">Loading…</p>
+    } @else if (!tenants.length) {
+      <p class="muted">No hubs yet.</p>
+    } @else {
+      @switch (section) {
+        @case ('dashboard') {
+          <div class="stats">
+            <div><span>Hubs</span><strong>{{ tenants.length }}</strong></div>
+            <div><span>Active</span><strong>{{ activeHubs }}</strong></div>
+            <div><span>Clients</span><strong>{{ clientTotal }}</strong></div>
+            <div><span>Orders</span><strong>{{ orderTotal }}</strong></div>
+          </div>
+        }
+        @case ('stores') {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Store</th><th>Address</th><th>Mobile</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                @for (tenant of tenants; track tenant.id) {
+                  <tr>
+                    <td>{{ tenant.name }}</td>
+                    <td>{{ tenant.slug }}</td>
+                    <td>{{ tenant.contact_phone || '—' }}</td>
+                    <td>{{ tenant.status }}</td>
+                    <td><a [routerLink]="['/store', tenant.slug]">Open</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @case ('users') {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Name</th><th>Email</th><th>Hub</th><th>Mobile</th><th>Clients</th></tr>
+              </thead>
+              <tbody>
+                @for (tenant of tenants; track tenant.id) {
+                  <tr>
+                    <td>{{ tenant.admin_name || tenant.contact_name || '—' }}</td>
+                    <td>{{ tenant.admin_email || tenant.contact_email || '—' }}</td>
+                    <td>{{ tenant.name }}</td>
+                    <td>{{ tenant.contact_phone || '—' }}</td>
+                    <td>{{ tenant.usage.users }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @case ('billing') {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Hub</th><th>Plan</th><th>Billing</th><th>Price</th><th>Payment</th><th>Apps</th></tr>
+              </thead>
+              <tbody>
+                @for (tenant of tenants; track tenant.id) {
+                  <tr>
+                    <td>{{ tenant.name }}</td>
+                    <td>{{ tenant.plan }}</td>
+                    <td>{{ tenant.billing_cycle }}</td>
+                    <td>₹{{ tenant.price }}</td>
+                    <td>{{ tenant.payment_status }}</td>
+                    <td>{{ apps(tenant) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @case ('plans') {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Hub</th><th>Plan</th><th>Price</th><th>Clients</th><th>Orders</th><th>Products</th></tr>
+              </thead>
+              <tbody>
+                @for (tenant of tenants; track tenant.id) {
+                  <tr>
+                    <td>{{ tenant.name }}</td>
+                    <td>{{ tenant.plan }}</td>
+                    <td>₹{{ tenant.price }}</td>
+                    <td>{{ tenant.usage.users }}/{{ tenant.max_users }}</td>
+                    <td>{{ tenant.usage.orders }}/{{ tenant.max_orders }}</td>
+                    <td>{{ tenant.usage.medicines }}/{{ tenant.max_medicines }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @case ('health') {
+          <div class="stats">
+            <div><span>API</span><strong>{{ healthOk === null ? '…' : healthOk ? 'Up' : 'Down' }}</strong></div>
+            <div><span>Service</span><strong>{{ healthService || '—' }}</strong></div>
+            <div><span>Active hubs</span><strong>{{ activeHubs }}</strong></div>
+            <div><span>Suspended</span><strong>{{ suspendedHubs }}</strong></div>
+            <div><span>Archived</span><strong>{{ archivedHubs }}</strong></div>
+          </div>
+        }
+        @case ('reports') {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Hub</th><th>Orders</th><th>Products</th><th>Employees</th><th>Clients</th></tr>
+              </thead>
+              <tbody>
+                @for (tenant of tenants; track tenant.id) {
+                  <tr>
+                    <td>{{ tenant.name }}</td>
+                    <td>{{ tenant.usage.orders }}</td>
+                    <td>{{ tenant.usage.medicines }}</td>
+                    <td>{{ tenant.usage.employees }}</td>
+                    <td>{{ tenant.usage.users }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+  </article>
+</section>
+</app-super-admin-shell>

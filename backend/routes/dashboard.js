@@ -39,6 +39,16 @@ const pendingOrdersStmt = db.prepare(
    ORDER BY o.created_at DESC
    LIMIT 8`
 );
+const pendingItemsStmt = db.prepare(
+  `SELECT oi.order_id AS orderId,
+          SUM(oi.quantity) AS itemCount,
+          GROUP_CONCAT(oi.medicine_name, ', ') AS itemNames
+   FROM order_items oi
+   JOIN orders o ON o.id = oi.order_id
+   WHERE o.tenant_id = ? AND o.status = 'pending'
+   GROUP BY oi.order_id`
+);
+const tenantNameStmt = db.prepare('SELECT name FROM tenants WHERE id = ?');
 const lowStockItemsStmt = db.prepare(
   `SELECT id, name, stock, price, image
    FROM medicines
@@ -66,7 +76,19 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   const revenueToday = revenueTodayStmt.get(tenantId).total;
   const lowStock = lowStockStmt.get(tenantId, LOW_STOCK).c;
   const newClients = newClientsStmt.get(tenantId).c;
-  const pendingOrders = pendingOrdersStmt.all(tenantId);
+  const storeName = tenantNameStmt.get(tenantId)?.name || '';
+  const itemsByOrder = new Map(
+    pendingItemsStmt.all(tenantId).map((row) => [row.orderId, row])
+  );
+  const pendingOrders = pendingOrdersStmt.all(tenantId).map((order) => {
+    const items = itemsByOrder.get(order.id);
+    return {
+      ...order,
+      storeName,
+      itemCount: Number(items?.itemCount || 0),
+      itemNames: items?.itemNames || '',
+    };
+  });
   const lowStockItems = lowStockItemsStmt.all(tenantId, LOW_STOCK);
   const topProducts = topProductsStmt.all(tenantId);
 

@@ -137,7 +137,11 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   onLogoLoad(event: Event): void {
     const source = this.settings.current().logo;
-    if (!source || this.fittedSource === source) return;
+    if (!source || source.includes('mystoreshubs-logo')) {
+      this.displayLogo = source;
+      return;
+    }
+    if (this.fittedSource === source) return;
     this.fittedSource = source;
     try {
       const fitted = fitLogoOnWhite(event.target as HTMLImageElement);

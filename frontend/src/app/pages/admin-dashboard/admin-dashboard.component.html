@@ -1,147 +1,103 @@
-<section class="page">
-  <header class="page-head">
+<section class="home">
+  <header class="home-head">
     <div>
-      <h1>Dashboard</h1>
-      <p>Today’s desk — orders, stock, clients, and quick actions.</p>
+      <h1>Home</h1>
+      <p class="now">{{ now | date: 'MMM d, y' }} · {{ now | date: 'h:mm a' }}</p>
     </div>
+    <app-grid-actions file="pending-orders" [sections]="gridSections" />
   </header>
 
   @if (error) { <div class="toast bad">{{ error }}</div> }
 
   @if (loading) {
-    <div class="skeleton-list" aria-label="Loading dashboard">
-      <span class="skeleton"></span>
-      <span class="skeleton"></span>
-      <span class="skeleton short"></span>
-    </div>
+    <p class="muted">Loading home…</p>
   } @else if (data) {
     <div class="stats">
       <a class="stat" routerLink="/admin/orders">
-        <span>Today's orders</span>
-        <strong>{{ data.summary.todayOrders }}</strong>
-      </a>
-      <a class="stat" routerLink="/admin/orders">
-        <span>Pending approvals</span>
-        <strong>{{ data.summary.pendingApprovals }}</strong>
+        <span class="mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M9 8V6.5A3 3 0 0 1 12 3.5 3 3 0 0 1 15 6.5V8" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+        </span>
+        <span>
+          <em>Orders today</em>
+          <strong>{{ data.summary.todayOrders }}</strong>
+        </span>
       </a>
       <div class="stat">
-        <span>Revenue</span>
-        <strong>₹{{ data.summary.revenue | number: '1.2-2' }}</strong>
-        <em>Today ₹{{ data.summary.revenueToday | number: '1.2-2' }}</em>
+        <span class="mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h10v12H7V6Z" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M9.5 10h5M12 10v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+        </span>
+        <span>
+          <em>Revenue</em>
+          <strong>₹{{ data.summary.revenueToday | number: '1.0-0' }}</strong>
+        </span>
       </div>
-      <a class="stat" routerLink="/admin/Products">
-        <span>Low stock</span>
-        <strong>{{ data.summary.lowStock }}</strong>
-        <em>Below {{ data.summary.lowStockThreshold }} units</em>
+      <a class="stat" routerLink="/admin/products">
+        <span class="mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+        </span>
+        <span>
+          <em>Low stock</em>
+          <strong>{{ data.summary.lowStock }}</strong>
+        </span>
       </a>
-      <a class="stat" routerLink="/admin/stores">
-        <span>New clients</span>
-        <strong>{{ data.summary.newClients }}</strong>
-        <em>Registered today</em>
+      <a class="stat" routerLink="/admin/orders">
+        <span class="mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M12 8v4.5l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+        </span>
+        <span>
+          <em>Pending</em>
+          <strong>{{ data.summary.pendingApprovals }}</strong>
+        </span>
       </a>
     </div>
 
-    <h2 class="section-title">Most ordered</h2>
-    <article class="panel">
-      @if (!data.topProducts.length) {
-        <p class="muted">No orders yet, so there is nothing to rank.</p>
+    <article class="pending">
+      <header>
+        <h2>Pending orders</h2>
+        <a routerLink="/admin/orders">View all orders</a>
+      </header>
+      @if (!data.pendingOrders.length) {
+        <p class="muted">No pending orders.</p>
       } @else {
-        <ul class="action-list">
-          @for (product of data.topProducts; track product.name) {
-            <li>
-              <div>
-                <strong>{{ product.name }}</strong>
-                <span>{{ product.qtySold }} sold · ₹{{ product.revenue | number: '1.2-2' }}</span>
-              </div>
-            </li>
-          }
-        </ul>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Store</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Time</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of data.pendingOrders; track order.id) {
+                <tr>
+                  <td><strong>#{{ order.bill_number }}</strong></td>
+                  <td>{{ order.storeName || '—' }}</td>
+                  <td>
+                    <strong>{{ order.userName }}</strong>
+                    <span>{{ order.userEmail }}</span>
+                  </td>
+                  <td>
+                    <strong>{{ order.itemCount || 0 }} {{ (order.itemCount || 0) === 1 ? 'item' : 'items' }}</strong>
+                    <span>{{ order.itemNames || '—' }}</span>
+                  </td>
+                  <td><strong>₹{{ order.total | number: '1.0-0' }}</strong></td>
+                  <td>{{ order.created_at | date: 'h:mm a' }}</td>
+                  <td>
+                    <button type="button" class="btn primary" [disabled]="approvingId === order.id" (click)="approve(order.id)">
+                      {{ approvingId === order.id ? 'Approving…' : 'Approve' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       }
     </article>
-
-    <h2 class="section-title">Quick actions</h2>
-    <div class="actions-grid">
-      <article class="panel">
-        <header>
-          <h3>Approve pending order</h3>
-          <a routerLink="/admin/orders" class="btn ghost">All orders</a>
-        </header>
-        @if (data.pendingOrders.length === 0) {
-          <p class="muted">No pending orders.</p>
-        } @else {
-          <ul class="action-list">
-            @for (o of data.pendingOrders; track o.id) {
-              <li>
-                <div>
-                  <strong>{{ o.bill_number }}</strong>
-                  <span>{{ o.userName }} · ₹{{ o.total | number: '1.2-2' }}</span>
-                </div>
-                <button
-                  class="btn primary"
-                  type="button"
-                  [disabled]="approvingId === o.id"
-                  (click)="approve(o.id)"
-                >
-                  {{ approvingId === o.id ? 'Approving…' : 'Approve' }}
-                </button>
-              </li>
-            }
-          </ul>
-        }
-      </article>
-
-      <article class="panel">
-        <header>
-          <h3>Nearly out of stock</h3>
-          <a routerLink="/admin/Products" class="btn ghost">My Stores Hubs</a>
-        </header>
-        @if (data.lowStockItems.length === 0) {
-          <p class="muted">No low-stock items.</p>
-        } @else {
-          <ul class="action-list">
-            @for (m of data.lowStockItems; track m.id) {
-              <li>
-                <div>
-                  <strong>{{ m.name }}</strong>
-                  <span>Stock {{ m.stock }}</span>
-                </div>
-                <div class="restock">
-                  <input
-                    type="number"
-                    min="1"
-                    [(ngModel)]="restockQty[m.id]"
-                    [name]="'qty' + m.id"
-                  />
-                  <button
-                    class="btn primary"
-                    type="button"
-                    [disabled]="restockingId === m.id"
-                    (click)="restock(m.id)"
-                  >
-                    {{ restockingId === m.id ? 'Saving…' : restockedId === m.id ? 'Saved' : 'Restock' }}
-                  </button>
-                </div>
-              </li>
-            }
-          </ul>
-        }
-      </article>
-
-      <article class="panel">
-        <header>
-          <h3>Add employee</h3>
-          <a routerLink="/admin/employees" class="btn ghost">Employee</a>
-        </header>
-        <form class="emp-form" (ngSubmit)="addEmployee()">
-          <input [(ngModel)]="empName" name="empName" placeholder="Full name *" required />
-          <input type="email" [(ngModel)]="empEmail" name="empEmail" placeholder="Email *" required />
-          <input [(ngModel)]="empPhone" name="empPhone" placeholder="Phone *" required />
-          <input [(ngModel)]="empDesignation" name="empDesignation" placeholder="Designation *" required />
-          <button class="btn primary" type="submit" [disabled]="empSaving">
-            {{ saveButtonLabel(empPhase, 'Add employee', 'Adding…') }}
-          </button>
-        </form>
-      </article>
-    </div>
   }
 </section>

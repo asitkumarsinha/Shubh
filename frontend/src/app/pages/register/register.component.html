@@ -1,7 +1,11 @@
 <section class="login-screen">
   <div class="login-card-shell">
     <header class="login-topbar">
-      <app-language-switcher variant="light" />
+      <div class="topbar-left">
+        <img class="top-logo" [src]="settings.current().logo" [alt]="settings.current().title" />
+        <strong class="top-name">{{ settings.current().title }}</strong>
+        <app-language-switcher variant="light" />
+      </div>
 
       <div class="topbar-actions">
         <a routerLink="/shoppingmall" class="action-chip highlight">

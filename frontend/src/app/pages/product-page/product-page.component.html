@@ -1,12 +1,6 @@
+<app-public-frame>
 <section class="product-screen">
   <div class="product-shell">
-    <header class="product-top">
-      <a routerLink="/">Shopping Mall</a>
-      @if (store) {
-        <a [routerLink]="['/store', store.slug]">{{ store.name }}</a>
-      }
-    </header>
-
     @if (loading) {
       <p class="muted">Loading product…</p>
     } @else if (missing || !product || !store) {
@@ -39,3 +33,4 @@
     }
   </div>
 </section>
+</app-public-frame>

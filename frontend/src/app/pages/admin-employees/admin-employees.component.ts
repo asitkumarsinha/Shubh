@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../core/employee.service';
 import { Employee } from '../../core/models';
+import { GridSection } from '../../core/grid-export';
+import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 import { SavePhase, ToastService, saveButtonLabel } from '../../core/toast.service';
 import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-admin-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GridActionsComponent],
   templateUrl: './admin-employees.component.html',
   styleUrl: './admin-employees.component.scss',
 })
@@ -29,6 +31,22 @@ export class AdminEmployeesComponent implements OnInit {
   loading = false;
   savePhase: SavePhase = 'idle';
   readonly saveButtonLabel = saveButtonLabel;
+
+  get gridSections(): GridSection[] {
+    return [{
+      title: 'Employees',
+      headers: ['Name', 'Email', 'Phone', 'Designation', 'Department', 'Joined', 'Address'],
+      rows: this.employees.map((employee) => [
+        employee.name,
+        employee.email,
+        employee.phone,
+        employee.designation,
+        employee.department || '',
+        employee.joining_date || '',
+        employee.address || '',
+      ]),
+    }];
+  }
 
   constructor(
     private employeeService: EmployeeService,

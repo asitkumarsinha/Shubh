@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.settings.load();
         this.router.navigate([
-          res.user.role === 'super_admin' ? '/settings' : res.user.role === 'admin' ? '/admin/customers_tenats' : '/account',
+          res.user.role === 'super_admin' ? '/settings' : res.user.role === 'admin' ? '/admin/hubs' : '/account',
         ]);
       },
       error: (err) => {

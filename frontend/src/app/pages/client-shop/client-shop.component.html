@@ -1,26 +1,47 @@
-<app-client-shell>
+<app-client-shell layout="shop">
   <section class="shop">
     <header class="shop-head">
       <h1>{{ 'account.shop' | t }}</h1>
+      <app-grid-actions file="shop" [sections]="gridSections" />
+    </header>
+
+    <div class="toolbar">
       <label class="search">
         <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
         <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="shopSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
       </label>
-    </header>
+      @if (categories.length) {
+        <div class="chips" role="group" [attr.aria-label]="'catalogue.searchLabel' | t">
+          <button type="button" [class.on]="!category" (click)="pick('')">{{ 'account.allGroups' | t }}</button>
+          @for (group of categories; track group) {
+            <button type="button" [class.on]="category === group" (click)="pick(group)">{{ group }}</button>
+          }
+        </div>
+      }
+    </div>
 
     @if (loading) {
       <p class="muted">{{ 'catalogue.searchLabel' | t }}</p>
     } @else if (medicines.length === 0) {
-      <p class="muted">{{ (query.trim() ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
+      <p class="muted">{{ (query.trim() || category ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
     } @else {
       <div class="grid">
         @for (medicine of medicines; track medicine.id) {
           <article class="product">
             <img [src]="imageUrl(medicine.image)" [alt]="medicine.name" loading="lazy" decoding="async" />
             <h2>{{ medicine.name }}</h2>
-            <p class="price">₹{{ medicine.price | number: '1.2-2' }}</p>
+            <p class="price">₹{{ medicine.price | number: '1.0-0' }}</p>
             <p class="stock">{{ 'catalogue.stock' | t: { count: medicine.stock } }}</p>
             <button type="button" [disabled]="medicine.stock < 1" (click)="addToCart(medicine)">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <circle cx="9" cy="19" r="1.2" fill="currentColor" />
+                <circle cx="17" cy="19" r="1.2" fill="currentColor" />
+                <path d="M3 5h2l2.2 10h10.3l2-7H7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
               {{ (medicine.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
             </button>
           </article>

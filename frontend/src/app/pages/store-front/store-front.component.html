@@ -1,13 +1,6 @@
+<app-public-frame>
 <section class="store-screen">
   <div class="store-shell">
-    <header class="store-top">
-      <a routerLink="/shoppingmall">Shopping Mall</a>
-      <a routerLink="/login">Sign in</a>
-      @if (auth.isLoggedIn() && !auth.isAdmin() && !auth.isSuperAdmin()) {
-        <a routerLink="/cart">Cart ({{ cart.count() }})</a>
-      }
-    </header>
-
     @if (loading) {
       <p class="muted">Loading store…</p>
     } @else if (!store) {
@@ -21,7 +14,10 @@
           <img class="logo" [src]="store.logo" [alt]="store.name" />
         }
         <div>
-          <p class="eyebrow">My Stores Hubs</p>
+          <p class="eyebrow brand-line">
+            <img [src]="settings.current().logo" [alt]="settings.current().title" />
+            {{ settings.current().title || 'My Stores Hubs' }}
+          </p>
           <h1>{{ store.title || store.name }}</h1>
           @if (store.slogan) { <p>{{ store.slogan }}</p> }
           <p class="contact">{{ store.contact_email }} @if (store.contact_phone) { · {{ store.contact_phone }} }</p>
@@ -86,3 +82,4 @@
     }
   </div>
 </section>
+</app-public-frame>

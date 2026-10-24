@@ -2,6 +2,8 @@
 @import '@fontsource/ibm-plex-sans/500.css';
 @import '@fontsource/ibm-plex-sans/600.css';
 @import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/syne/400.css';
+@import '@fontsource/syne/500.css';
 @import '@fontsource/syne/600.css';
 @import '@fontsource/syne/700.css';
 @import '@fontsource/syne/800.css';
@@ -25,7 +27,7 @@
   --bg: #2a3038;
   --danger: #ff8a80;
   --tenant-theme: #1f242c;
-  --tenant-font: 'Syne', 'IBM Plex Sans', sans-serif;
+  --tenant-font: 'IBM Plex Sans', sans-serif;
   --radius: 22px;
   --radius-sm: 14px;
   --blur: 22px;
@@ -33,10 +35,13 @@
 
 * { box-sizing: border-box; }
 
+html, body, button, input, textarea, select {
+  font-family: var(--tenant-font);
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
-  font-family: var(--tenant-font);
   color: var(--ink);
   background:
     radial-gradient(ellipse at 15% 20%, rgba(120, 140, 170, 0.35), transparent 45%),
@@ -159,8 +164,14 @@ html.hub-login .hub-page :is(h1, h2, h3, h4, p, label, li, strong, td, th, em, s
   color: #1f2937 !important;
 }
 
-html.hub-login .hub-page :is(.muted, .hint, .page-head p, .hit-card span, .preview-slogan, .usage span, .theme-swatch) {
-  color: #6b7280 !important;
+html.hub-login .hub-page :is(.muted, .hint, .page-head p, .preview-slogan, .usage span, .theme-swatch) {
+  color: #374151 !important;
+}
+
+html.hub-login .hub-page .hit-card,
+html.hub-login .hub-page .hit-card span,
+html.hub-login .hub-page .hit-card strong {
+  color: #111827 !important;
 }
 
 html.hub-login .hub-page :is(.panel, .hit-card, .table-wrap, .tenant-card) {
@@ -535,3 +546,45 @@ input:focus, textarea:focus, select:focus {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
+
+/* Advanced shop: white pages, black actions, the My Stores Hubs mark, charcoal desks. */
+html.hub-login .btn.primary,
+html.hub-mall .btn.primary,
+html.hub-admin .btn.primary,
+html.hub-admin .desk-content .btn.primary,
+html.hub-mall .store-screen article > button,
+html.hub-mall .product .actions > button {
+  background: #111 !important;
+  color: #fff !important;
+  border-color: #111 !important;
+}
+
+html.hub-admin .desk-nav {
+  background: #fff;
+  border-right-color: #e5e7eb;
+}
+
+html.hub-admin .desk-nav :is(.nav-link, .nav-label, .pin) {
+  color: #111827;
+}
+
+html.hub-admin .desk-nav .nav-link.active,
+html.hub-admin .desk-nav .nav-link:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+html.hub-admin .desk-body {
+  background: #f1f2f4;
+}
+
+html.hub-admin :is(.brand-mark, .menu-logo),
+html.hub-login .desk-screen:not(.account-layout) :is(.brand-mark, .menu-logo),
+html.hub-mall .brand-mark,
+.brand-logo {
+  object-fit: cover;
+  background: transparent;
+  border-radius: 50%;
+}
+
+@import './mock-screens.scss';

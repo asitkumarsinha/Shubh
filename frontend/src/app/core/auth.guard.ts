@@ -21,7 +21,7 @@ export const superAdminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.isLoggedIn() && auth.isSuperAdmin()) return true;
-  if (auth.isLoggedIn()) return router.createUrlTree([auth.isAdmin() ? '/admin/customers_tenats' : '/account']);
+  if (auth.isLoggedIn()) return router.createUrlTree([auth.isAdmin() ? '/admin/hubs' : '/account']);
   return router.createUrlTree(['/login']);
 };
 
@@ -30,6 +30,6 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   if (!auth.isLoggedIn()) return true;
   return router.createUrlTree([
-    auth.isSuperAdmin() ? '/settings' : auth.isAdmin() ? '/admin/customers_tenats' : '/account',
+    auth.isSuperAdmin() ? '/settings' : auth.isAdmin() ? '/admin/hubs' : '/account',
   ]);
 };

@@ -5,6 +5,8 @@ import { MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { Medicine } from '../../core/models';
+import { GridSection, inr } from '../../core/grid-export';
+import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ClientShellComponent } from '../../shared/client-shell/client-shell.component';
@@ -12,15 +14,25 @@ import { ClientShellComponent } from '../../shared/client-shell/client-shell.com
 @Component({
   selector: 'app-client-shop',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ClientShellComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ClientShellComponent, GridActionsComponent],
   templateUrl: './client-shop.component.html',
   styleUrl: './client-shop.component.scss',
 })
 export class ClientShopComponent implements OnInit {
   medicines: Medicine[] = [];
+  categories: string[] = [];
   loading = true;
   query = '';
+  category = '';
   private searchTimer?: ReturnType<typeof setTimeout>;
+
+  get gridSections(): GridSection[] {
+    return [{
+      title: 'Shop',
+      headers: ['Product', 'Price', 'Stock'],
+      rows: this.medicines.map((medicine) => [medicine.name, inr(medicine.price), String(medicine.stock)]),
+    }];
+  }
 
   constructor(
     private medicineService: MedicineService,
@@ -30,6 +42,15 @@ export class ClientShopComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.medicineService.categories().subscribe({
+      next: (groups) => this.categories = groups,
+      error: () => this.categories = [],
+    });
+    this.load();
+  }
+
+  pick(group: string): void {
+    this.category = group;
     this.load();
   }
 
@@ -40,7 +61,7 @@ export class ClientShopComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.medicineService.list({ q: this.query.trim(), page: 1, limit: 24 }).subscribe({
+    this.medicineService.list({ q: this.query.trim(), category: this.category, page: 1, limit: 24 }).subscribe({
       next: (data) => {
         this.medicines = data.items;
         this.loading = false;

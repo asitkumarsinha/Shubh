@@ -1,0 +1,30 @@
+<section class="clone">
+  <h1>Clone store</h1>
+  <p>Copy a store under a new unique name. The copy keeps the same phone, address, and group, and signs in with the same password.</p>
+
+  @if (error) { <p class="error">{{ error }}</p> }
+
+  @if (loading) {
+    <p>Loading stores…</p>
+  } @else if (!stores.length) {
+    <p>Add a store before cloning one.</p>
+  } @else {
+    <form (ngSubmit)="clone()">
+      <label>
+        Store
+        <select [(ngModel)]="sourceId" name="sourceId" required>
+          @for (store of stores; track store.id) {
+            <option [ngValue]="store.id">{{ store.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        New store name
+        <input [(ngModel)]="name" name="name" required placeholder="Unique store name" />
+      </label>
+      <button class="btn primary" type="submit" [disabled]="saving">
+        {{ saving ? 'Cloning…' : 'Clone store' }}
+      </button>
+    </form>
+  }
+</section>

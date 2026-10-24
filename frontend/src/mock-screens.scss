@@ -1,0 +1,358 @@
+/* Visual system from the page mockups. Controls, routes, and data stay as they are.
+   The My Stores Hubs medallion stays the brand mark. */
+
+html.hub-login,
+html.hub-admin {
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+}
+
+html.hub-login body,
+html.hub-admin body {
+  background: #fff;
+  color: #111827;
+}
+
+html.hub-login:has(.account-layout) body {
+  background: linear-gradient(165deg, #e9ecef 0%, #dfe3e8 100%);
+  background-attachment: fixed;
+}
+
+html.hub-login :is(.login-btn, .btn.primary, button.primary),
+html.hub-mall :is(.store-screen article > button, .product .actions > button),
+html.hub-admin :is(.btn.primary, .desk-content .btn.primary) {
+  background: #111 !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+html.hub-login :is(input, textarea, select),
+html.hub-admin :is(input, textarea, select) {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* Login, register, and demo --------------------------------------- */
+
+html.hub-login .login-screen,
+html.hub-login .demo-screen {
+  background: #fff;
+}
+
+html.hub-login .login-card-shell,
+html.hub-login .demo-card-shell {
+  background: #fff;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+html.hub-login .login-topbar,
+html.hub-login .demo-topbar {
+  border-bottom: 1px solid #ececec;
+}
+
+html.hub-login .top-name,
+html.hub-login .login-screen .action-chip,
+html.hub-login .login-screen .chip-label,
+html.hub-login .demo-screen .action-chip,
+html.hub-login .demo-screen .chip-label,
+html.hub-login .desk-screen:not(.account-layout) .action-chip,
+html.hub-login .desk-screen:not(.account-layout) .chip-label {
+  color: #111 !important;
+}
+
+html.hub-login .login-screen .icon-circle,
+html.hub-login .login-screen .icon-circle.bag,
+html.hub-login .demo-screen .icon-circle,
+html.hub-login .demo-screen .icon-circle.bag,
+html.hub-login .desk-screen:not(.account-layout) .icon-circle,
+html.hub-login .desk-screen:not(.account-layout) .icon-circle.bag {
+  background: transparent;
+  color: #111;
+}
+
+html.hub-login .login-panel .field input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.hub-login .login-body {
+  width: min(28rem, calc(100% - 2rem));
+  margin: 2.5rem auto;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+html.hub-login .login-visual h2,
+html.hub-login .login-panel h1,
+html.hub-admin :is(h1, h2, h3) {
+  color: #111 !important;
+}
+
+html.hub-login .login-visual p,
+html.hub-login .continue-with,
+html.hub-login .login-footer {
+  color: #6b7280;
+}
+
+html.hub-login .login-panel h1,
+html.hub-login .demo-card-shell h1 {
+  color: #111;
+}
+
+html.hub-login .login-architecture {
+  background: #fff;
+  color: inherit;
+  padding: 0;
+}
+
+/* Public store and product ---------------------------------------- */
+
+html.hub-mall .store-top,
+html.hub-mall .product-top {
+  border-bottom: 1px solid #ececec;
+}
+
+
+html.hub-mall .store-screen,
+html.hub-mall .product-screen {
+  padding: 0;
+  background: #fff;
+}
+
+html.hub-mall .store-shell,
+html.hub-mall .product-shell {
+  width: min(72rem, 100%);
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+}
+
+html.hub-mall .store-head h1,
+html.hub-mall .product h1,
+html.hub-mall .eyebrow,
+html.hub-mall .store-top a,
+html.hub-mall .store-url a,
+html.hub-mall .product-top a,
+html.hub-mall .address {
+  color: #111 !important;
+}
+
+html.hub-mall .copy {
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+html.hub-mall .store-screen article,
+html.hub-mall .product .actions > button,
+html.hub-mall .copy {
+  border-radius: 8px;
+}
+
+html.hub-mall .store-screen .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+html.hub-mall .store-screen article {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #fff;
+}
+
+html.hub-mall .product {
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 2rem;
+}
+
+html.hub-mall .product img {
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+}
+
+/* Shopper desk: account, shop, cart, orders, invoice -------------- */
+
+html.hub-login .desk-screen:not(.account-layout),
+html.hub-admin .desk-screen {
+  padding: 0;
+  background: #f6f6f7;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .desk-shell,
+html.hub-admin .desk-shell {
+  max-width: none;
+  min-height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html.hub-admin .desk-nav {
+  background: #fff !important;
+  color: #111827 !important;
+  border-right-color: #e5e7eb !important;
+}
+
+html.hub-admin .desk-nav :is(.nav-link, .nav-label, .pin, h2, span, svg, button, .nav-icon) {
+  color: #111827 !important;
+}
+
+html.hub-admin .desk-nav .nav-link.active,
+html.hub-admin .desk-nav .nav-link:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+html.hub-admin .desk-nav .pin {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+
+html.hub-admin .desk-nav .menu-panel {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+}
+
+html.hub-admin .home .now,
+html.hub-admin .home .stat em,
+html.hub-admin .home .pending header a,
+html.hub-admin .home .pending td span,
+html.hub-admin .home .muted {
+  color: #6b7280 !important;
+}
+
+html.hub-admin .orders td span,
+html.hub-admin .orders .muted,
+html.hub-admin .orders .orders-head p,
+html.hub-admin .products em,
+html.hub-admin .products .muted,
+html.hub-admin .invoice-no span,
+html.hub-admin .invoice-parties span,
+html.hub-admin .deliver span,
+html.hub-admin .invoice-items td span,
+html.hub-admin .thanks {
+  color: #6b7280 !important;
+}
+
+html.hub-admin .orders .table-wrap,
+html.hub-admin .products .table-wrap,
+html.hub-admin .stores .table-wrap {
+  background: #fff !important;
+}
+
+html.hub-admin .home .table-wrap {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .desk-body:not(.collapsed) .menu-logo,
+html.hub-admin .desk-body:not(.collapsed) .menu-logo {
+  display: block;
+  width: 4.75rem !important;
+  height: 4.75rem !important;
+  margin: 0.25rem auto 0.85rem !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .desk-body.collapsed .menu-logo,
+html.hub-admin .desk-body.collapsed .menu-logo {
+  width: 2.4rem !important;
+  height: 2.4rem !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .desk-content,
+html.hub-admin .desk-content {
+  background: #f6f6f7;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .hub-page :is(.panel, .glass-card, .card, .order-card, .bill-sheet, .table-wrap, .hit-card),
+html.hub-admin .desk-content :is(.panel, .glass-card, .card, .order-card, .bill-sheet, .table-wrap, .stat) {
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .hub-page :is(h1, h2, h3, td, th, label, p, strong),
+html.hub-admin .desk-content :is(h1, h2, h3, td, th, label, p, strong) {
+  color: #111827 !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .hub-page table,
+html.hub-admin .desk-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .hub-page :is(th, td),
+html.hub-admin .desk-content :is(th, td) {
+  border-bottom: 1px solid #ececec;
+  padding: 0.7rem 0.5rem;
+}
+
+html.hub-login .feedback-page .lead,
+html.hub-login .feedback-page .muted {
+  color: #6b7280 !important;
+}
+
+html.hub-login .feedback-page .table-wrap,
+html.hub-login .board .table-wrap {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html.hub-login .board .lead,
+html.hub-login .board .muted,
+html.hub-login .board .stats span {
+  color: #6b7280 !important;
+}
+
+html.hub-login .order-card__foot .btn.primary,
+html.hub-login .bill-sheet .btn.primary {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+html.hub-login .desk-screen.shop-layout,
+html.hub-login .desk-screen.shop-layout .desk-shell,
+html.hub-login .desk-screen.shop-layout .desk-body,
+html.hub-login .desk-screen.shop-layout .desk-content {
+  background: #fff !important;
+}
+
+html.hub-login .shop .search input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.hub-login .desk-screen:not(.account-layout) .badge,
+html.hub-admin .badge {
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+}

@@ -239,6 +239,77 @@
 
 .small { font-size: 0.88rem; }
 
+.invoice-top,
+.invoice-parties,
+.invoice-actions,
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.invoice-top,
+.invoice-parties {
+  padding-bottom: 0.9rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.invoice-no,
+.deliver {
+  text-align: right;
+}
+
+.invoice-no span,
+.invoice-parties span,
+.deliver span,
+.invoice-items td span,
+.thanks {
+  display: block;
+  color: #6b7280;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.brand,
+.invoice-no strong {
+  font-size: 1.35rem;
+}
+
+.invoice-items {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-items th {
+  text-align: left;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.invoice-items th:last-child,
+.invoice-items td:last-child {
+  text-align: right;
+}
+
+.unpaid { color: #dc2626; }
+.paid { color: #047857; }
+
+.invoice-actions {
+  margin-top: 1rem;
+}
+
+.invoice-actions .wa {
+  border-color: #128c7e;
+  color: #128c7e;
+}
+
+.thanks {
+  margin: 1rem 0 0;
+  text-align: center;
+  letter-spacing: 0;
+}
+
 @media (max-width: 900px) {
   .bill-layout { grid-template-columns: 1fr; }
   .bill-meta { grid-template-columns: 1fr; }

@@ -25,12 +25,12 @@ export class AuthService {
     () => this.user()?.role === 'user' && this.user()?.client_group === 'wholesale'
   );
 
-  /** Title-bar category: Super Admin, Customer (store admin), or Client. */
+  /** Title-bar category: Super Admin, Hub, or Store. */
   categoryKey(): string {
     const role = this.user()?.role;
     if (role === 'super_admin') return 'role.superAdmin';
-    if (role === 'admin') return 'role.customer';
-    return 'role.client';
+    if (role === 'admin') return 'role.hub';
+    return 'role.store';
   }
 
   constructor(private http: HttpClient, private router: Router, private settings: SettingsService) {}
