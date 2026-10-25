@@ -3,7 +3,9 @@ import { HttpClient } from '@angular/common/http';
 
 export interface SiteActivity {
   id: number;
-  kind: 'visit' | 'login' | 'page';
+  kind: 'visit' | 'login' | 'page' | 'ui';
+  outcome?: 'success' | 'failure' | 'error' | '';
+  detail?: string;
   name: string;
   email: string;
   role: string;

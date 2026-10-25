@@ -88,9 +88,12 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     this.logsOpen = false;
   }
 
-  eventLabel(kind: string): string {
-    if (kind === 'login') return 'Login';
-    if (kind === 'page') return 'Page';
+  eventLabel(row: SiteActivity): string {
+    if (row.outcome === 'success') return 'Success';
+    if (row.outcome === 'failure') return 'Failure';
+    if (row.outcome === 'error') return 'Error';
+    if (row.kind === 'login') return 'Login';
+    if (row.kind === 'page') return 'Page';
     return 'Visit';
   }
 

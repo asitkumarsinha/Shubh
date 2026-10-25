@@ -132,13 +132,14 @@
                 <th>Longitude</th>
                 <th>Browser</th>
                 <th>Page</th>
+                <th>Detail</th>
               </tr>
             </thead>
             <tbody>
               @for (row of activity; track row.id) {
                 <tr>
                   <td>{{ row.created_at }}</td>
-                  <td>{{ row.kind === 'login' ? 'Login' : row.kind === 'page' ? 'Page' : 'Visit' }}</td>
+                  <td>{{ row.outcome === 'success' ? 'Success' : row.outcome === 'failure' ? 'Failure' : row.outcome === 'error' ? 'Error' : (row.kind === 'login' ? 'Login' : row.kind === 'page' ? 'Page' : 'Visit') }}</td>
                   <td>{{ row.name || '—' }}</td>
                   <td>{{ row.email || '—' }}</td>
                   <td>{{ roleLabel(row.role) }}</td>
@@ -154,6 +155,7 @@
                   <td>{{ row.longitude || '—' }}</td>
                   <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
                   <td>{{ row.path || '—' }}</td>
+                  <td>{{ row.detail || '—' }}</td>
                 </tr>
               }
             </tbody>

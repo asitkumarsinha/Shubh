@@ -19,6 +19,18 @@ html.hub-login:has(.account-layout) body {
   background-attachment: fixed;
 }
 
+html.hub-login .login-panel .action-row .login-btn {
+  background: #2f6fed !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 18px rgba(47, 111, 237, 0.28) !important;
+}
+
+html.hub-login .login-panel .action-row .login-btn:hover:not(:disabled) {
+  background: #1d4ed8 !important;
+}
+
 html.hub-login :is(.login-btn, .btn.primary, button.primary),
 html.hub-mall :is(.store-screen article > button, .product .actions > button),
 html.hub-admin :is(.btn.primary, .desk-content .btn.primary) {
@@ -85,7 +97,7 @@ html.hub-login .login-panel .field input {
 
 html.hub-login .login-body {
   width: min(28rem, calc(100% - 2rem));
-  margin: 2.5rem auto;
+  margin: 0.55rem auto 0.4rem;
   padding: 0;
   border: 0;
   box-shadow: none;

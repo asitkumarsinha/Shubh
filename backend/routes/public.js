@@ -33,6 +33,24 @@ router.get('/hits/details', authenticate, requireSuperAdmin, async (_req, res) =
   res.json(await listActivity());
 });
 
+router.post('/ui-log', (req, res) => {
+  const outcome = String(req.body?.outcome || '');
+  if (outcome !== 'success' && outcome !== 'failure' && outcome !== 'error') {
+    return res.status(400).json({ message: 'Outcome must be success, failure, or error' });
+  }
+  const user = optionalUser(req);
+  recordActivity(req, {
+    kind: 'ui',
+    outcome,
+    detail: req.body?.detail || '',
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || '',
+    path: req.body?.path || '',
+  });
+  res.status(204).end();
+});
+
 router.post('/logs', (req, res) => {
   const page = String(req.body?.path || '');
   if (!page.startsWith('/') || page.startsWith('/api')) {

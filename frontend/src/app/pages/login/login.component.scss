@@ -100,7 +100,7 @@
   align-items: center;
   flex: 1;
   min-height: 0;
-  padding: 2.5rem 1rem 3rem;
+  padding: 0.35rem 1rem 0.5rem;
 }
 
 .login-visual {
@@ -158,11 +158,11 @@
 .login-panel {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.35rem;
+  justify-content: flex-start;
+  gap: 0.2rem;
   width: min(24rem, 100%);
   min-height: 0;
-  padding: 1.6rem 1.4rem 1.3rem;
+  padding: 0.85rem 1.15rem 0.75rem;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   background: #fff;
@@ -172,35 +172,53 @@
 .card-mark {
   display: flex;
   justify-content: center;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0;
   color: #111;
+}
+
+.card-mark svg {
+  width: 22px;
+  height: 22px;
 }
 
 .login-panel h1 {
   margin: 0;
   text-align: center;
-  font-size: 1.9rem;
+  font-size: 1.55rem;
   color: #1f2937;
 }
 
-.continue-with {
-  margin: 0 0 0.7rem;
-  text-align: center;
-  color: #8a93a3;
-  font-size: 0.95rem;
+.login-points {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.15rem 0 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.login-points li {
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.4rem;
 }
 
 .field {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.85rem 1rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid #e2e5ea;
   border-radius: 12px;
   background: #fbfcfd;
@@ -311,23 +329,33 @@ form {
   font-weight: 600;
 }
 
+.action-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.cta-host {
+  grid-column: 2 / span 2;
+}
+
 .login-btn {
-  margin-top: 0.3rem;
-  padding: 0.85rem 1rem;
+  margin: 0;
+  padding: 0.62rem 0.35rem;
   border: none;
-  border-radius: 12px;
-  background: #111;
+  border-radius: 8px;
+  background: #2f6fed;
   color: #fff;
   font: inherit;
   font-weight: 700;
-  font-size: 0.98rem;
+  font-size: 0.84rem;
   cursor: pointer;
-  box-shadow: none;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 8px 18px rgba(47, 111, 237, 0.28);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #000;
+  background: #1d4ed8;
 }
 
 .login-btn:disabled {
@@ -335,30 +363,78 @@ form {
   cursor: wait;
 }
 
-.cta-slot {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed #e5e7eb;
-}
-
-/* Scoped override: Demo/Feedback buttons keep the light theme look. */
-.cta-slot ::ng-deep .btn {
-  border-radius: 12px;
+.login-pitch {
+  margin: 0.1rem 0 0;
+  color: #111827;
+  font-size: 1.02rem;
   font-weight: 700;
-  font-size: 0.88rem;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid #dfe3e8;
+  text-align: center;
 }
 
-.cta-slot ::ng-deep .btn.primary {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+.login-pitch-sub {
+  margin: 0.1rem 0 0.25rem;
+  color: #4b5563;
+  font-size: 0.86rem;
+  text-align: center;
+  line-height: 1.3;
 }
 
-.cta-slot ::ng-deep .btn.ghost {
+.social-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  text-decoration: none;
+  color: #fff;
+}
+
+.social.facebook { background: #1877f2; }
+.social.instagram {
+  background: radial-gradient(circle at 30% 110%, #feda75, #fa7e1e 35%, #d62976 60%, #962fbf 82%, #4f5bd5);
+}
+
+.cta-host ::ng-deep .public-cta {
+  display: block;
+}
+
+.cta-host ::ng-deep .cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  flex-direction: row;
+}
+
+.cta-host ::ng-deep .btn {
+  width: 100%;
+  margin: 0;
+  border-radius: 8px;
+  padding: 0.62rem 0.35rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cta-host ::ng-deep .btn.primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.cta-host ::ng-deep .btn.ghost {
   background: #fff;
-  color: #5b6472;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 .cta-slot ::ng-deep .feedback-form {
@@ -452,7 +528,7 @@ form {
   }
 
   .login-panel {
-    padding: 1.5rem 1.25rem 1.75rem;
+    padding: 0.85rem 1rem 0.75rem;
   }
 }
 

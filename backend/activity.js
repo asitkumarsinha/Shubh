@@ -3,9 +3,9 @@ const { lookupIp, isLocal, localPlace, blank } = require('./ip-place');
 
 const insertActivity = db.prepare(
   `INSERT INTO site_activity (
-     kind, name, email, role, ip, user_agent, path,
+     kind, name, email, role, ip, user_agent, path, outcome, detail,
      hostname, asn, isp, services, country, region, city, latitude, longitude
-   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 );
 const updatePlace = db.prepare(
   `UPDATE site_activity
@@ -19,7 +19,7 @@ const missingPlaces = db.prepare(
    LIMIT 12`
 );
 const recentActivity = db.prepare(
-  `SELECT id, kind, name, email, role, ip, user_agent, path, created_at,
+  `SELECT id, kind, name, email, role, ip, user_agent, path, outcome, detail, created_at,
           hostname, asn, isp, services, country, region, city, latitude, longitude
    FROM site_activity
    ORDER BY created_at DESC, id DESC
@@ -70,6 +70,8 @@ function recordActivity(req, details) {
     ip,
     String(req.headers['user-agent'] || '').slice(0, 240),
     path,
+    String(details.outcome || '').slice(0, 20),
+    String(details.detail || '').slice(0, 240),
     known.hostname,
     known.asn,
     known.isp,

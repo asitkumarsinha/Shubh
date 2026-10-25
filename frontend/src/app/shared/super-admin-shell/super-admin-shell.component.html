@@ -123,7 +123,7 @@
           <div>
             <p class="eyebrow">Super Admin</p>
             <h2>Log</h2>
-            <p>{{ logs.length }} records. Scroll to see who hit the website, then every page, visit, and sign-in.</p>
+            <p>{{ logs.length }} records. Success, failure, and error from every page and API call are listed here with each visit and sign-in.</p>
           </div>
         </div>
         <button type="button" class="log-close" (click)="closeLogs()" aria-label="Close">×</button>
@@ -165,13 +165,14 @@
                 <th>Longitude</th>
                 <th>Browser</th>
                 <th>Page</th>
+                <th>Detail</th>
               </tr>
             </thead>
             <tbody>
               @for (row of logs; track row.id) {
                 <tr>
                   <td>{{ row.created_at }}</td>
-                  <td>{{ eventLabel(row.kind) }}</td>
+                  <td [class]="'outcome ' + (row.outcome || '')">{{ eventLabel(row) }}</td>
                   <td>{{ row.name || '—' }}</td>
                   <td>{{ row.email || '—' }}</td>
                   <td>{{ roleLabel(row.role) }}</td>
@@ -187,6 +188,7 @@
                   <td>{{ row.longitude || '—' }}</td>
                   <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
                   <td>{{ row.path || '—' }}</td>
+                  <td class="detail">{{ row.detail || '—' }}</td>
                 </tr>
               }
             </tbody>

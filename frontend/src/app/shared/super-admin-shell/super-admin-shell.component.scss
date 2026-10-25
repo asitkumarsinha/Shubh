@@ -313,6 +313,16 @@
   color: #1f2937;
 }
 
+.log-table td.detail {
+  white-space: normal;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.log-table td.outcome.success { color: #047857; font-weight: 700; }
+.log-table td.outcome.failure { color: #b45309; font-weight: 700; }
+.log-table td.outcome.error { color: #b91c1c; font-weight: 700; }
+
 .log-table th {
   position: sticky;
   top: 0;

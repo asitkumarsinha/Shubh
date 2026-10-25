@@ -16,6 +16,7 @@ export class TranslationService {
     { code: 'hi', label: 'Hindi', native: 'हिन्दी' },
     { code: 'es', label: 'Spanish', native: 'Español' },
     { code: 'fr', label: 'French', native: 'Français' },
+    { code: 'zh', label: 'China', native: '中文' },
   ];
 
   readonly lang = signal<LanguageCode>(this.initialLang());

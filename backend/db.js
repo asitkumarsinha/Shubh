@@ -278,7 +278,7 @@ db.exec(`
 
 {
   const activityColumns = db.prepare('PRAGMA table_info(site_activity)').all();
-  for (const name of ['hostname', 'asn', 'isp', 'services', 'country', 'region', 'city', 'latitude', 'longitude']) {
+  for (const name of ['hostname', 'asn', 'isp', 'services', 'country', 'region', 'city', 'latitude', 'longitude', 'outcome', 'detail']) {
     if (!activityColumns.some((column) => column.name === name)) {
       db.exec(`ALTER TABLE site_activity ADD COLUMN ${name} TEXT NOT NULL DEFAULT ''`);
     }

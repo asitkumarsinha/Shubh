@@ -67,7 +67,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        this.error = apiErrorMessage(err, 'Login failed');
+        this.error = apiErrorMessage(err, this.i18n.t('login.failed'));
       },
     });
   }
