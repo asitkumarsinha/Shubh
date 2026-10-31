@@ -133,6 +133,22 @@ html.hub-login .login-screen.login-home .login-body.login-stage.form-only {
   width: min(26rem, calc(100% - 2rem));
 }
 
+html.hub-login .login-welcome app-public-cta.pitch-demo {
+  display: flex;
+  justify-content: center;
+}
+
+html.hub-login .login-welcome app-public-cta.pitch-demo .demo-launch {
+  background: #111827;
+  color: #fff;
+  padding: 0.55rem 1.35rem;
+  font-size: 0.95rem;
+}
+
+html.hub-login .login-welcome app-public-cta.pitch-demo .demo-launch:hover {
+  background: #000;
+}
+
 html.hub-login .login-visual h2,
 html.hub-login .login-panel h1,
 html.hub-admin :is(h1, h2, h3) {

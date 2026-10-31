@@ -36,6 +36,7 @@
       <aside class="login-welcome">
         <img class="welcome-logo" src="assets/mystoreshubs-seal.png" [alt]="settings.current().title" />
         <h2 class="login-pitch">{{ 'login.pitch' | t }}</h2>
+        <app-public-cta class="pitch-demo" [demoOnly]="true" />
         <p class="login-pitch-sub">{{ 'login.pitchSub' | t }}</p>
         <ul class="login-points">
           <li>
