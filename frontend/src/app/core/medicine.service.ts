@@ -19,6 +19,13 @@ export class MedicineService {
     return this.http.get<PageResult<Medicine>>(this.api, { params });
   }
 
+  mall(query: { q: string; page?: number; limit?: number }): Observable<PageResult<Medicine>> {
+    let params = new HttpParams().set('q', query.q);
+    if (query.page) params = params.set('page', query.page);
+    if (query.limit) params = params.set('limit', query.limit);
+    return this.http.get<PageResult<Medicine>>(`${this.api}/mall`, { params });
+  }
+
   categories(tenantId?: number): Observable<string[]> {
     let params = new HttpParams();
     if (tenantId) params = params.set('tenantId', tenantId);

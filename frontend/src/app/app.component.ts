@@ -33,7 +33,7 @@ import { HelpBotComponent } from './shared/help-bot/help-bot.component';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  readonly helpManualUrl = 'assets/help/My-Store-Hub-Training-Manual.pdf?v=8';
+  readonly helpManualUrl = 'assets/help/My-Store-Hub-Training-Manual.pdf?v=9';
   private lastLoggedPath = '';
 
   constructor(

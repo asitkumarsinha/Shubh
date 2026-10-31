@@ -18,8 +18,6 @@ interface PublicStore {
   id: number;
   name: string;
   slug: string;
-  contact_email: string;
-  contact_phone: string;
   title: string | null;
   slogan: string | null;
   logo: string | null;
@@ -68,7 +66,11 @@ export class StoreFrontComponent implements OnInit, OnDestroy {
     this.tenants.store(slug).subscribe({
       next: (store) => {
         this.store = store;
-        this.pageTitle.set(store.name || store.title || 'Store');
+        const name = store.name || store.title || 'Store';
+        this.pageTitle.set(
+          name,
+          store.slogan || `${name} on My Stores Hubs. Prices are in rupees. Browse the products and stock.`
+        );
         this.loading = false;
         this.loadCategories();
         this.loadProducts();

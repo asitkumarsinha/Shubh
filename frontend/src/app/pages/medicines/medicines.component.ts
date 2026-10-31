@@ -13,13 +13,12 @@ import { ToastService } from '../../core/toast.service';
 import { fitLogoOnWhite } from '../../core/logo-fit';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
+import { HomeLoginComponent } from '../../shared/home-login/home-login.component';
 import { productSlug } from '../../core/product-slug';
 
 interface CustomerCard {
   id: number;
   name: string;
-  email: string;
-  phone: string;
   slug: string;
   orderCount: number;
 }
@@ -29,7 +28,7 @@ const AVATAR_COLOURS = ['#2563eb', '#0f766e', '#9333ea', '#c2410c', '#be123c', '
 @Component({
   selector: 'app-medicines',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
   templateUrl: './medicines.component.html',
   styleUrl: './medicines.component.scss',
 })
@@ -45,6 +44,8 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   total = 0;
 
   customers: CustomerCard[] = [];
+  otherCustomers: CustomerCard[] = [];
+  selected: CustomerCard | null = null;
   customersLoading = false;
   selectedId: number | null = null;
   displayLogo = '';
@@ -77,18 +78,21 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     document.documentElement.classList.remove('hub-mall');
   }
 
-  get selected(): CustomerCard | null {
-    return this.customers.find((c) => c.id === this.selectedId) ?? null;
+  get searchingAll(): boolean {
+    return this.query.trim().length > 0;
   }
 
-  /** Customers other than the selected one, shown below the current-customer card. */
-  get otherCustomers(): CustomerCard[] {
-    return this.customers.filter((c) => c.id !== this.selectedId);
+  private rememberSelection(): void {
+    this.selected = this.customers.find((c) => c.id === this.selectedId) ?? null;
+    this.otherCustomers = this.selected
+      ? this.customers.filter((c) => c.id !== this.selectedId)
+      : this.customers;
   }
 
   selectCustomer(id: number): void {
     if (this.selectedId === id && this.medicines.length) return;
     this.selectedId = id;
+    this.rememberSelection();
     this.page = 1;
     this.query = '';
     this.category = '';
@@ -167,13 +171,16 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   load(): void {
     this.loading = true;
-    this.medicineService.list({
-      q: this.query.trim(),
-      category: this.category,
-      page: this.page,
-      limit: 12,
-      tenantId: this.selectedId ?? undefined,
-    }).subscribe({
+    const q = this.query.trim();
+    const request = q
+      ? this.medicineService.mall({ q, page: this.page, limit: 12 })
+      : this.medicineService.list({
+          category: this.category,
+          page: this.page,
+          limit: 12,
+          tenantId: this.selectedId ?? undefined,
+        });
+    request.subscribe({
       next: (data) => {
         this.medicines = data.items;
         this.total = data.total;
@@ -192,8 +199,12 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     return path || 'assets/medicines/default.svg';
   }
 
+  storeSlug(medicine: Medicine): string {
+    return medicine.store_slug || this.selected?.slug || '';
+  }
+
   productLink(medicine: Medicine): string[] {
-    const slug = this.selected?.slug;
+    const slug = this.storeSlug(medicine);
     if (!slug) return ['/'];
     return ['/store', slug, productSlug(medicine.name, medicine.id)];
   }
@@ -227,11 +238,10 @@ export class MedicinesComponent implements OnInit, OnDestroy {
         this.customers = stores.map((store) => ({
           id: store.id,
           name: store.name,
-          email: store.contact_email || '',
-          phone: store.contact_phone || '',
           slug: store.slug || '',
           orderCount: store.orderCount,
         }));
+        this.rememberSelection();
         this.customersLoading = false;
         const first = this.customers[0];
         if (first) this.selectCustomer(first.id);

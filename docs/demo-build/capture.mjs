@@ -24,12 +24,20 @@ async function snap(page, caption) {
   shots.push({ file, caption });
 }
 
+function signingSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  const envFile = path.resolve(root, '../../backend/.env');
+  if (!fs.existsSync(envFile)) return 'medishop-secret-key-2026';
+  const line = fs.readFileSync(envFile, 'utf8').split(/\r?\n/).find((row) => row.startsWith('JWT_SECRET='));
+  return line ? line.slice('JWT_SECRET='.length).trim() : 'medishop-secret-key-2026';
+}
+
 function loadSessions() {
   const require = createRequire(path.resolve(root, '../../backend/package.json'));
   const Database = require('better-sqlite3');
   const jwt = require('jsonwebtoken');
   const db = new Database(path.resolve(root, '../../backend/data/mystoreshubs.db'), { readonly: true, fileMustExist: true });
-  const secret = process.env.JWT_SECRET || 'medishop-secret-key-2026';
+  const secret = signingSecret();
   const sessions = {};
   for (const email of ['user@shubhsurgical.com', 'admin@shubhsurgical.com', 'asitkumarsinha@gmail.com']) {
     const row = db.prepare('SELECT id, name, email, role, phone, address, tenant_id, client_group FROM users WHERE email = ?').get(email);
@@ -89,8 +97,23 @@ async function main() {
   });
   const page = await context.newPage();
 
+  await page.goto(`${base}/login`, { waitUntil: 'load' });
+  await page.getByRole('heading', { name: /Your store, Your clients, Your hub/ }).waitFor({ timeout: 8000 });
+  await snap(page, 'Your store, Your clients, Your hub');
+
+  await page.getByRole('button', { name: 'Login', exact: true }).click();
+  await page.locator('#login-panel').waitFor({ timeout: 8000 });
+  await snap(page, 'Sign in');
+
   await page.goto(`${base}/`, { waitUntil: 'load' });
   await snap(page, 'Shopping Mall — every store');
+
+  const mallSearch = page.locator('input[name="catalogueSearch"]');
+  if (await mallSearch.count()) {
+    await mallSearch.fill('earbuds');
+    await page.getByText('Vj Store').first().waitFor({ timeout: 8000 }).catch(() => undefined);
+    await snap(page, 'Search every store');
+  }
 
   await page.goto(`${base}/store/spices`, { waitUntil: 'load' });
   await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);

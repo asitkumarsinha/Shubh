@@ -1,10 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 const db = require('../db');
 const logger = require('../logger');
 const { decorateMedicine } = require('../pricing');
 const { productSlug } = require('../product-slug');
 const { authenticate, requireSuperAdmin } = require('../middleware/auth');
+const { buildHubTemplate, importHubWorkbook, WorkbookError } = require('../hub-workbook');
+
+const workbookUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+});
 
 const router = express.Router();
 const DEFAULT_MODULES = {
@@ -101,17 +108,14 @@ function safeSlug(value) {
 }
 
 const storeDirectory = db.prepare(
-  `SELECT t.id, t.name, t.slug, t.contact_name, t.contact_email, t.contact_phone,
-          COUNT(o.id) AS orderCount
+  `SELECT t.id, t.name, t.slug,
+          (SELECT COUNT(*) FROM orders o WHERE o.tenant_id = t.id) AS orderCount
    FROM tenants t
-   LEFT JOIN orders o ON o.tenant_id = t.id
    WHERE t.status != 'archived'
-   GROUP BY t.id
    ORDER BY t.name COLLATE NOCASE`
 );
 const storeBySlug = db.prepare(
-  `SELECT t.id, t.name, t.slug, t.contact_email, t.contact_phone,
-          s.title, s.slogan, s.logo
+  `SELECT t.id, t.name, t.slug, s.title, s.slogan, s.logo
    FROM tenants t
    LEFT JOIN tenant_settings s ON s.tenant_id = t.id
    WHERE t.slug = ? AND t.status != 'archived'`
@@ -144,6 +148,31 @@ router.get('/store/:slug/product/:product', (req, res) => {
 });
 
 router.use(authenticate, requireSuperAdmin);
+
+router.get('/workbook-template', async (_req, res, next) => {
+  try {
+    const buffer = await buildHubTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="shopping-mall-hub.xlsx"');
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/workbook', workbookUpload.single('file'), async (req, res) => {
+  const name = String(req.file?.originalname || '').toLowerCase();
+  if (!req.file || !name.endsWith('.xlsx')) {
+    return res.status(400).json({ message: 'Upload the filled .xlsx template' });
+  }
+  try {
+    const created = await importHubWorkbook(req.file.buffer, req.user.id);
+    res.status(201).json(created);
+  } catch (err) {
+    if (err instanceof WorkbookError) return res.status(err.status).json({ message: err.message });
+    throw err;
+  }
+});
 
 router.get('/', (_req, res) => {
   const tenants = db

@@ -51,7 +51,34 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.pageTitle.clear();
+    document.getElementById('product-jsonld')?.remove();
     document.documentElement.classList.remove('hub-mall');
+  }
+
+  private writeProductSchema(product: Medicine, storeName: string): void {
+    document.getElementById('product-jsonld')?.remove();
+    const script = document.createElement('script');
+    script.id = 'product-jsonld';
+    script.type = 'application/ld+json';
+    const image = product.image
+      ? new URL(product.image, location.origin).href
+      : undefined;
+    script.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description || `${product.name} from ${storeName}`,
+      image,
+      brand: { '@type': 'Brand', name: storeName },
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'INR',
+        price: Number(product.price).toFixed(2),
+        availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        url: `https://www.mystoreshubs.com/store/${this.store?.slug}/${this.slug}`,
+      },
+    });
+    document.head.appendChild(script);
   }
 
   get pageUrl(): string {
@@ -110,10 +137,12 @@ export class ProductPageComponent implements OnInit, OnDestroy {
         this.product = data.product;
         this.slug = data.slug;
         const storeName = data.store.title || data.store.name;
+        const price = Number(data.product.price).toFixed(2);
         this.pageTitle.set(
           `${data.product.name} · ${storeName}`,
-          data.product.description || `${data.product.name} from ${storeName} on My Stores Hubs.`
+          `${data.product.name} from ${storeName}. Price ₹${price} INR. ${data.product.description || 'Shop this product on My Stores Hubs.'}`
         );
+        this.writeProductSchema(data.product, storeName);
         this.loading = false;
         if (productSlug !== data.slug) {
           this.router.navigate(['/store', data.store.slug, data.slug], { replaceUrl: true });

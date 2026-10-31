@@ -40,6 +40,22 @@ const listCategories = db.prepare(
    WHERE tenant_id = ? AND trim(category) != ''
    ORDER BY category COLLATE NOCASE`
 );
+const countMall = db.prepare(
+  `SELECT COUNT(*) AS count
+   FROM medicines m
+   JOIN tenants t ON t.id = m.tenant_id
+   WHERE t.status != 'archived'
+     AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)`
+);
+const listMall = db.prepare(
+  `SELECT m.*, t.name AS store_name, t.slug AS store_slug
+   FROM medicines m
+   JOIN tenants t ON t.id = m.tenant_id
+   WHERE t.status != 'archived'
+     AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)
+   ORDER BY m.name COLLATE NOCASE, t.name COLLATE NOCASE
+   LIMIT ? OFFSET ?`
+);
 
 function tenantFromRequest(req) {
   const user = optionalUser(req);
@@ -63,6 +79,15 @@ router.get('/', (req, res) => {
 router.get('/categories', (req, res) => {
   const { tenantId } = tenantFromRequest(req);
   res.json(listCategories.all(tenantId).map((row) => row.category));
+});
+
+router.get('/mall', (req, res) => {
+  const user = optionalUser(req);
+  const { page, limit, offset, q, like } = pageQuery(req, 12);
+  if (!q) return res.json(pagePayload([], 0, page, limit));
+  const total = countMall.get(like, like).count;
+  const medicines = listMall.all(like, like, limit, offset).map((row) => decorateMedicine(row, user));
+  res.json(pagePayload(medicines, total, page, limit));
 });
 
 router.get('/:id', (req, res) => {

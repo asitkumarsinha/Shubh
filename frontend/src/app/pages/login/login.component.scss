@@ -66,6 +66,14 @@
   font-weight: 600;
 }
 
+button.action-chip {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
 .action-chip.highlight {
   color: #0f766e;
 }
@@ -530,6 +538,130 @@ form {
   .login-panel {
     padding: 0.85rem 1rem 0.75rem;
   }
+}
+
+.login-stage {
+  align-items: stretch;
+}
+
+.login-welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 2.1rem 1.8rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.06);
+}
+
+.welcome-logo {
+  width: min(100%, 15.5rem);
+  height: auto;
+  aspect-ratio: 1;
+  align-self: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.login-welcome .login-pitch {
+  margin: 0.35rem 0 0;
+  color: #111827;
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.login-welcome .login-pitch-sub {
+  margin: 0;
+  color: #4b5563;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.login-welcome .login-points {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+}
+
+.login-welcome .login-points li {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.45rem 0.35rem;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.point-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+}
+
+.login-stage .login-panel {
+  width: 100%;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 1.25rem 1.2rem 1rem;
+  border-radius: 22px;
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.08);
+}
+
+.login-stage .login-panel h1 {
+  margin-bottom: 0.45rem;
+  font-size: 1.9rem;
+}
+
+.login-stage form {
+  gap: 0.75rem;
+}
+
+.login-stage .field {
+  padding: 0.78rem 0.95rem;
+}
+
+.login-stage .action-row {
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.login-stage .cta-host {
+  grid-column: auto;
+}
+
+.login-stage .login-btn {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+.login-stage .social-row {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
 }
 
 @media (max-width: 560px) {

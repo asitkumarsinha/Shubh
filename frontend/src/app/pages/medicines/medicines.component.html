@@ -11,6 +11,7 @@
       </div>
 
       <div class="topbar-actions">
+        <app-home-login />
         @if (auth.isAdmin()) {
           <a routerLink="/admin/hubs" class="action-chip">
             <span class="icon-circle">
@@ -103,7 +104,9 @@
 
       <section class="mall-products">
         <header class="products-head">
-          @if (selected) {
+          @if (searchingAll) {
+            <h2>{{ 'mall.searchResults' | t }}</h2>
+          } @else if (selected) {
             <h2>{{ 'mall.purchasedFor' | t: { name: selected.name } }}</h2>
             @if (selected.slug) {
               <a class="store-link" [routerLink]="['/store', selected.slug]">/store/{{ selected.slug }}</a>
@@ -123,9 +126,9 @@
               <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             </svg>
             <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
-            <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'catalogue.searchPlaceholder' | t" />
+            <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'mall.searchAll' | t" />
           </label>
-          @if (categories.length) {
+          @if (categories.length && !searchingAll) {
             <label class="mall-search">
               <span class="sr-only">Group</span>
               <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
@@ -152,22 +155,23 @@
               @for (m of medicines; track m.id) {
                 <article class="product-card">
                   <div class="product-thumb">
-                    @if (selected?.slug) {
+                    @if (storeSlug(m)) {
                       <a [routerLink]="productLink(m)">
-                        <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                        <img class="product-photo" [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
                       </a>
                     } @else {
-                      <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                      <img class="product-photo" [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
                     }
                   </div>
                   <div class="product-info">
                     <h3>
-                      @if (selected?.slug) {
+                      @if (storeSlug(m)) {
                         <a [routerLink]="productLink(m)">{{ m.name }}</a>
                       } @else {
                         {{ m.name }}
                       }
                     </h3>
+                    @if (searchingAll && m.store_name) { <p class="blurb">{{ m.store_name }}</p> }
                     @if (m.category) { <p class="blurb">{{ m.category }}</p> }
                     @if (m.description) {
                       <p class="blurb">{{ m.description }}</p>
@@ -211,8 +215,6 @@
     <span class="avatar" [style.background]="avatarColour(c.id)" aria-hidden="true">{{ initials(c.name) }}</span>
     <span class="customer-info">
       <strong>{{ c.name }}</strong>
-      <span>{{ 'mall.email' | t: { value: c.email } }}</span>
-      <span>{{ 'mall.phone' | t: { value: c.phone || '—' } }}</span>
       <span>{{ 'mall.orderCount' | t: { count: c.orderCount } }}</span>
     </span>
     @if (active) {

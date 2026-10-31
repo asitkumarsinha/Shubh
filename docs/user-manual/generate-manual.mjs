@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync } from 'fs';
+import { createRequire } from 'module';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -47,12 +48,70 @@ async function clearAuth(page) {
   });
 }
 
+async function openSignIn(page) {
+  const panel = page.locator('#login-panel');
+  if (await panel.count()) return;
+  await page.getByRole('button', { name: 'Login', exact: true }).click();
+  await panel.waitFor({ timeout: 8000 });
+}
+
+function signingSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  const envFile = join(__dirname, '..', '..', 'backend', '.env');
+  if (!existsSync(envFile)) return 'medishop-secret-key-2026';
+  const line = readFileSync(envFile, 'utf8').split(/\r?\n/).find((row) => row.startsWith('JWT_SECRET='));
+  return line ? line.slice('JWT_SECRET='.length).trim() : 'medishop-secret-key-2026';
+}
+
+function sessionFor(email) {
+  const require = createRequire(join(__dirname, '..', '..', 'backend', 'package.json'));
+  const Database = require('better-sqlite3');
+  const jwt = require('jsonwebtoken');
+  const db = new Database(join(__dirname, '..', '..', 'backend', 'data', 'mystoreshubs.db'), {
+    readonly: true,
+    fileMustExist: true,
+  });
+  const row = db
+    .prepare('SELECT id, name, email, role, phone, address, tenant_id, client_group FROM users WHERE email = ?')
+    .get(email);
+  db.close();
+  if (!row) throw new Error(`No account for ${email}`);
+  const user = {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    phone: row.phone,
+    address: row.address,
+    tenant_id: row.tenant_id,
+    client_group: row.client_group === 'wholesale' ? 'wholesale' : 'retail',
+  };
+  return {
+    token: jwt.sign(
+      { id: user.id, name: user.name, email: user.email, role: user.role, tenant_id: user.tenant_id },
+      signingSecret(),
+      { expiresIn: '2h' }
+    ),
+    user,
+  };
+}
+
+async function signInStored(page, email) {
+  const session = sessionFor(email);
+  await page.goto(`${BASE}/login`, { waitUntil: 'load' });
+  await page.evaluate((value) => {
+    localStorage.setItem('medishop_token', value.token);
+    localStorage.setItem('medishop_user', JSON.stringify(value.user));
+  }, session);
+}
+
 async function login(page, email, password) {
   await clearAuth(page);
   await page.goto(`${BASE}/login`, { waitUntil: 'load' });
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.click('button.login-btn');
+  await openSignIn(page);
+  await page.fill('#login-panel input[name="email"]', email);
+  await page.fill('#login-panel input[name="password"]', password);
+  await page.click('#login-panel button.login-btn');
   await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
   await page.waitForLoadState('networkidle');
 }
@@ -90,7 +149,12 @@ if (reuseShots) {
   }
 } else {
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+await context.addInitScript(() => {
+  sessionStorage.setItem('msh_welcome_seen', '1');
+  localStorage.setItem('msh_bot_hidden', '1');
+});
+const page = await context.newPage();
 
 // ---------- Guest screens ----------
 await page.goto(`${BASE}/shoppingmall`, { waitUntil: 'load' });
@@ -108,7 +172,9 @@ await page.waitForTimeout(1000);
 await shot(page, 'register-sent');
 
 await page.goto(`${BASE}/login`, { waitUntil: 'load' });
-await page.waitForTimeout(600);
+await page.getByRole('heading', { name: /Your store, Your clients, Your hub/ }).waitFor({ timeout: 8000 });
+await shot(page, 'login-home');
+await openSignIn(page);
 await shot(page, 'login');
 
 // Theme toggle demonstration
@@ -125,7 +191,9 @@ if (await blackBtn.count()) {
 }
 
 // ---------- Client (shopper) screens ----------
-await login(page, 'user@shubhsurgical.com', 'user123');
+// The shopper password on this database is no longer the seed password, so the
+// same short-lived session the demo video uses is applied instead.
+await signInStored(page, 'user@shubhsurgical.com');
 await page.goto(`${BASE}/shop`, { waitUntil: 'load' });
 await page.waitForSelector('.product', { timeout: 10000 }).catch(() => {});
 await shot(page, 'shop');
@@ -319,7 +387,7 @@ const html = `<!doctype html>
         <tr><td><strong>Purpose</strong></td><td>Help a brand-new user understand and use the website</td></tr>
         <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / your live host URL</td></tr>
         <tr><td><strong>Audience</strong></td><td>Shoppers (Client), store owners (Customer), and the Super Admin</td></tr>
-        <tr><td><strong>Version</strong></td><td>4.0 — ${today}</td></tr>
+        <tr><td><strong>Version</strong></td><td>5.0 — ${today}</td></tr>
         <tr><td><strong>Open this manual</strong></td><td>Sign-in page → <strong>Demo</strong> button, or after login → <strong>Help Center</strong></td></tr>
       </table>
     </div>
@@ -373,7 +441,7 @@ const html = `<!doctype html>
 
   <section class="chapter">
     <h2>2. Website features and access roles</h2>
-    <p class="summary">The site separates shopping, store operations, and platform management into three roles. The header always shows the signed-in person's name and role next to <strong>User Login</strong>.</p>
+    <p class="summary">The site separates shopping, store operations, and platform management into three roles. On the sign-in page the title bar says <strong>Login</strong>. After sign-in, the header shows the person's name and role.</p>
     <table class="ref">
       <tr><th>Role (shown in header)</th><th>Main features</th><th>Where they land after sign-in</th></tr>
       <tr><td><strong>Client</strong> (shopper)</td><td>Browse the Shopping Mall, Shop, Cart, checkout, and My Orders</td><td>Shopping Mall</td></tr>
@@ -386,12 +454,12 @@ const html = `<!doctype html>
   ${section(
     3,
     'Browse the Shopping Mall (guest catalogue)',
-    'The Shopping Mall is open to everyone, signed in or not. It lists every store (Customer business) with its own product grid, search box, and live stock count, so a visitor can compare stores before creating an account.',
+    'The Shopping Mall is open to everyone, signed in or not. Store cards show the store name and recent order count. Email and mobile stay on the hub screens. One search box looks through every store.',
     [
-      'Open the site — it lands on <strong>Sign in</strong> — then click the <strong>Shopping Mall</strong> chip in the top bar, or go directly to <code>/shoppingmall</code>.',
-      'Pick a store from the people grid on the left; its products load on the right.',
-      'Use the search box to filter by product name or description.',
-      'Review the image, price, and stock for each product. Low stock is highlighted.',
+      'Open <strong>Shopping Mall</strong> from the title bar, or go to <code>/shoppingmall</code>.',
+      'Pick a store. Its products load beside the store list.',
+      'Type in <strong>Search every store</strong>. A match from another store still appears, with that store’s name.',
+      'Open a product for its own page. The title includes the price in rupees.',
     ],
     'catalogue'
   )}
@@ -412,15 +480,25 @@ const html = `<!doctype html>
   ${section(
     5,
     'Sign in, Theme, and Language',
-    'The Sign in page shows the brand logo, title, and slogan. It also carries a language switcher, a Black/White theme switch, and (further down the page) an Enterprise Architecture &amp; Onboarding overview of how Super Admin, stores, and clients relate to each other.',
+    'The sign-in page opens on the centered line “Your store, Your clients, Your hub - My Stores Hubs”, with Free hub, Your store, and Your clients. The sign-in form stays hidden until Login is clicked. Who We Are — MyStoresHubs stays further down the page.',
     [
-      'Enter your email and password, then click <strong>Login now</strong>.',
-      'Use <strong>Remember me</strong> to stay signed in on this device, or <strong>Forgot password?</strong> to reset it.',
-      'Click the <strong>Theme</strong> control (sun/moon icons) to switch the whole site between White and Black — your choice is remembered for next time.',
-      'Use the language switcher to read the site in English, Hindi, Spanish, or French.',
+      'Open the sign-in page. The store line is centered.',
+      'Click <strong>Login</strong> in the title bar. The store line hides and the <strong>Log In</strong> form appears in the center.',
+      'Click <strong>Login</strong> again to hide the form and bring the store line back.',
+      'On the form, enter email and password, then click <strong>Login Now</strong>. Use <strong>Remember Me</strong> or <strong>Forgot Password?</strong> if needed.',
+      'Use White or Black for the theme, and the language menu for English, Hindi, Spanish, French, or Chinese.',
     ],
-    'login'
+    'login-home'
   )}
+
+  <section class="chapter">
+    <h2>5b. The sign-in form</h2>
+    <p class="summary">Click <strong>Login</strong> in the title bar. The store line hides and this form is centered. Click <strong>Login</strong> again to return to the store line.</p>
+    <figure>
+      <img src="${img('login')}" alt="Sign-in form" />
+      <figcaption>Screen: Log In form</figcaption>
+    </figure>
+  </section>
 
   ${
     hasLoginBlack
@@ -560,7 +638,7 @@ const html = `<!doctype html>
       'Open <strong>Reports</strong> from the left menu.',
       'Read the stat cards: buyers, orders, revenue, pending, approved, dispatched, rejected, cancelled.',
       'Scroll down for the list of buyers, order status details, and the best-selling products.',
-      'Click <strong>Email report</strong>, type an email address, and send. Without SMTP configured, the report is saved to the local outbox and shown as a preview instead.',
+      'Order and report mail is kept on the server until Reports has a Gmail address and a Gmail app password. After those are saved, the report can be sent.',
     ],
     'admin-reports'
   )}
@@ -650,7 +728,7 @@ const html = `<!doctype html>
       <li>Sign in as Super Admin, open Settings and change a store’s theme colour, then open Customers &amp; tenants.</li>
       <li>Submit a Register Me request from Sign in, then confirm it appears on the Super Admin Feedback page and can be marked Done.</li>
     </ol>
-    <p class="footer-note">End of user manual — My Stores Hubs. Version 4.0 — ${today}.</p>
+    <p class="footer-note">End of user manual — My Stores Hubs. Version 5.0 — ${today}.</p>
   </section>
 </body>
 </html>`;

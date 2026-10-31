@@ -180,6 +180,8 @@ export interface Medicine {
   stock: number;
   category?: string;
   created_at?: string;
+  store_name?: string;
+  store_slug?: string;
 }
 
 export interface CartItem {

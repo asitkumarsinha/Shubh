@@ -1,8 +1,8 @@
-<section class="login-screen">
+<section class="login-screen login-home">
   <div class="login-card-shell">
     <header class="login-topbar">
       <div class="topbar-left">
-        <img class="top-logo" src="assets/mystoreshubs-logo.png" [alt]="settings.current().title" />
+        <img class="top-logo" src="assets/mystoreshubs-seal.png" [alt]="settings.current().title" />
         <strong class="top-name">{{ settings.current().title }}</strong>
         <app-language-switcher variant="light" />
         <app-theme-toggle />
@@ -19,34 +19,64 @@
           <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
         </a>
         <span class="chip-divider" aria-hidden="true"></span>
-        <span class="action-chip" aria-current="page">
+        <button type="button" class="action-chip" [attr.aria-expanded]="showForm" (click)="openLogin()">
           <span class="icon-circle">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
               <circle cx="12" cy="8.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
               <path d="M5 19c1.2-3.4 4-5.2 7-5.2s5.8 1.8 7 5.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             </svg>
           </span>
-          <span class="chip-label">{{ 'login.userLogin' | t }}</span>
-        </span>
+          <span class="chip-label">{{ 'login.menuLogin' | t }}</span>
+        </button>
       </div>
     </header>
 
-    <div class="login-body">
-      <div class="login-panel">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="28" height="28">
-            <path d="M7 8V7a5 5 0 0 1 10 0v1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            <rect x="4.5" y="8" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
-          </svg>
-        </span>
-        <h1>{{ 'login.heading' | t }}</h1>
+    <div class="login-body login-stage" [class.form-only]="showForm">
+      @if (!showForm) {
+      <aside class="login-welcome">
+        <img class="welcome-logo" src="assets/mystoreshubs-seal.png" [alt]="settings.current().title" />
         <h2 class="login-pitch">{{ 'login.pitch' | t }}</h2>
         <p class="login-pitch-sub">{{ 'login.pitchSub' | t }}</p>
         <ul class="login-points">
-          <li>{{ 'login.pointHub' | t }}</li>
-          <li>{{ 'login.pointStore' | t }}</li>
-          <li>{{ 'login.pointClients' | t }}</li>
+          <li>
+            <span class="point-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M3 20.5h18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <path d="M5 20.5V9.2M9 20.5V9.2M15 20.5V9.2M19 20.5V9.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <path d="M3.5 9.2h17L12 3.4 3.5 9.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span>{{ 'login.pointHub' | t }}</span>
+          </li>
+          <li>
+            <span class="point-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M3 7.2h18v2.4c-1.4 1.5-2.8 1.5-4.2 0s-2.8-1.5-4.2 0-2.8 1.5-4.2 0-2.8-1.5-4.2 0-1.2.6-1.2.6V7.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M5 10.2V20h14v-9.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M10.2 20v-5.2h3.6V20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span>{{ 'login.pointStore' | t }}</span>
+          </li>
+          <li>
+            <span class="point-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <circle cx="12" cy="6.2" r="2.1" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <circle cx="6.1" cy="8.2" r="1.6" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <circle cx="17.9" cy="8.2" r="1.6" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M8.2 18.8c.4-2.5 1.9-3.8 3.8-3.8s3.4 1.3 3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M3.2 18.8c.3-1.8 1.3-2.9 2.8-3.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M20.8 18.8c-.3-1.8-1.3-2.9-2.8-3.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span>{{ 'login.pointClients' | t }}</span>
+          </li>
         </ul>
+      </aside>
+      }
+      @if (showForm) {
+      <div class="login-panel" id="login-panel">
+        <h1>{{ 'login.heading' | t }}</h1>
 
         <form (ngSubmit)="submit()">
           <label class="field">
@@ -153,6 +183,7 @@
             </a>
         </div>
       </div>
+      }
     </div>
 
     <footer class="login-footer">

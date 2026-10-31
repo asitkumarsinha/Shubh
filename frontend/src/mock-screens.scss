@@ -104,6 +104,35 @@ html.hub-login .login-body {
   background: transparent;
 }
 
+html.hub-login .login-screen.login-home {
+  background: #fff;
+}
+
+html.hub-login .login-screen.login-home .login-card-shell {
+  background: transparent;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html.hub-login .login-screen.login-home .login-topbar,
+html.hub-login .login-screen.login-home .login-footer {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+html.hub-login .login-screen.login-home .login-body.login-stage {
+  flex: 1;
+  width: min(36rem, calc(100% - 2rem));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
+  justify-items: center;
+}
+
+html.hub-login .login-screen.login-home .login-body.login-stage.form-only {
+  width: min(26rem, calc(100% - 2rem));
+}
+
 html.hub-login .login-visual h2,
 html.hub-login .login-panel h1,
 html.hub-admin :is(h1, h2, h3) {

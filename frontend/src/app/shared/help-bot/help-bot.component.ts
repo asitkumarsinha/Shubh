@@ -1,20 +1,30 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
+import { TranslationService } from '../../core/i18n/translation.service';
+import { BOT_PHRASES, botPhrase } from './help-bot-phrases';
 
 interface BotLink {
-  label: string;
+  label?: string;
+  labelKey?: string;
   path: string;
 }
 
 interface BotLine {
   from: 'bot' | 'user';
-  text: string;
+  text?: string;
+  key?: string;
   links?: BotLink[];
 }
 
-const OUT_OF_SCOPE =
-  'I can help with My Stores Hubs. Ask how to browse a store, place an order, or open a hub for a business.';
+const HINT_ANSWERS: Record<string, string> = {
+  'hint.browse': 'mall',
+  'hint.order': 'order',
+  'hint.hub': 'openHub',
+  'hint.admin': 'adminValues',
+};
 
 @Component({
   selector: 'app-help-bot',
@@ -28,10 +38,13 @@ export class HelpBotComponent {
   hidden = false;
   open = false;
   draft = '';
+  @ViewChild('askBox') askBox?: ElementRef<HTMLInputElement>;
+  readonly hintKeys = ['hint.browse', 'hint.order', 'hint.hub'];
+  readonly adminHintKey = 'hint.admin';
   readonly lines: BotLine[] = [
     {
       from: 'bot',
-      text: 'Hello. I can answer questions about My Stores Hubs. Try the sample stores if you are planning a shop.',
+      key: 'greet',
       links: [
         { label: 'Boutique', path: '/store/boutique' },
         { label: 'Handicraft', path: '/store/handicraft' },
@@ -40,12 +53,60 @@ export class HelpBotComponent {
     },
   ];
 
-  constructor() {
+  constructor(
+    public auth: AuthService,
+    public i18n: TranslationService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {
     this.hidden = localStorage.getItem('msh_bot_hidden') === '1';
+  }
+
+  uploadWorkbook(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const body = new FormData();
+    body.append('file', file);
+    this.lines.push({ from: 'user', text: file.name });
+    this.http.post<{ name: string; slug: string; clients: number; employees: number }>('/api/tenants/workbook', body).subscribe({
+      next: (created) => {
+        this.lines.push({
+          from: 'bot',
+          text: `Created ${created.name}. ${created.clients} clients and ${created.employees} employees are ready. Open Hubs to see the new store.`,
+          links: [{ label: 'Hubs', path: '/hubs' }],
+        });
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.lines.push({
+          from: 'bot',
+          text: err?.error?.message || 'The workbook could not create the store.',
+        });
+        this.cdr.markForCheck();
+      },
+    });
+    this.cdr.markForCheck();
+  }
+
+  phrase(key: string): string {
+    return botPhrase(this.i18n.lang(), key);
+  }
+
+  get boxHint(): string {
+    return this.phrase(this.auth.isSuperAdmin() ? this.adminHintKey : this.hintKeys[0]);
+  }
+
+  get shownHints(): string[] {
+    return this.auth.isSuperAdmin() ? [this.adminHintKey, ...this.hintKeys] : this.hintKeys;
   }
 
   toggle(): void {
     this.open = !this.open;
+    if (this.open && this.auth.isSuperAdmin() && !this.draft) {
+      this.draft = this.phrase(this.adminHintKey);
+    }
   }
 
   hide(): void {
@@ -56,97 +117,73 @@ export class HelpBotComponent {
 
   ask(event: Event): void {
     event.preventDefault();
-    const text = this.draft.trim();
-    if (!text) return;
-    this.draft = '';
-    this.lines.push({ from: 'user', text });
-    this.lines.push({ from: 'bot', ...this.answer(text) });
+    this.reply(this.draft);
   }
 
-  private answer(question: string): Pick<BotLine, 'text' | 'links'> {
-    const text = question.toLowerCase();
+  useHint(hintKey: string): void {
+    this.draft = this.phrase(hintKey);
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      const box = this.askBox?.nativeElement;
+      if (!box) return;
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+    });
+  }
+
+  private reply(raw: string): void {
+    const text = raw.trim();
+    if (!text) return;
+    this.draft = '';
+    const key = this.keyForQuestion(text);
+    this.lines.push({ from: 'user', text });
+    this.lines.push({ from: 'bot', key, links: this.linksFor(key) });
+    this.cdr.markForCheck();
+  }
+
+  private keyForQuestion(raw: string): string {
+    const folded = raw.trim().toLowerCase();
+    for (const [hint, answer] of Object.entries(HINT_ANSWERS)) {
+      for (const pack of Object.values(BOT_PHRASES)) {
+        if ((pack[hint] || '').trim().toLowerCase() === folded) return answer;
+      }
+    }
+    return this.answerKey(folded);
+  }
+
+  private linksFor(key: string): BotLink[] | undefined {
+    if (key === 'boutique') return [{ label: 'Boutique', path: '/store/boutique' }];
+    if (key === 'handicraft') return [{ label: 'Handicraft', path: '/store/handicraft' }];
+    if (key === 'spices' || key === 'group' || key === 'share') return [{ label: 'Spices', path: '/store/spices' }];
+    if (key === 'openHub' || key === 'mall') return [{ labelKey: 'link.mall', path: '/' }];
+    if (key === 'login') {
+      return [
+        { labelKey: 'link.login', path: '/login' },
+        { labelKey: 'link.register', path: '/register' },
+      ];
+    }
+    return undefined;
+  }
+
+  private answerKey(text: string): string {
     const has = (...words: string[]) => words.some((word) => text.includes(word));
-    if (has('hello', 'hi', 'hey', 'good morning', 'good evening')) {
-      return { text: 'Hello. Ask me about stores, orders, or how a business opens a hub on My Stores Hubs.' };
-    }
-    if (has('boutique', 'saree', 'kurta', 'necklace', 'tote')) {
-      return {
-        text: 'Boutique is a sample clothing store. It shows sarees, kurtas, jewellery, and a tote, with prices and stock a shopper can browse.',
-        links: [{ label: 'Open Boutique', path: '/store/boutique' }],
-      };
-    }
-    if (has('handicraft', 'pottery', 'handmade', 'elephant', 'diya', 'scarf')) {
-      return {
-        text: 'Handicraft is a sample maker’s store. It shows pottery, wood, a printed scarf, and brass diyas.',
-        links: [{ label: 'Open Handicraft', path: '/store/handicraft' }],
-      };
-    }
-    if (has('spice', 'turmeric', 'haldi', 'chilli', 'chili', 'cardamom', 'masala')) {
-      return {
-        text: 'Spices is a sample grocery store. It shows turmeric, Kashmiri chilli, cardamom, and garam masala.',
-        links: [{ label: 'Open Spices', path: '/store/spices' }],
-      };
-    }
-    if (has('open a hub', 'open a store', 'start a business', 'start a store', 'create a hub', 'new hub', 'plan')) {
-      return {
-        text: 'A Super Admin creates a hub with a business name, user name, and mobile number. The store then gets its own page in the Shopping Mall, like Boutique, Handicraft, and Spices.',
-        links: [{ label: 'Shopping Mall', path: '/' }],
-      };
-    }
-    if (has('product page', 'own page', 'share link', 'whatsapp the product')) {
-      return {
-        text: 'Every product has its own page with a photo, price, description, and a link you can send on WhatsApp.',
-        links: [{ label: 'Turmeric Powder', path: '/store/spices/turmeric-powder-46' }],
-      };
-    }
-    if (has('category', 'group', 'clothing', 'jewellery', 'blend')) {
-      return {
-        text: 'A store can group its catalogue. Spices uses Whole spices and Blends. Boutique uses Clothing, Jewellery, and Bags.',
-        links: [{ label: 'Spices', path: '/store/spices' }],
-      };
-    }
-    if (has('delivery', 'pickup', 'collect', 'address')) {
-      return {
-        text: 'At checkout the client can enter a delivery address or choose to collect from the shop. The store sees that choice on the order.',
-      };
-    }
-    if (has('invoice', 'bill download', 'download')) {
-      return { text: 'After an order is placed, the client and the store can download a one-page invoice with the items, total, and payment status.' };
-    }
-    if (has('spreadsheet', 'csv', 'upload many', 'import')) {
-      return { text: 'A store can upload a spreadsheet with columns for name, price, stock, description, and category, instead of typing each product.' };
-    }
-    if (has('share', 'instagram', 'google business')) {
-      return {
-        text: 'On the store page, Copy a message to share puts a short note and the public store link on the clipboard, ready for WhatsApp, Instagram, or a Google Business profile.',
-        links: [{ label: 'Spices', path: '/store/spices' }],
-      };
-    }
-    if (has('order', 'cart', 'buy', 'checkout', 'dispatch', 'payment', 'whatsapp')) {
-      return {
-        text: 'Sign in as a client, add a product, and choose delivery or pickup. When the order is placed, accepted, or dispatched, a WhatsApp note is ready for the shop or the client.',
-      };
-    }
-    if (has('login', 'log in', 'sign in', 'register', 'password', 'account')) {
-      return {
-        text: 'Use Login to sign in, or Register to open a client account. Each store is also open to visitors without an account, so you can look through the catalogue first.',
-        links: [{ label: 'Login', path: '/login' }, { label: 'Register', path: '/register' }],
-      };
-    }
-    if (has('mall', 'browse', 'catalogue', 'catalog', 'product', 'stock', 'price')) {
-      return {
-        text: 'The Shopping Mall lists every hub. Open a store to see its products, prices, photos, and how many are in stock.',
-        links: [{ label: 'Shopping Mall', path: '/' }],
-      };
-    }
-    if (has('contact', 'support', 'email', 'phone', 'help')) {
-      return { text: 'For help with My Stores Hubs, write to support@mystoreshubs.com.' };
-    }
-    if (has('what is', 'who are', 'mystores', 'my stores', 'website', 'hub')) {
-      return {
-        text: 'My Stores Hubs is a shopping mall of stores at www.mystoreshubs.com. Each business has its own link, products, and orders.',
-      };
-    }
-    return { text: OUT_OF_SCOPE };
+    if (has('hello', 'hi', 'hey', 'namaste', 'नमस्ते', 'hola', 'bonjour', '你好')) return 'hello';
+    if (has('boutique', 'saree', 'kurta', 'necklace', 'tote', 'साड़ी', '纱丽')) return 'boutique';
+    if (has('handicraft', 'pottery', 'handmade', 'elephant', 'diya', 'scarf', 'हस्तशिल्प', '手工艺')) return 'handicraft';
+    if (has('spice', 'turmeric', 'haldi', 'chilli', 'chili', 'cardamom', 'masala', 'हल्दी', '姜黄', 'cúrcuma', 'curcuma')) return 'spices';
+    if (has('open a hub', 'open a store', 'start a business', 'start a store', 'create a hub', 'new hub', 'negocio', 'entreprise', 'हब कैसे', '开设枢纽')) return 'openHub';
+    if (has('template', 'upload excel', 'employee values', 'client values')) return 'adminValues';
+    if (has('product page', 'own page', 'share link')) return 'product';
+    if (has('category', 'group', 'clothing', 'jewellery', 'blend', 'grupo', 'groupe', '分组')) return 'group';
+    if (has('delivery', 'pickup', 'collect', 'address', 'entrega', 'livraison', '配送', 'डिलीवरी')) return 'delivery';
+    if (has('invoice', 'bill download', 'factura', 'facture', '发票', 'बिल')) return 'invoice';
+    if (has('spreadsheet', 'csv', 'upload many', 'import', 'स्प्रेडशीट')) return 'sheet';
+    if (has('share', 'instagram', 'google business', 'compartir', 'partager')) return 'share';
+    if (has('order', 'cart', 'buy', 'checkout', 'dispatch', 'payment', 'pedido', 'commande', '订单', 'ऑर्डर')) return 'order';
+    if (has('login', 'log in', 'sign in', 'register', 'password', 'account', 'iniciar', 'connexion', '登录', 'लॉगिन')) return 'login';
+    if (has('mall', 'browse', 'catalogue', 'catalog', 'product', 'stock', 'price', 'tienda', 'boutique', '商店', 'स्टोर', 'parcourir')) return 'mall';
+    if (has('contact', 'support', 'email', 'phone', 'help', 'ayuda', 'aide', '帮助', 'मदद')) return 'contact';
+    if (has('what is', 'who are', 'mystores', 'my stores', 'website', 'hub', 'qué es', 'qu est', '是什么')) return 'about';
+    return 'unsure';
   }
 }

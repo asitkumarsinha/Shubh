@@ -23,6 +23,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   email = '';
   password = '';
   showPassword = false;
+  showForm = false;
   remember = false;
   error = '';
   loading = false;
@@ -77,6 +78,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     const email = this.email.trim().toLowerCase();
     if (!email.includes('@')) return;
     this.loginInitialTimer = setTimeout(() => this.settings.loadForLoginEmail(email), 250);
+  }
+
+  openLogin(): void {
+    this.showForm = !this.showForm;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   forgotPassword(): void {

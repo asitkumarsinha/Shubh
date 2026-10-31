@@ -20,7 +20,6 @@
           </p>
           <h1>{{ store.title || store.name }}</h1>
           @if (store.slogan) { <p>{{ store.slogan }}</p> }
-          <p class="contact">{{ store.contact_email }} @if (store.contact_phone) { · {{ store.contact_phone }} }</p>
           <p class="store-url">
             <a [href]="storeUrl">{{ storeUrl }}</a>
             <button type="button" class="copy" (click)="copyLink()">{{ 'store.copy' | t }}</button>

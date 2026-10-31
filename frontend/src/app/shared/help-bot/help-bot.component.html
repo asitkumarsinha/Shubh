@@ -1,7 +1,7 @@
 @if (!hidden) {
   <div class="help-bot">
     @if (open) {
-      <section class="panel" role="dialog" aria-label="My Stores Hubs help">
+      <section class="panel" role="dialog" aria-label="My Stores Hubs help" [attr.data-lang]="i18n.lang()">
         <header>
           <strong>Help</strong>
           <button type="button" (click)="open = false" aria-label="Close chat">×</button>
@@ -9,20 +9,33 @@
         <div class="log">
           @for (line of lines; track $index) {
             <p [class.user]="line.from === 'user'">
-              {{ line.text }}
+              {{ line.key ? phrase(line.key) : line.text }}
               @if (line.links?.length) {
                 <span class="links">
                   @for (link of line.links; track link.path) {
-                    <a [routerLink]="link.path" (click)="open = false">{{ link.label }}</a>
+                    <a [routerLink]="link.path" (click)="open = false">{{ link.labelKey ? phrase(link.labelKey) : link.label }}</a>
                   }
                 </span>
               }
             </p>
           }
         </div>
+        @if (auth.isSuperAdmin()) {
+          <div class="upload-row">
+            <input #sheet type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden (change)="uploadWorkbook($event)" />
+            <button type="button" (click)="sheet.click()">Upload Excel</button>
+            <span>Use Template in the left menu, then upload the filled file here.</span>
+          </div>
+        }
+        <div class="hints">
+          <span>Not sure what to ask? Use a hint.</span>
+          @for (hint of shownHints; track hint) {
+            <button type="button" (click)="useHint(hint)">{{ phrase(hint) }}</button>
+          }
+        </div>
         <form (ngSubmit)="ask($event)">
           <label class="sr-only" for="help-bot-ask">Ask about My Stores Hubs</label>
-          <input id="help-bot-ask" name="ask" [(ngModel)]="draft" placeholder="Ask about My Stores Hubs" autocomplete="off" />
+          <input #askBox id="help-bot-ask" name="ask" [(ngModel)]="draft" [placeholder]="boxHint" autocomplete="off" />
           <button type="submit">Send</button>
         </form>
       </section>

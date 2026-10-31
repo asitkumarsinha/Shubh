@@ -18,9 +18,6 @@ export class TenantService {
       Array<{
         id: number;
         name: string;
-        contact_name: string;
-        contact_email: string;
-        contact_phone: string;
         slug: string;
         orderCount: number;
       }>
@@ -32,8 +29,6 @@ export class TenantService {
       id: number;
       name: string;
       slug: string;
-      contact_email: string;
-      contact_phone: string;
       title: string | null;
       slogan: string | null;
       logo: string | null;

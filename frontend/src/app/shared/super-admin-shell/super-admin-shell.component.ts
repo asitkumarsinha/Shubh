@@ -1,12 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
+import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
-import { PublicCtaComponent } from '../public-cta/public-cta.component';
+import { HomeLoginComponent } from '../home-login/home-login.component';
 import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 import { APP_VERSION } from '../../version';
+import { downloadAdPoster } from '../../core/ad-poster';
 
 interface SuperAdminLink {
   label: string;
@@ -19,7 +22,7 @@ const PIN_KEY = 'msh_super_menu_pinned';
 @Component({
   selector: 'app-super-admin-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, PublicCtaComponent],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
   templateUrl: './super-admin-shell.component.html',
   styleUrl: './super-admin-shell.component.scss',
 })
@@ -29,6 +32,16 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   logsLoading = false;
   logsError = '';
   logs: SiteActivity[] = [];
+  visitors: Array<{
+    key: string;
+    who: string;
+    email: string;
+    role: string;
+    hits: number;
+    lastAt: string;
+    lastPath: string;
+  }> = [];
+  adBusy = false;
   readonly version = APP_VERSION;
 
   readonly links: SuperAdminLink[] = [
@@ -47,8 +60,35 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   constructor(
     public auth: AuthService,
     public settings: SettingsService,
-    private publicSite: PublicSiteService
+    private publicSite: PublicSiteService,
+    private http: HttpClient,
+    private toast: ToastService
   ) {}
+
+  generateAd(): void {
+    if (this.adBusy) return;
+    this.adBusy = true;
+    downloadAdPoster()
+      .then(() => this.toast.info('Ad downloaded'))
+      .catch(() => this.toast.error('Could not generate the ad'))
+      .finally(() => {
+        this.adBusy = false;
+      });
+  }
+
+  downloadTemplate(): void {
+    this.http.get('/api/tenants/workbook-template', { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'shopping-mall-hub.xlsx';
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.toast.error('Could not download the template'),
+    });
+  }
 
   ngOnInit(): void {
     this.pinned = localStorage.getItem(PIN_KEY) !== '0';
@@ -75,6 +115,7 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     this.publicSite.hitDetails().subscribe({
       next: (rows) => {
         this.logs = rows;
+        this.visitors = this.groupVisitors(rows);
         this.logsLoading = false;
       },
       error: (err) => {
@@ -104,25 +145,9 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     return role || 'Guest';
   }
 
-  get visitors(): Array<{
-    key: string;
-    who: string;
-    email: string;
-    role: string;
-    hits: number;
-    lastAt: string;
-    lastPath: string;
-  }> {
-    const people = new Map<string, {
-      key: string;
-      who: string;
-      email: string;
-      role: string;
-      hits: number;
-      lastAt: string;
-      lastPath: string;
-    }>();
-    for (const row of this.logs) {
+  private groupVisitors(rows: SiteActivity[]): SuperAdminShellComponent['visitors'] {
+    const people = new Map<string, SuperAdminShellComponent['visitors'][number]>();
+    for (const row of rows) {
       const key = `${row.email || row.ip || 'guest'}|${row.role || ''}`;
       const current = people.get(key);
       if (!current) {

@@ -128,6 +128,20 @@
   color: #111827;
 }
 
+button.nav-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.nav-link:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 .nav-icon {
   flex: 0 0 auto;
   width: 16px;
