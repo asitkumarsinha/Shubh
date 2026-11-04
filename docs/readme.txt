@@ -545,3 +545,44 @@ Bot can help to new user. User can ask question about MyStoresHubs and Bot reply
 if any question, out of scope, then Bot reply politley
 
 compress and optimize the code to improve the performance and git commit and push
+
+
+Missing on the live mall
+
+Search stays inside the store that is already open. Typing “earbuds” does not find Vj Store unless that store is selected first.
+Each public store card still shows the store email and mobile number.
+Payment is not confirmed by a bank. The hub marks “payment received” by hand.
+Order and report mail is saved on the server. It is sent only after Reports has a real Gmail address and a Gmail app password.
+The API still uses the built-in login signing secret. That is fine on this machine and not fine on the public site.
+The login line about selling to the USA, UK, and UAE does not match the checkout. Prices are in rupees, and there is no other currency or overseas shipping.
+Google gets one site description and a sitemap, not a strong page for each product.
+The help bot still answers in English when the language menu is set to Hindi, Spanish, French, or Chinese.
+Add these first
+
+make more attractive Login page, right now showing very compact, make it better
+One search box for the whole mall, with the product and the store name in the result.
+Store name and order count on the public card. Keep email and mobile on the hub screens.
+Real mail, using the Gmail address and app password entered on Reports.
+
+A private signing secret in the API environment, then a restart so everyone signs in again.
+Later, a payment partner so “paid” comes from UPI, not from a button.
+
+
+In this website, are we using any paid or copyright things, like Google chat bot or something else 
+
+
+In all pages ,title bar add 'Home' icon, when click on Home will route to login page.
+remove 'Demo' , 'Log' button remove , when super admin login 
+Super Admin can use the chat bot and automate whole the process, Super admin will updload the excel file
+In excel file, one sheet has 'Hub' information , another sheet for 'Client' sheet another sheet for 'Employee' sheet
+first In super admin login, then left hand menu add value 'Template' when download this template the it will download with automated value, take a example of 'Shopping Mall'
+when Super admin upload this in Chat bot , then store will create
+first check this chatbot automation should free, if any thing paid then inform me first
+
+When login as Super admin, In left hand Menu add 'Generate Ads', when click on this button then new image geneate with latest feature
+of MyStoresHubs. then download that image. every click generate alwywas new image with some visual format
+
+after that improve the performance and git commit and push.
+
+After 'Your store, Your clients, Your hub - My Stores Hubs' add 'Demo' button. so user can also see the demo
+in landing page
