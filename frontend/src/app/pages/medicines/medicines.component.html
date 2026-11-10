@@ -1,18 +1,16 @@
-<section class="mall-screen">
-  <div class="mall-shell">
-    <header class="mall-topbar">
-      <div class="topbar-brand">
-        <img class="brand-mark" [src]="displayLogo || settings.current().logo" [alt]="settings.current().title" />
-        <div class="brand-copy">
-          <h1 class="brand-name">{{ settings.current().title || 'My Stores Hubs' }}</h1>
-          <p class="brand-tag">www.mystoreshubs.com</p>
-        </div>
-        <app-language-switcher variant="light" />
-      </div>
+<section class="mall-page">
+  <header class="mall-topbar">
+    <div class="topbar-left">
+      <img class="top-logo" src="assets/mystoreshubs-seal.png" [alt]="settings.current().title" />
+      <strong class="top-name">{{ settings.current().title || 'My Stores Hubs' }}</strong>
+      <app-language-switcher variant="light" />
+      <app-theme-toggle />
+    </div>
 
-      <div class="topbar-actions">
-        <app-home-login />
-        @if (auth.isAdmin()) {
+    <div class="topbar-actions">
+      <app-home-login />
+      <span class="chip-divider" aria-hidden="true"></span>
+      @if (auth.isAdmin()) {
           <a routerLink="/admin/hubs" class="action-chip">
             <span class="icon-circle">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -72,163 +70,179 @@
             <span class="chip-label">{{ 'login.userLogin' | t }}</span>
           </a>
         }
+    </div>
+  </header>
+
+  <div class="mall-hero">
+    <img class="world-map" src="assets/world-map.svg?v=5" alt="" decoding="async" fetchpriority="low" />
+    <div class="hero-logo">
+      <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
+    </div>
+  </div>
+
+  <main class="mall-main">
+    <div class="intro-row">
+      <div class="intro-copy">
+        <h1>{{ 'mall.heroTitle' | t }}</h1>
+        <p>{{ 'mall.shopperSteps' | t }}</p>
+        <p class="owner-line">{{ 'mall.ownerLine' | t }}</p>
       </div>
-    </header>
 
-    <div class="mall-body">
-      <aside class="mall-people">
-        <div class="people-grid">
-          <div class="logo-cell">
-            <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
-          </div>
-
-          <div class="current-cell">
-            <div class="current-head">
-              <h2>{{ 'mall.currentCustomer' | t }}</h2>
-              <p>{{ 'mall.selectHint' | t }}</p>
-            </div>
-            @if (selected; as c) {
-              <ng-container *ngTemplateOutlet="customerCard; context: { $implicit: c, active: true }"></ng-container>
-            } @else if (customersLoading) {
-              <div class="customer-card skeleton-card"></div>
-            } @else {
-              <p class="muted-note">{{ 'mall.noCustomers' | t }}</p>
-            }
-          </div>
-
-          @for (c of otherCustomers; track c.id) {
-            <ng-container *ngTemplateOutlet="customerCard; context: { $implicit: c, active: false }"></ng-container>
-          }
-        </div>
-      </aside>
-
-      <section class="mall-products">
-        <header class="products-head">
-          @if (searchingAll) {
-            <h2>{{ 'mall.searchResults' | t }}</h2>
-          } @else if (selected) {
-            <h2>{{ 'mall.purchasedFor' | t: { name: selected.name } }}</h2>
-            @if (selected.slug) {
-              <a class="store-link" [routerLink]="['/store', selected.slug]">/store/{{ selected.slug }}</a>
-            }
-          } @else {
-            <h2>{{ 'mall.shoppingMall' | t }}</h2>
-          }
-        </header>
-
-        @if (error) {
-          <div class="mall-error">{{ error }}</div>
-        }
-
+      <div class="intro-tools">
         <label class="mall-search">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-            <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
-            <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'mall.searchAll' | t" />
-          </label>
-          @if (categories.length && !searchingAll) {
-            <label class="mall-search">
-              <span class="sr-only">Group</span>
-              <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
-                <option value="">All groups</option>
-                @for (group of categories; track group) {
-                  <option [value]="group">{{ group }}</option>
-                }
-              </select>
-            </label>
-          }
-
-          @if (loading) {
-            <div class="product-grid">
-              <div class="product-card skeleton-card"></div>
-              <div class="product-card skeleton-card"></div>
-              <div class="product-card skeleton-card"></div>
-            </div>
-          } @else if (medicines.length === 0) {
-            <div class="empty-note">
-              <p>{{ (query.trim() ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
-            </div>
-          } @else {
-            <div class="product-grid">
-              @for (m of medicines; track m.id) {
-                <article class="product-card">
-                  <div class="product-thumb">
-                    @if (storeSlug(m)) {
-                      <a [routerLink]="productLink(m)">
-                        <img class="product-photo" [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
-                      </a>
-                    } @else {
-                      <img class="product-photo" [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
-                    }
-                  </div>
-                  <div class="product-info">
-                    <h3>
-                      @if (storeSlug(m)) {
-                        <a [routerLink]="productLink(m)">{{ m.name }}</a>
-                      } @else {
-                        {{ m.name }}
-                      }
-                    </h3>
-                    @if (searchingAll && m.store_name) { <p class="blurb">{{ m.store_name }}</p> }
-                    @if (m.category) { <p class="blurb">{{ m.category }}</p> }
-                    @if (m.description) {
-                      <p class="blurb">{{ m.description }}</p>
-                    }
-                    <span class="price">
-                      ₹{{ m.price | number: '1.2-2' }}
-                      @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
-                        <s>₹{{ m.listPrice | number: '1.2-2' }}</s>
-                      }
-                    </span>
-                    <span [class.low]="m.stock < 5">{{ 'catalogue.stock' | t: { count: m.stock } }}</span>
-                    @if (!auth.isAdmin()) {
-                      <button class="add-btn" type="button" [disabled]="m.stock < 1" (click)="addToCart(m)">
-                        {{ (m.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
-                      </button>
-                    }
-                  </div>
-                </article>
-              }
-            </div>
-            @if (pages > 1) {
-              <nav class="pager" aria-label="Product pages">
-                <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">{{ 'catalogue.previous' | t }}</button>
-                <span>{{ 'catalogue.pageInfo' | t: { page: page, pages: pages, total: total } }}</span>
-                <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">{{ 'catalogue.next' | t }}</button>
-              </nav>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+          <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'mall.searchAll' | t" />
+        </label>
+        <label class="mall-search group-select">
+          <span class="sr-only">Group</span>
+          <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
+            <option value="">{{ 'mall.allGroups' | t }}</option>
+            @for (group of groups; track group.name) {
+              <option [value]="group.name">{{ group.name }}</option>
             }
-          }
-      </section>
+          </select>
+        </label>
+      </div>
     </div>
 
-    <footer class="mall-footer">
-      {{ 'login.footer' | t: { title: settings.current().title } }}
-    </footer>
-  </div>
-</section>
+    <nav class="guide-strip" [attr.aria-label]="'mall.shoppingMall' | t">
+      <button type="button" (click)="scrollToStores()">{{ 'mall.guideShop' | t }}</button>
+      <a routerLink="/login">{{ 'mall.guideOpen' | t }}</a>
+      <a routerLink="/demo">{{ 'mall.guideDemo' | t }}</a>
+    </nav>
 
-<ng-template #customerCard let-c let-active="active">
-  <div class="card-wrap">
-  <button type="button" class="customer-card" [class.active]="active" (click)="selectCustomer(c.id)" [attr.aria-pressed]="active">
-    <span class="avatar" [style.background]="avatarColour(c.id)" aria-hidden="true">{{ initials(c.name) }}</span>
-    <span class="customer-info">
-      <strong>{{ c.name }}</strong>
-      <span>{{ 'mall.orderCount' | t: { count: c.orderCount } }}</span>
-    </span>
-    @if (active) {
-      <span class="selected-tag">
-        {{ 'mall.selected' | t }}
-        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6" />
-          <path d="M7.5 12.5 10.5 15.5 16.5 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </span>
+    @if (groups.length) {
+      <section class="tile-row" [attr.aria-label]="'mall.groups' | t">
+        @for (group of groups; track group.name) {
+          <button type="button" class="tile group-tile" [class.active]="category === group.name" (click)="pickGroup(group.name)" [attr.aria-pressed]="category === group.name">
+            <span class="tile-art">
+              <img [src]="imageUrl(group.image)" [alt]="" loading="lazy" decoding="async" />
+            </span>
+            <span class="tile-label">{{ group.name }}</span>
+            <span class="tile-sub">{{ (category === group.name ? 'mall.showingGroup' : 'mall.shopGroup') | t }}</span>
+          </button>
+        }
+      </section>
     }
-  </button>
-  @if (c.slug) {
-    <a class="store-link" [routerLink]="['/store', c.slug]">/store/{{ c.slug }}</a>
-  }
-  </div>
-</ng-template>
+
+    <section id="mall-stores" class="tile-row" [attr.aria-label]="'mall.stores' | t">
+      @if (customersLoading) {
+        <div class="tile skeleton-card"></div>
+        <div class="tile skeleton-card"></div>
+        <div class="tile skeleton-card"></div>
+      }
+      @for (c of customers; track c.id) {
+        <div class="tile store-tile" [class.active]="isStoreActive(c.id)">
+          <button type="button" class="store-pick" (click)="selectCustomer(c.id)" [attr.aria-pressed]="isStoreActive(c.id)">
+            <svg class="tile-art shop-art" viewBox="0 0 160 100" aria-hidden="true">
+              <rect width="160" height="100" fill="#e9edf2" />
+              <rect x="16" y="34" width="128" height="66" fill="#f8fafc" stroke="#cbd5e1" />
+              <rect x="10" y="26" width="140" height="16" [attr.fill]="avatarColour(c.id)" />
+              @for (i of awningStripes; track i) {
+                <rect [attr.x]="14 + i * 20" y="26" width="10" height="16" fill="#fff" opacity="0.85" />
+              }
+              <rect x="26" y="52" width="34" height="28" rx="2" fill="#bfdbfe" />
+              <rect x="100" y="52" width="34" height="28" rx="2" fill="#bfdbfe" />
+              <rect x="68" y="54" width="24" height="46" fill="#94a3b8" />
+              <rect x="52" y="6" width="56" height="16" rx="3" fill="#0f172a" />
+              <text x="80" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">{{ initials(c.name) }}</text>
+            </svg>
+            <span class="tile-label">{{ c.name }}</span>
+            <span class="tile-sub">{{ c.slogan || c.name }}</span>
+          </button>
+          @if (c.slug) {
+            <a class="store-link" [routerLink]="['/store', c.slug]">/store/{{ c.slug }}</a>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="product-panel">
+      <header class="products-head">
+        @if (searchingAll) {
+          <h2>{{ 'mall.searchResults' | t }}</h2>
+        } @else if (selected) {
+          <h2>{{ 'mall.productsFrom' | t: { name: selected.name } }}</h2>
+        } @else {
+          <h2>{{ 'mall.shoppingMall' | t }}</h2>
+        }
+      </header>
+
+      @if (error) {
+        <div class="mall-error">{{ error }}</div>
+      }
+
+      @if (loading) {
+        <div class="product-grid">
+          <div class="product-card skeleton-card"></div>
+          <div class="product-card skeleton-card"></div>
+          <div class="product-card skeleton-card"></div>
+          <div class="product-card skeleton-card"></div>
+        </div>
+      } @else if (medicines.length === 0) {
+        <div class="empty-note">
+          <p>{{ (query.trim() ? 'catalogue.noMatch' : 'catalogue.noneYet') | t }}</p>
+        </div>
+      } @else {
+        <div class="product-grid">
+          @for (m of medicines; track m.id) {
+            <article class="product-card">
+              <div class="product-thumb">
+                @if (storeSlug(m)) {
+                  <a [routerLink]="productLink(m)">
+                    <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                  </a>
+                } @else {
+                  <img [src]="imageUrl(m.image)" [alt]="m.name" loading="lazy" decoding="async" />
+                }
+              </div>
+              <div class="product-info">
+                <h3>
+                  @if (storeSlug(m)) {
+                    <a [routerLink]="productLink(m)">{{ m.name }}</a>
+                  } @else {
+                    {{ m.name }}
+                  }
+                </h3>
+                <span class="store-name">{{ storeName(m) }}</span>
+                @if (storeSlug(m)) {
+                  <a class="store-link" [routerLink]="['/store', storeSlug(m)]">/store/{{ storeSlug(m) }}</a>
+                }
+                @if (m.category) { <p class="blurb">{{ m.category }}</p> }
+                <span class="price">
+                  ₹{{ m.price | number: '1.2-2' }}
+                  @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
+                    <s>₹{{ m.listPrice | number: '1.2-2' }}</s>
+                  }
+                </span>
+                <span [class.low]="m.stock < 5">{{ 'catalogue.stock' | t: { count: m.stock } }}</span>
+                @if (!auth.isAdmin()) {
+                  <button class="add-btn" type="button" [disabled]="m.stock < 1" (click)="addToCart(m)">
+                    {{ (m.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+        @if (pages > 1) {
+          <nav class="pager" aria-label="Product pages">
+            <button type="button" [disabled]="page <= 1" (click)="goTo(page - 1)">{{ 'catalogue.previous' | t }}</button>
+            <span>{{ 'catalogue.pageInfo' | t: { page: page, pages: pages, total: total } }}</span>
+            <button type="button" [disabled]="page >= pages" (click)="goTo(page + 1)">{{ 'catalogue.next' | t }}</button>
+          </nav>
+        }
+      }
+    </section>
+
+    <p class="mall-stats">{{ 'mall.stats' | t: { stores: customers.length, groups: groups.length } }}</p>
+  </main>
+
+  <footer class="mall-footer">
+    {{ 'login.footer' | t: { title: settings.current().title } }}
+  </footer>
+</section>

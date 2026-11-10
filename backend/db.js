@@ -549,10 +549,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_created ON medicines(tenant_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_stock ON medicines(tenant_id, stock);
   CREATE INDEX IF NOT EXISTS idx_medicines_tenant_category_created ON medicines(tenant_id, category, created_at);
+  CREATE INDEX IF NOT EXISTS idx_medicines_category ON medicines(category);
 `);
 
 // Sample hubs a visitor can open and use as a plan for a real shop.
 (() => {
+  if (db.prepare(`SELECT 1 AS ok FROM schema_flags WHERE name = 'sample_hubs_removed'`).get()) return;
   const hubs = [
     {
       name: 'Boutique',

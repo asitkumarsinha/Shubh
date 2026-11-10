@@ -20,6 +20,7 @@ const HUB_HEADERS = [
 ];
 const CLIENT_HEADERS = ['Hub', 'Name', 'Email', 'Phone', 'Address', 'Password'];
 const EMPLOYEE_HEADERS = ['Hub', 'Name', 'Email', 'Phone', 'Designation', 'Department', 'Address'];
+const PRODUCT_HEADERS = ['Name', 'Description', 'Price', 'Wholesale price', 'Stock', 'Category'];
 
 class WorkbookError extends Error {
   constructor(status, message) {
@@ -146,6 +147,9 @@ async function importHubWorkbook(buffer, actorId) {
   const hubs = sheetRows(workbook, 'Hub', HUB_HEADERS);
   const clients = sheetRows(workbook, 'Client', CLIENT_HEADERS);
   const employees = sheetRows(workbook, 'Employee', EMPLOYEE_HEADERS);
+  const products = workbook.getWorksheet('Product')
+    ? sheetRows(workbook, 'Product', PRODUCT_HEADERS)
+    : [];
   if (hubs.length !== 1) {
     throw new WorkbookError(400, 'The Hub sheet needs exactly one store');
   }
@@ -171,6 +175,26 @@ async function importHubWorkbook(buffer, actorId) {
     if (!row.Name || !row.Email.includes('@') || !row.Phone || !row.Designation) {
       throw new WorkbookError(400, `Employee ${row.Name || row.Email || ''} needs a name, email, phone, and designation`);
     }
+  }
+  const catalogue = [];
+  for (const row of products) {
+    const price = Number(row.Price);
+    const stock = Number(row.Stock || 0);
+    const wholesale = row['Wholesale price'] === '' ? null : Number(row['Wholesale price']);
+    if (!row.Name || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
+      throw new WorkbookError(400, `Product ${row.Name || ''} needs a name, a price, and a whole-number stock`);
+    }
+    if (wholesale !== null && (!Number.isFinite(wholesale) || wholesale < 0)) {
+      throw new WorkbookError(400, `Product ${row.Name} has a wholesale price that is not a number`);
+    }
+    catalogue.push({
+      name: row.Name,
+      description: row.Description || '',
+      price,
+      wholesale,
+      stock,
+      category: row.Category || '',
+    });
   }
   const emails = [adminEmail, ...clients.map((row) => row.Email.toLowerCase()), ...employees.map((row) => row.Email.toLowerCase())];
   if (new Set(emails).size !== emails.length) {
@@ -213,10 +237,11 @@ async function importHubWorkbook(buffer, actorId) {
       `INSERT INTO tenant_settings (tenant_id, title, slogan, logo, qr_code)
        VALUES (?, ?, ?, '/assets/shubh-surgical-logo.svg', '/assets/QR.jpeg')`
     ).run(tenantId, name, hub.Slogan || name);
-    db.prepare(
+    const admin = db.prepare(
       `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
        VALUES (?, ?, ?, 'admin', ?, ?, ?)`
     ).run(adminName, adminEmail, bcrypt.hashSync(adminPassword, 10), hub.Mobile || '', hub.Address || '', tenantId);
+    const adminId = Number(admin.lastInsertRowid);
     const insertClient = db.prepare(
       `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
        VALUES (?, ?, ?, 'user', ?, ?, ?)`
@@ -246,10 +271,34 @@ async function importHubWorkbook(buffer, actorId) {
         tenantId
       );
     }
+    const insertProduct = db.prepare(
+      `INSERT INTO medicines
+       (name, description, price, wholesale_price, image, stock, category, created_by, tenant_id)
+       VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)`
+    );
+    for (const item of catalogue) {
+      insertProduct.run(
+        item.name,
+        item.description,
+        item.price,
+        item.wholesale,
+        item.stock,
+        item.category,
+        adminId,
+        tenantId
+      );
+    }
     db.prepare(
       'INSERT INTO tenant_audit_logs (tenant_id, actor_id, action, details) VALUES (?, ?, ?, ?)'
     ).run(tenantId, actorId || null, 'tenant_created', `Workbook created ${name}`);
-    return { id: tenantId, name, slug, clients: clients.length, employees: employees.length };
+    return {
+      id: tenantId,
+      name,
+      slug,
+      clients: clients.length,
+      employees: employees.length,
+      products: catalogue.length,
+    };
   });
   return create();
 }

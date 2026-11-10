@@ -108,9 +108,13 @@ function safeSlug(value) {
 }
 
 const storeDirectory = db.prepare(
-  `SELECT t.id, t.name, t.slug,
-          (SELECT COUNT(*) FROM orders o WHERE o.tenant_id = t.id) AS orderCount
+  `SELECT t.id, t.name, t.slug, IFNULL(s.slogan, '') AS slogan,
+          IFNULL(oc.order_count, 0) AS orderCount
    FROM tenants t
+   LEFT JOIN tenant_settings s ON s.tenant_id = t.id
+   LEFT JOIN (
+     SELECT tenant_id, COUNT(*) AS order_count FROM orders GROUP BY tenant_id
+   ) oc ON oc.tenant_id = t.id
    WHERE t.status != 'archived'
    ORDER BY t.name COLLATE NOCASE`
 );

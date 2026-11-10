@@ -4,6 +4,7 @@ const { scheduleBackups } = require('./backup');
 const { securityHeaders } = require('./security');
 const { JWT_SECRET } = require('./middleware/auth');
 const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
@@ -32,6 +33,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4200,http:/
   .filter(Boolean);
 
 app.use(securityHeaders);
+app.use(compression({ threshold: 1024 }));
 // The architecture page is self-contained and is only ever framed by our own
 // login page, so allow same-origin framing for it specifically.
 app.use((req, res, next) => {
@@ -129,13 +131,28 @@ function resolveDistPath() {
 
 const distPath = resolveDistPath();
 
+function cacheStatic(res, filePath) {
+  const name = path.basename(filePath);
+  if (name === 'index.html') {
+    res.setHeader('Cache-Control', 'no-cache');
+    return;
+  }
+  // Angular outputHashing puts a content hash in built JS and CSS names.
+  if (/\.[0-9a-f]{8,}\./i.test(name)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return;
+  }
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+}
+
 if (distPath) {
-  app.use(express.static(distPath, { index: false }));
+  app.use(express.static(distPath, { index: false, setHeaders: cacheStatic }));
 
   // SPA fallback — keep API and uploads untouched
   app.use((req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next();
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(path.join(distPath, 'index.html'), (err) => {
       if (err) next(err);
     });

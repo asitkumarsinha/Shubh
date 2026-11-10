@@ -19,6 +19,7 @@ export class TenantService {
         id: number;
         name: string;
         slug: string;
+        slogan: string;
         orderCount: number;
       }>
     >(`${this.api}/directory`);

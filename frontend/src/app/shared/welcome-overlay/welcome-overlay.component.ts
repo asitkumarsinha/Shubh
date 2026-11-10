@@ -1,5 +1,4 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { FeatureShowcaseComponent } from '../feature-showcase/feature-showcase.component';
 
 const SEEN_KEY = 'msh_welcome_seen';
@@ -16,8 +15,6 @@ export class WelcomeOverlayComponent implements OnInit, OnDestroy {
   open = false;
   secondsLeft = AUTO_CLOSE_SECONDS;
   private timer?: ReturnType<typeof setInterval>;
-
-  constructor(private router: Router) {}
 
   ngOnInit(): void {
     if (sessionStorage.getItem(SEEN_KEY) || location.pathname.startsWith('/demo')) return;
@@ -45,6 +42,5 @@ export class WelcomeOverlayComponent implements OnInit, OnDestroy {
   close(): void {
     clearInterval(this.timer);
     this.open = false;
-    this.router.navigate(['/login']);
   }
 }

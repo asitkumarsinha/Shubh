@@ -3,6 +3,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Medicine, PageResult } from './models';
 
+export interface MallGroup {
+  name: string;
+  count: number;
+  image: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MedicineService {
   private readonly api = '/api/medicines';
@@ -19,11 +25,16 @@ export class MedicineService {
     return this.http.get<PageResult<Medicine>>(this.api, { params });
   }
 
-  mall(query: { q: string; page?: number; limit?: number }): Observable<PageResult<Medicine>> {
+  mall(query: { q: string; category?: string; page?: number; limit?: number }): Observable<PageResult<Medicine>> {
     let params = new HttpParams().set('q', query.q);
+    if (query.category) params = params.set('category', query.category);
     if (query.page) params = params.set('page', query.page);
     if (query.limit) params = params.set('limit', query.limit);
     return this.http.get<PageResult<Medicine>>(`${this.api}/mall`, { params });
+  }
+
+  mallGroups(): Observable<MallGroup[]> {
+    return this.http.get<MallGroup[]>(`${this.api}/mall/groups`);
   }
 
   categories(tenantId?: number): Observable<string[]> {

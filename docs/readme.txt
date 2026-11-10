@@ -586,3 +586,10 @@ after that improve the performance and git commit and push.
 
 After 'Your store, Your clients, Your hub - My Stores Hubs' add 'Demo' button. so user can also see the demo
 in landing page
+
+
+
+Update look and feel for 'https://www.mystoreshubs.com/shoppingmall'
+as attahed image 
+also add search textbox and group drop down. 
+for every product, below customer name and URL like 'store/handicraft'

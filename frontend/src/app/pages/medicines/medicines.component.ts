@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MedicineService } from '../../core/medicine.service';
+import { MallGroup, MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
@@ -14,12 +14,14 @@ import { fitLogoOnWhite } from '../../core/logo-fit';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { HomeLoginComponent } from '../../shared/home-login/home-login.component';
+import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
 import { productSlug } from '../../core/product-slug';
 
 interface CustomerCard {
   id: number;
   name: string;
   slug: string;
+  slogan: string;
   orderCount: number;
 }
 
@@ -28,7 +30,7 @@ const AVATAR_COLOURS = ['#2563eb', '#0f766e', '#9333ea', '#c2410c', '#be123c', '
 @Component({
   selector: 'app-medicines',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent, ThemeToggleComponent],
   templateUrl: './medicines.component.html',
   styleUrl: './medicines.component.scss',
 })
@@ -38,13 +40,13 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   error = '';
   query = '';
   category = '';
-  categories: string[] = [];
+  groups: MallGroup[] = [];
   page = 1;
   pages = 1;
   total = 0;
+  readonly awningStripes = [0, 1, 2, 3, 4, 5, 6];
 
   customers: CustomerCard[] = [];
-  otherCustomers: CustomerCard[] = [];
   selected: CustomerCard | null = null;
   customersLoading = false;
   selectedId: number | null = null;
@@ -71,6 +73,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     document.documentElement.classList.add('hub-mall');
+    this.loadGroups();
     this.loadCustomers();
   }
 
@@ -78,25 +81,35 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     document.documentElement.classList.remove('hub-mall');
   }
 
+  /** Search or a group filter shows products from every store in the mall. */
   get searchingAll(): boolean {
-    return this.query.trim().length > 0;
+    return this.query.trim().length > 0 || this.category !== '';
+  }
+
+  storeName(medicine: Medicine): string {
+    return medicine.store_name || this.selected?.name || '';
   }
 
   private rememberSelection(): void {
     this.selected = this.customers.find((c) => c.id === this.selectedId) ?? null;
-    this.otherCustomers = this.selected
-      ? this.customers.filter((c) => c.id !== this.selectedId)
-      : this.customers;
+  }
+
+  isStoreActive(id: number): boolean {
+    return this.selectedId === id && !this.searchingAll;
+  }
+
+  pickGroup(name: string): void {
+    this.category = this.category === name ? '' : name;
+    this.onCategory();
   }
 
   selectCustomer(id: number): void {
-    if (this.selectedId === id && this.medicines.length) return;
+    if (this.isStoreActive(id) && this.medicines.length) return;
     this.selectedId = id;
     this.rememberSelection();
     this.page = 1;
     this.query = '';
     this.category = '';
-    this.loadCategories();
     this.load();
   }
 
@@ -105,15 +118,15 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     this.load();
   }
 
-  private loadCategories(): void {
-    if (!this.selectedId) {
-      this.categories = [];
-      return;
-    }
-    this.medicineService.categories(this.selectedId).subscribe({
-      next: (groups) => { this.categories = groups; },
-      error: () => { this.categories = []; },
+  private loadGroups(): void {
+    this.medicineService.mallGroups().subscribe({
+      next: (groups) => { this.groups = groups; },
+      error: () => { this.groups = []; },
     });
+  }
+
+  scrollToStores(): void {
+    document.getElementById('mall-stores')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   openMall(): void {
@@ -172,10 +185,9 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   load(): void {
     this.loading = true;
     const q = this.query.trim();
-    const request = q
-      ? this.medicineService.mall({ q, page: this.page, limit: 12 })
+    const request = this.searchingAll
+      ? this.medicineService.mall({ q, category: this.category, page: this.page, limit: 12 })
       : this.medicineService.list({
-          category: this.category,
           page: this.page,
           limit: 12,
           tenantId: this.selectedId ?? undefined,
@@ -239,6 +251,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
           id: store.id,
           name: store.name,
           slug: store.slug || '',
+          slogan: store.slogan || '',
           orderCount: store.orderCount,
         }));
         this.rememberSelection();

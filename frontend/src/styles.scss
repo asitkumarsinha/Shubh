@@ -67,6 +67,15 @@ html.theme-black :is(img, video, canvas, picture, iframe, [style*='background-im
   filter: invert(1) hue-rotate(180deg);
 }
 
+/* The mall banner is always deep blue with a gold map. Invert it back, and leave its images alone so the page invert and this one cancel out. */
+html.theme-black .mall-hero {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html.theme-black .mall-hero img {
+  filter: none;
+}
+
 /* Admin desk shares the light Customer screen colours. */
 html.hub-admin {
   --ink: #1f2937;
