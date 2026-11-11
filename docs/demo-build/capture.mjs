@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const framesDir = path.join(root, 'frames');
 const outFile = path.resolve(root, '../../frontend/public/assets/demo/mystoreshubs-demo.mp4');
-const base = process.env.APP_URL || 'http://localhost:3000';
+const base = (process.env.APP_URL || 'https://www.mystoreshubs.com').replace(/\/$/, '');
+const live = !/localhost|127\.0\.0\.1/.test(base);
 const shots = [];
 
 function run(args) {
@@ -80,12 +81,31 @@ async function signOut(page) {
   });
 }
 
+function productPath(item) {
+  const slug = String(item.name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'product';
+  return `/store/${item.store_slug}/${slug}-${item.id}`;
+}
+
+async function discover() {
+  const directory = await (await fetch(`${base}/api/tenants/directory`)).json();
+  const groups = await (await fetch(`${base}/api/medicines/mall/groups`)).json();
+  const group = (Array.isArray(groups) ? groups : []).find((row) => row.name === 'Electronics') || groups[0];
+  const params = new URLSearchParams({ limit: '1' });
+  if (group?.name) params.set('category', group.name);
+  const mall = await (await fetch(`${base}/api/medicines/mall?${params}`)).json();
+  const home = directory.find((row) => row.slug === 'shubh-surgical') || directory[0];
+  const own = await (await fetch(`${base}/api/medicines/mall?q=${encodeURIComponent('Notebook')}&limit=8`)).json();
+  const homeProduct = (own.items || []).find((item) => item.store_slug === home?.slug) || mall.items?.[0];
+  return { group, product: mall.items?.[0], home, homeProduct };
+}
+
 async function main() {
   fs.rmSync(framesDir, { recursive: true, force: true });
   fs.mkdirSync(framesDir, { recursive: true });
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
-  const sessions = loadSessions();
+  const site = await discover();
+  const sessions = live ? {} : loadSessions();
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
@@ -100,9 +120,9 @@ async function main() {
   });
   const page = await context.newPage();
 
-  await page.goto(`${base}/login`, { waitUntil: 'load' });
-  await page.getByRole('heading', { name: /Your store, Your clients, Your hub/ }).waitFor({ timeout: 8000 });
-  await snap(page, 'Your store, Your clients, Your hub');
+  await page.goto(`${base}/login`, { waitUntil: 'load', timeout: 30000 });
+  await page.getByRole('button', { name: 'Login', exact: true }).waitFor({ timeout: 15000 });
+  await snap(page, 'www.mystoreshubs.com');
 
   await page.getByRole('button', { name: 'Login', exact: true }).click();
   await page.locator('#login-panel').waitFor({ timeout: 8000 });
@@ -116,42 +136,46 @@ async function main() {
     if (await whiteBtn.count()) await whiteBtn.click();
   }
 
-  await page.goto(`${base}/shoppingmall`, { waitUntil: 'load' });
+  await page.goto(`${base}/shoppingmall`, { waitUntil: 'load', timeout: 30000 });
   await page.locator('select[name="mallGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
   await snap(page, 'Shopping Mall — open a store free');
 
   const group = page.locator('select[name="mallGroup"]');
-  if (await group.count()) {
-    await group.selectOption('Electronics').catch(() => undefined);
-    await snap(page, 'Groups — Electronics, Fashion, Home, Groceries');
+  if (site.group?.name && await group.count()) {
+    await group.selectOption(site.group.name).catch(() => undefined);
+    await snap(page, `Group — ${site.group.name}`);
     await group.selectOption('').catch(() => undefined);
   }
 
   const mallSearch = page.locator('input[name="catalogueSearch"]');
-  if (await mallSearch.count()) {
-    await mallSearch.fill('earbuds');
-    await page.getByText('Wireless Earbuds').first().waitFor({ timeout: 8000 }).catch(() => undefined);
-    await snap(page, 'Search every store');
+  if (site.product && await mallSearch.count()) {
+    await mallSearch.fill(site.product.name);
+    await page.getByText(site.product.name).first().waitFor({ timeout: 8000 }).catch(() => undefined);
+    await snap(page, `Search — ${site.product.name}`);
   }
 
-  await page.goto(`${base}/register`, { waitUntil: 'load' });
+  await page.goto(`${base}/register`, { waitUntil: 'load', timeout: 30000 });
   await snap(page, 'Register your store');
 
-  await page.goto(`${base}/demo`, { waitUntil: 'load' });
-  await page.locator('video').waitFor({ timeout: 8000 }).catch(() => undefined);
-  await snap(page, 'Demo video');
+  if (site.home) {
+    await page.goto(`${base}/store/${site.home.slug}`, { waitUntil: 'load', timeout: 30000 });
+    await page.getByRole('button', { name: 'Copy a message to share' }).waitFor({ timeout: 8000 }).catch(() => undefined);
+    await snap(page, site.home.name);
+  }
 
-  await page.goto(`${base}/store/city-mall`, { waitUntil: 'load' });
-  await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
-  await snap(page, 'City Mall — groups inside a store');
+  if (site.homeProduct) {
+    await page.goto(`${base}${productPath(site.homeProduct)}`, { waitUntil: 'load', timeout: 30000 });
+    await snap(page, site.homeProduct.name);
+  }
 
-  await page.goto(`${base}/store/city-mall/wireless-earbuds-19`, { waitUntil: 'load' });
-  await snap(page, 'A page for each product');
+  if (site.product && site.product.store_slug && site.product.store_slug !== site.home?.slug) {
+    await page.goto(`${base}/store/${site.product.store_slug}`, { waitUntil: 'load', timeout: 30000 });
+    await snap(page, site.product.store_name || 'A store');
+  }
 
-  await page.goto(`${base}/store/shubh-surgical`, { waitUntil: 'load' });
-  await page.getByRole('button', { name: 'Copy a message to share' }).waitFor({ timeout: 8000 }).catch(() => undefined);
-  await snap(page, 'Share the store link');
-
+  if (live) {
+    await browser.close();
+  } else {
   const client = sessions['user@shubhsurgical.com'];
   await signIn(page, client);
   const require = createRequire(path.resolve(root, '../../backend/package.json'));
@@ -262,6 +286,7 @@ async function main() {
   }
 
   await browser.close();
+  }
 
   const captioned = [];
   shots.forEach((shot, index) => {

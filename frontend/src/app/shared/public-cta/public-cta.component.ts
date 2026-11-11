@@ -13,7 +13,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 })
 export class PublicCtaComponent implements OnInit {
   @Input() demoOnly = false;
-  readonly demoVideo = 'assets/demo/mystoreshubs-demo.mp4?v=20261111';
+  readonly demoVideo = 'assets/demo/mystoreshubs-demo.mp4?v=20261111b';
   playDemo = false;
   musicUrl = '';
   musicError = '';
