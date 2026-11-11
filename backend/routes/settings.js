@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate, requireSuperAdmin, optionalUser } = require('../middleware/auth');
 const { imageFileFilter, safeImageExt, ensureUploadDir, unlinkStored } = require('../uploads');
+const { publishAd, accounts } = require('../social-ads');
 
 const router = express.Router();
 
@@ -162,6 +163,28 @@ router.post('/demo-music', authenticate, requireSuperAdmin, audioUpload.single('
   }
   saveDemoMusic.run(music);
   res.json({ music });
+});
+
+const adUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, ensureUploadDir()),
+    filename: (_req, file, cb) => cb(null, `${uuidv4()}${safeImageExt(file.originalname)}`),
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: imageFileFilter,
+});
+
+router.post('/ads', authenticate, requireSuperAdmin, adUpload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Choose an image' });
+  const image = `/uploads/${req.file.filename}`;
+  const base = (process.env.PUBLIC_SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  const caption = String(req.body.caption || 'Your store, Your clients, Your hub — www.mystoreshubs.com').slice(0, 2000);
+  try {
+    const result = await publishAd({ imageUrl: `${base}${image}`, caption });
+    res.json({ ...result, image });
+  } catch (err) {
+    res.status(err.status || 502).json({ message: err.message || 'Could not post the ad', image, ...accounts() });
+  }
 });
 
 module.exports = router;

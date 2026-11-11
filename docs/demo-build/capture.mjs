@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const framesDir = path.join(root, 'frames');
 const outFile = path.resolve(root, '../../frontend/public/assets/demo/mystoreshubs-demo.mp4');
-const base = 'http://localhost:4200';
+const base = process.env.APP_URL || 'http://localhost:3000';
 const shots = [];
 
 function run(args) {
@@ -94,6 +94,9 @@ async function main() {
   await context.addInitScript(() => {
     sessionStorage.setItem('msh_welcome_seen', '1');
     localStorage.setItem('msh_bot_hidden', '1');
+    localStorage.setItem('msh_super_menu_pinned', '1');
+    localStorage.setItem('msh_admin_menu_pinned', '1');
+    localStorage.setItem('msh_client_menu_pinned', '1');
   });
   const page = await context.newPage();
 
@@ -105,24 +108,47 @@ async function main() {
   await page.locator('#login-panel').waitFor({ timeout: 8000 });
   await snap(page, 'Sign in');
 
-  await page.goto(`${base}/`, { waitUntil: 'load' });
-  await snap(page, 'Shopping Mall — every store');
+  const blackBtn = page.locator('app-theme-toggle button', { hasText: 'Black' }).first();
+  if (await blackBtn.count()) {
+    await blackBtn.click();
+    await snap(page, 'Black theme');
+    const whiteBtn = page.locator('app-theme-toggle button', { hasText: 'White' }).first();
+    if (await whiteBtn.count()) await whiteBtn.click();
+  }
+
+  await page.goto(`${base}/shoppingmall`, { waitUntil: 'load' });
+  await page.locator('select[name="mallGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'Shopping Mall — open a store free');
+
+  const group = page.locator('select[name="mallGroup"]');
+  if (await group.count()) {
+    await group.selectOption('Electronics').catch(() => undefined);
+    await snap(page, 'Groups — Electronics, Fashion, Home, Groceries');
+    await group.selectOption('').catch(() => undefined);
+  }
 
   const mallSearch = page.locator('input[name="catalogueSearch"]');
   if (await mallSearch.count()) {
     await mallSearch.fill('earbuds');
-    await page.getByText('Vj Store').first().waitFor({ timeout: 8000 }).catch(() => undefined);
+    await page.getByText('Wireless Earbuds').first().waitFor({ timeout: 8000 }).catch(() => undefined);
     await snap(page, 'Search every store');
   }
 
-  await page.goto(`${base}/store/spices`, { waitUntil: 'load' });
-  await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
-  await snap(page, 'Groups inside a store');
+  await page.goto(`${base}/register`, { waitUntil: 'load' });
+  await snap(page, 'Register your store');
 
-  await page.goto(`${base}/store/spices/turmeric-powder-46`, { waitUntil: 'load' });
+  await page.goto(`${base}/demo`, { waitUntil: 'load' });
+  await page.locator('video').waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'Demo video');
+
+  await page.goto(`${base}/store/city-mall`, { waitUntil: 'load' });
+  await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => undefined);
+  await snap(page, 'City Mall — groups inside a store');
+
+  await page.goto(`${base}/store/city-mall/wireless-earbuds-19`, { waitUntil: 'load' });
   await snap(page, 'A page for each product');
 
-  await page.goto(`${base}/store/boutique`, { waitUntil: 'load' });
+  await page.goto(`${base}/store/shubh-surgical`, { waitUntil: 'load' });
   await page.getByRole('button', { name: 'Copy a message to share' }).waitFor({ timeout: 8000 }).catch(() => undefined);
   await snap(page, 'Share the store link');
 
@@ -154,14 +180,29 @@ async function main() {
   await snap(page, 'Delivery address or pickup');
 
   await page.goto(`${base}/orders`, { waitUntil: 'load' });
+  let orderLink = page.locator('a[href^="/orders/"]').first();
+  if (!(await orderLink.count())) {
+    await page.goto(`${base}/cart`, { waitUntil: 'load' });
+    const pickup = page.locator('input[value="pickup"]');
+    if (await pickup.count()) await pickup.check();
+    const place = page.locator('button.continue');
+    if (await place.count()) {
+      await place.click();
+      await page.waitForURL(/\/orders\/\d+/, { timeout: 20000 }).catch(() => undefined);
+    }
+    await page.goto(`${base}/orders`, { waitUntil: 'load' });
+    orderLink = page.locator('a[href^="/orders/"]').first();
+  }
   await snap(page, 'My orders');
 
-  const orderLink = page.locator('a[href^="/orders/"]').first();
   if (await orderLink.count()) {
     await orderLink.click();
     await page.waitForLoadState('load');
     await snap(page, 'Order bill for the client');
   }
+
+  await page.goto(`${base}/account`, { waitUntil: 'load' });
+  await snap(page, 'My account');
 
   await page.goto(`${base}/shop`, { waitUntil: 'load' });
   await snap(page, 'Shop — print or download the product grid');
@@ -178,7 +219,7 @@ async function main() {
   await snap(page, 'Clone a store under a unique name');
 
   await page.goto(`${base}/admin/products`, { waitUntil: 'load' });
-  await snap(page, 'Search products');
+  await snap(page, 'Product list');
 
   await page.goto(`${base}/admin/AddProducts`, { waitUntil: 'load' });
   await page.getByRole('heading', { name: /product/i }).first().waitFor({ timeout: 8000 }).catch(() => undefined);
@@ -203,14 +244,29 @@ async function main() {
   await signOut(page);
   await signIn(page, sessions['asitkumarsinha@gmail.com']);
   await page.goto(`${base}/settings`, { waitUntil: 'load' });
-  await snap(page, 'Platform settings and website hits');
+  await snap(page, 'Settings, hits, and Generate Ads');
+
+  for (const scene of [
+    ['/dashboard', 'Dashboard'],
+    ['/stores', 'Stores'],
+    ['/hubs', 'Hubs'],
+    ['/users', 'Users'],
+    ['/billing', 'Apps and billing'],
+    ['/plans', 'Plans'],
+    ['/feedback', 'Feedback'],
+    ['/health', 'System health'],
+    ['/reports', 'Platform reports'],
+  ]) {
+    await page.goto(`${base}${scene[0]}`, { waitUntil: 'load' });
+    await snap(page, scene[1]);
+  }
 
   await browser.close();
 
   const captioned = [];
   shots.forEach((shot, index) => {
     const dest = path.join(framesDir, `c${String(index + 1).padStart(2, '0')}.png`);
-    const text = shot.caption.replace(/:/g, '\\:').replace(/'/g, '');
+    const text = shot.caption.replace(/\\/g, '\\\\').replace(/:/g, '\\:').replace(/'/g, '').replace(/,/g, '\\,');
     run([
       '-y',
       '-i', shot.file,
@@ -256,6 +312,9 @@ async function main() {
     outFile,
   ]);
 
+  const served = path.resolve(root, '../../backend/public/assets/demo/mystoreshubs-demo.mp4');
+  fs.mkdirSync(path.dirname(served), { recursive: true });
+  fs.copyFileSync(outFile, served);
   console.log(`frames ${captioned.length}`);
   console.log(`video ${outFile}`);
 }

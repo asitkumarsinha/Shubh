@@ -9,7 +9,7 @@ import { LanguageSwitcherComponent } from '../language-switcher/language-switche
 import { HomeLoginComponent } from '../home-login/home-login.component';
 import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 import { APP_VERSION } from '../../version';
-import { downloadAdPoster } from '../../core/ad-poster';
+import { renderAdPoster } from '../../core/ad-poster';
 
 interface SuperAdminLink {
   label: string;
@@ -68,9 +68,52 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
   generateAd(): void {
     if (this.adBusy) return;
     this.adBusy = true;
-    downloadAdPoster()
-      .then(() => this.toast.info('Ad downloaded'))
-      .catch(() => this.toast.error('Could not generate the ad'))
+    renderAdPoster()
+      .then(async ({ plan, blob, filename }) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        const body = new FormData();
+        body.append('image', blob, filename);
+        body.append('caption', `${plan.headline} — ${plan.brand} — www.mystoreshubs.com`);
+        const result = await new Promise<{
+          published?: boolean;
+          message?: string;
+          facebook?: string;
+          instagram?: string;
+        }>((resolve, reject) => {
+          this.http.post('/api/settings/ads', body).subscribe({
+            next: (value) => resolve(value as { published?: boolean; message?: string; facebook?: string; instagram?: string }),
+            error: (err) => reject(err),
+          });
+        });
+        if (result.published) {
+          this.toast.success(result.message || 'Ad posted on Facebook and Instagram');
+          return;
+        }
+        const file = new File([blob], filename, { type: 'image/jpeg' });
+        const share = navigator.share?.bind(navigator);
+        const canShare = navigator.canShare?.({ files: [file] });
+        if (share && canShare) {
+          try {
+            await share({
+              files: [file],
+              title: plan.brand,
+              text: `${plan.headline} — www.mystoreshubs.com`,
+            });
+          } catch (err) {
+            if ((err as { name?: string })?.name !== 'AbortError') throw err;
+          }
+        } else {
+          if (result.facebook) window.open(result.facebook, '_blank', 'noopener');
+          if (result.instagram) window.open(result.instagram, '_blank', 'noopener');
+        }
+        this.toast.info(result.message || 'Ad downloaded');
+      })
+      .catch((err: { error?: { message?: string } }) => this.toast.error(err?.error?.message || 'Could not generate the ad'))
       .finally(() => {
         this.adBusy = false;
       });

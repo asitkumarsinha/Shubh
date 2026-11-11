@@ -17,7 +17,7 @@ const helpPdf = join(
   'help',
   'My-Store-Hub-Training-Manual.pdf'
 );
-const BASE = process.env.APP_URL || 'http://localhost:4200';
+const BASE = process.env.APP_URL || 'http://localhost:3000';
 
 mkdirSync(shotDir, { recursive: true });
 mkdirSync(dirname(helpPdf), { recursive: true });
@@ -35,7 +35,7 @@ async function shot(page, name, selector) {
       await page.screenshot({ path: file, fullPage: true });
     });
   } else {
-    await page.screenshot({ path: file, fullPage: true });
+    await page.screenshot({ path: file, fullPage: false });
   }
   shots[name] = file;
 }
@@ -103,6 +103,21 @@ async function signInStored(page, email) {
     localStorage.setItem('medishop_token', value.token);
     localStorage.setItem('medishop_user', JSON.stringify(value.user));
   }, session);
+  return session;
+}
+
+function firstProduct(tenantId) {
+  const require = createRequire(join(__dirname, '..', '..', 'backend', 'package.json'));
+  const Database = require('better-sqlite3');
+  const db = new Database(join(__dirname, '..', '..', 'backend', 'data', 'mystoreshubs.db'), {
+    readonly: true,
+    fileMustExist: true,
+  });
+  const product = db
+    .prepare('SELECT id, name, price, image, stock FROM medicines WHERE tenant_id = ? ORDER BY id LIMIT 1')
+    .get(tenantId);
+  db.close();
+  return product;
 }
 
 async function login(page, email, password) {
@@ -139,10 +154,12 @@ function section(number, title, summary, steps, shotName) {
 const reuseShots = process.env.REUSE_SHOTS === '1';
 if (reuseShots) {
   for (const name of [
-    'catalogue', 'register', 'register-sent', 'login', 'login-black-theme', 'shop', 'cart', 'bill',
-    'my-orders', 'admin-dashboard', 'admin-products', 'admin-orders', 'admin-clients',
+    'catalogue', 'mall-groups', 'store', 'product', 'share', 'register', 'register-sent', 'login',
+    'login-black-theme', 'demo', 'shop', 'cart', 'bill', 'my-orders', 'account',
+    'admin-dashboard', 'admin-products', 'admin-list', 'admin-clone', 'admin-orders', 'admin-clients',
     'admin-employees-add', 'admin-employees-view', 'admin-reports', 'super-settings',
-    'super-tenants', 'super-feedback',
+    'super-tenants', 'super-feedback', 'super-dashboard', 'super-stores', 'super-users',
+    'super-billing', 'super-plans', 'super-health', 'super-reports',
   ]) {
     const file = join(shotDir, `${name}.png`);
     if (existsSync(file)) shots[name] = file;
@@ -153,12 +170,37 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 await context.addInitScript(() => {
   sessionStorage.setItem('msh_welcome_seen', '1');
   localStorage.setItem('msh_bot_hidden', '1');
+  localStorage.setItem('msh_super_menu_pinned', '1');
+  localStorage.setItem('msh_admin_menu_pinned', '1');
+  localStorage.setItem('msh_client_menu_pinned', '1');
 });
 const page = await context.newPage();
 
 // ---------- Guest screens ----------
 await page.goto(`${BASE}/shoppingmall`, { waitUntil: 'load' });
+await page.locator('select[name="mallGroup"]').waitFor({ timeout: 8000 }).catch(() => {});
 await shot(page, 'catalogue');
+const mallGroup = page.locator('select[name="mallGroup"]');
+if (await mallGroup.count()) {
+  await mallGroup.selectOption('Electronics').catch(() => {});
+  await page.waitForTimeout(500);
+  await shot(page, 'mall-groups');
+}
+
+await page.goto(`${BASE}/store/city-mall`, { waitUntil: 'load' });
+await page.locator('select[name="storeGroup"]').waitFor({ timeout: 8000 }).catch(() => {});
+await shot(page, 'store');
+
+await page.goto(`${BASE}/store/city-mall/wireless-earbuds-19`, { waitUntil: 'load' });
+await shot(page, 'product');
+
+await page.goto(`${BASE}/store/shubh-surgical`, { waitUntil: 'load' });
+await page.getByRole('button', { name: 'Copy a message to share' }).waitFor({ timeout: 8000 }).catch(() => {});
+await shot(page, 'share');
+
+await page.goto(`${BASE}/demo`, { waitUntil: 'load' });
+await page.locator('video').waitFor({ timeout: 8000 }).catch(() => {});
+await shot(page, 'demo');
 
 await page.goto(`${BASE}/register`, { waitUntil: 'load' });
 await shot(page, 'register');
@@ -193,24 +235,41 @@ if (await blackBtn.count()) {
 // ---------- Client (shopper) screens ----------
 // The shopper password on this database is no longer the seed password, so the
 // same short-lived session the demo video uses is applied instead.
-await signInStored(page, 'user@shubhsurgical.com');
+const client = await signInStored(page, 'user@shubhsurgical.com');
+const productRow = firstProduct(client.user.tenant_id);
+await page.evaluate(({ userId, product }) => {
+  localStorage.setItem(`medishop_cart_user_${userId}`, JSON.stringify([{
+    medicineId: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    quantity: 1,
+    stock: product.stock,
+  }]));
+}, { userId: client.user.id, product: productRow });
 await page.goto(`${BASE}/shop`, { waitUntil: 'load' });
 await page.waitForSelector('.product', { timeout: 10000 }).catch(() => {});
 await shot(page, 'shop');
 
-const addBtn = page.locator('.product button:not([disabled])').first();
-if (await addBtn.count()) {
-  await addBtn.click();
-  await page.waitForTimeout(400);
-}
-
 await page.goto(`${BASE}/cart`, { waitUntil: 'load' });
+const delivery = page.locator('input[value="delivery"]');
+if (await delivery.count()) {
+  await delivery.check();
+  await page.locator('textarea[name="deliveryAddress"]').fill('12 Market Road, Jaipur');
+}
 await shot(page, 'cart');
+const pickup = page.locator('input[value="pickup"]');
+if (await pickup.count()) await pickup.check();
 
-const place = page.locator('button:has-text("Place order")');
-if (await place.count()) {
-  await place.click();
-  await page.waitForURL(/\/orders\/\d+/, { timeout: 20000 }).catch(() => {});
+await page.goto(`${BASE}/orders`, { waitUntil: 'load' });
+const existingBill = page.locator('a:has-text("View bill")').first();
+if (!(await existingBill.count())) {
+  await page.goto(`${BASE}/cart`, { waitUntil: 'load' });
+  const place = page.locator('button.continue');
+  if (await place.count()) {
+    await place.click();
+    await page.waitForURL(/\/orders\/\d+/, { timeout: 20000 }).catch(() => {});
+  }
 }
 await page.waitForTimeout(800);
 
@@ -231,13 +290,22 @@ if (page.url().includes('/orders/')) {
 await page.goto(`${BASE}/orders`, { waitUntil: 'load' });
 await shot(page, 'my-orders');
 
+await page.goto(`${BASE}/account`, { waitUntil: 'load' });
+await shot(page, 'account');
+
 // ---------- Customer (store admin) screens ----------
-await login(page, 'admin@shubhsurgical.com', 'admin123');
-await page.goto(`${BASE}/admin/customers_tenats`, { waitUntil: 'load' });
+await signInStored(page, 'admin@shubhsurgical.com');
+await page.goto(`${BASE}/admin/hubs`, { waitUntil: 'load' });
 await shot(page, 'admin-dashboard');
 
-await page.goto(`${BASE}/admin/Products`, { waitUntil: 'load' });
+await page.goto(`${BASE}/admin/AddProducts`, { waitUntil: 'load' });
 await shot(page, 'admin-products');
+
+await page.goto(`${BASE}/admin/products`, { waitUntil: 'load' });
+await shot(page, 'admin-list');
+
+await page.goto(`${BASE}/admin/clone`, { waitUntil: 'load' });
+await shot(page, 'admin-clone');
 
 await page.goto(`${BASE}/admin/orders`, { waitUntil: 'load' });
 await shot(page, 'admin-orders');
@@ -258,31 +326,52 @@ await page.goto(`${BASE}/admin/reports`, { waitUntil: 'load' });
 await shot(page, 'admin-reports');
 
 // ---------- Super Admin screens ----------
-await login(page, 'asitkumarsinha@gmail.com', 'Shivansh2026');
+await signInStored(page, 'asitkumarsinha@gmail.com');
 await page.goto(`${BASE}/settings`, { waitUntil: 'load' });
 await shot(page, 'super-settings');
 
-await page.goto(`${BASE}/tenants`, { waitUntil: 'load' });
+await page.goto(`${BASE}/hubs`, { waitUntil: 'load' });
 await shot(page, 'super-tenants');
 
 await page.goto(`${BASE}/feedback`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
 await shot(page, 'super-feedback');
 
+for (const [name, path] of [
+  ['super-dashboard', '/dashboard'],
+  ['super-stores', '/stores'],
+  ['super-users', '/users'],
+  ['super-billing', '/billing'],
+  ['super-plans', '/plans'],
+  ['super-health', '/health'],
+  ['super-reports', '/reports'],
+]) {
+  await page.goto(`${BASE}${path}`, { waitUntil: 'load' });
+  await shot(page, name);
+}
+
 await browser.close();
 }
 
 const required = [
   'catalogue',
+  'mall-groups',
+  'store',
+  'product',
+  'share',
   'register',
   'register-sent',
   'login',
+  'demo',
   'shop',
   'cart',
   'bill',
   'my-orders',
+  'account',
   'admin-dashboard',
   'admin-products',
+  'admin-list',
+  'admin-clone',
   'admin-orders',
   'admin-clients',
   'admin-employees-add',
@@ -291,6 +380,13 @@ const required = [
   'super-settings',
   'super-tenants',
   'super-feedback',
+  'super-dashboard',
+  'super-stores',
+  'super-users',
+  'super-billing',
+  'super-plans',
+  'super-health',
+  'super-reports',
 ];
 const missing = required.filter((k) => !existsSync(shots[k]));
 if (missing.length) {
@@ -385,9 +481,9 @@ const html = `<!doctype html>
     <div class="meta">
       <table>
         <tr><td><strong>Purpose</strong></td><td>Help a brand-new user understand and use the website</td></tr>
-        <tr><td><strong>Website</strong></td><td>http://localhost:4200 (local) / your live host URL</td></tr>
+        <tr><td><strong>Website</strong></td><td>https://www.mystoreshubs.com</td></tr>
         <tr><td><strong>Audience</strong></td><td>Shoppers (Client), store owners (Customer), and the Super Admin</td></tr>
-        <tr><td><strong>Version</strong></td><td>5.0 — ${today}</td></tr>
+        <tr><td><strong>Version</strong></td><td>6.0 — ${today}</td></tr>
         <tr><td><strong>Open this manual</strong></td><td>Sign-in page → <strong>Demo</strong> button, or after login → <strong>Help Center</strong></td></tr>
       </table>
     </div>
@@ -421,6 +517,16 @@ const html = `<!doctype html>
       <li>Order status meaning</li>
       <li>Feature map (all screens)</li>
       <li>Getting-started checklist</li>
+      <li>Mall groups</li>
+      <li>A store page</li>
+      <li>A product page</li>
+      <li>Share a store</li>
+      <li>The register form</li>
+      <li>Demo video</li>
+      <li>My account</li>
+      <li>Product list</li>
+      <li>Clone a store</li>
+      <li>Super Admin dashboard, stores, users, billing, plans, health, and reports</li>
     </ol>
     <p class="footer-note">All screenshots were captured from the live application. Open this file from the Sign in page <strong>Demo</strong> button (or admin <strong>Help Center</strong>) to always use the latest copy.</p>
   </section>
@@ -444,9 +550,9 @@ const html = `<!doctype html>
     <p class="summary">The site separates shopping, store operations, and platform management into three roles. On the sign-in page the title bar says <strong>Login</strong>. After sign-in, the header shows the person's name and role.</p>
     <table class="ref">
       <tr><th>Role (shown in header)</th><th>Main features</th><th>Where they land after sign-in</th></tr>
-      <tr><td><strong>Client</strong> (shopper)</td><td>Browse the Shopping Mall, Shop, Cart, checkout, and My Orders</td><td>Shopping Mall</td></tr>
-      <tr><td><strong>Customer</strong> (store owner)</td><td>Dashboard, Products, Orders, Clients, Employee, Reports</td><td>Dashboard</td></tr>
-      <tr><td><strong>Super Admin</strong></td><td>Settings, Customers &amp; tenants, Feedback — provision and brand every store</td><td>Settings</td></tr>
+      <tr><td><strong>Client</strong> (shopper)</td><td>Shopping Mall, a store page, Shop, Cart, My Orders, and My account</td><td>Shopping Mall</td></tr>
+      <tr><td><strong>Customer</strong> (store owner)</td><td>Home, Stores, Orders, Product, Add Product, Reports, Employees, and Clone Store</td><td>Home</td></tr>
+      <tr><td><strong>Super Admin</strong></td><td>Dashboard, Stores, Hubs, Users, Apps &amp; Billing, Plans, Feedbacks, System Health, Reports, Settings, Generate Ads, and the workbook template</td><td>Settings</td></tr>
     </table>
     <p class="note">Each store (a "Customer" business) is fully isolated — its branding, logo, checkout QR, product catalogue, clients, employees, and orders never mix with another store's data.</p>
   </section>
@@ -711,7 +817,146 @@ const html = `<!doctype html>
       <tr><td>Super Admin</td><td>Settings</td><td>Per-customer branding, theme, and website hit count</td></tr>
       <tr><td>Super Admin</td><td>Customers &amp; tenants</td><td>Create store businesses, plans, modules, backups</td></tr>
       <tr><td>Super Admin</td><td>Feedback</td><td>Contact requests and website feedback, each with an Action status</td></tr>
+      <tr><td>Guest</td><td>Mall groups</td><td>Electronics, Fashion, Home &amp; Living, and Groceries across every store</td></tr>
+      <tr><td>Guest</td><td>Store and product pages</td><td>Each store and each product has its own link that can be shared</td></tr>
+      <tr><td>Guest</td><td>Demo</td><td>A short video of every main screen</td></tr>
+      <tr><td>Client</td><td>My account</td><td>The signed-in shopper’s own details</td></tr>
+      <tr><td>Customer</td><td>Product list and Clone Store</td><td>Search the catalogue, or copy a store under a new name</td></tr>
+      <tr><td>Super Admin</td><td>Dashboard, Stores, Users, Billing, Plans, Health, Reports</td><td>The whole platform, not one store</td></tr>
+      <tr><td>Super Admin</td><td>Generate Ads and Template</td><td>Download a poster, and download the hub workbook</td></tr>
     </table>
+  </section>
+
+  ${section(
+    22,
+    'Mall groups',
+    'The Shopping Mall groups products from every store. Electronics, Fashion, Home & Living, and Groceries each open as their own set of results.',
+    [
+      'On the Shopping Mall, use the group menu or a group tile.',
+      'The product list shows only that group, with the store name still on each item.',
+      'Choose <strong>All groups</strong> to see the full mall again.',
+    ],
+    'mall-groups'
+  )}
+
+  ${section(
+    23,
+    'A store page',
+    'Every store has its own address, for example City Mall at /store/city-mall. The page shows that store’s groups, products, and a message you can copy.',
+    [
+      'Open a store from the Shopping Mall.',
+      'Pick a group inside that store, such as Fashion or Groceries.',
+      'The address in the browser is the link you can send to a customer.',
+    ],
+    'store'
+  )}
+
+  ${section(
+    24,
+    'A product page',
+    'Each product has its own page, with the price in rupees, the store name, and a way to ask about it on WhatsApp.',
+    [
+      'Open a product from the mall or from a store.',
+      'Read the price, stock, and description.',
+      'Use the store name on the page to go back to that store.',
+    ],
+    'product'
+  )}
+
+  ${section(
+    25,
+    'Share a store',
+    'A store page can copy a ready-made message with the store link, so the owner can send it on WhatsApp or email.',
+    [
+      'Open the store page.',
+      'Click <strong>Copy a message to share</strong>.',
+      'Paste the message wherever you talk to customers.',
+    ],
+    'share'
+  )}
+
+  ${section(
+    26,
+    'The register form',
+    'Open your store free on the mall, and Register Me on the sign-in page, both open the same request form. It does not create a login. The Super Admin reads it on Feedback.',
+    [
+      'Click <strong>Open your store free</strong> on the Shopping Mall, or <strong>Register Me</strong> on Sign in.',
+      'Enter name, email, phone, and a remark.',
+      'Submit. The confirmation stays on the page.',
+    ],
+    'register'
+  )}
+
+  ${section(
+    27,
+    'Demo video',
+    'The Demo button on Sign in plays a short film of the mall, a store, a product, the shopper desk, the store desk, and the Super Admin desk.',
+    [
+      'On Sign in, click <strong>Demo</strong>.',
+      'The film plays in the page. The same film is also at <strong>/demo</strong>.',
+      'Shopping Mall has <strong>See the demo</strong> for the same film.',
+    ],
+    'demo'
+  )}
+
+  ${section(
+    28,
+    'My account',
+    'A signed-in shopper opens My account to see the details stored for that login.',
+    [
+      'Sign in as a Client.',
+      'Open <strong>My account</strong> from the side menu.',
+      'Review the name and contact details shown for this shopper.',
+    ],
+    'account'
+  )}
+
+  ${section(
+    29,
+    'Product list',
+    'Product is the searchable list of everything already in the store. Add Product is the form, including the workbook import, that puts new rows on this list.',
+    [
+      'Open <strong>Product</strong> to search and review the catalogue.',
+      'Open <strong>Add Product</strong> to type one product or import the Excel workbook.',
+      'A workbook with a Product sheet fills the mall groups when the category column is set.',
+    ],
+    'admin-list'
+  )}
+
+  ${section(
+    30,
+    'Clone a store',
+    'Clone Store copies one store under a new name so a second shop can start from the same setup.',
+    [
+      'Open <strong>Clone Store</strong>.',
+      'Choose the store to copy and type a new unique name.',
+      'Save. The new store is separate from the original.',
+    ],
+    'admin-clone'
+  )}
+
+  ${section(
+    31,
+    'Super Admin desk',
+    'Besides Settings, Hubs, and Feedback, the Super Admin menu covers the whole platform: Dashboard, Stores, Users, Apps & Billing, Plans, System Health, and Reports. Generate Ads builds a poster. Template downloads the hub workbook.',
+    [
+      'Sign in as Super Admin and open each item in the left menu.',
+      'Dashboard, Stores, Users, Billing, Plans, Health, and Reports are platform-wide.',
+      'Generate Ads saves a poster. Template downloads the Excel workbook used to create a hub.',
+    ],
+    'super-dashboard'
+  )}
+
+  <section class="chapter">
+    <h2>32. Super Admin — the rest of the desk</h2>
+    <p class="summary">These screens sit next to Settings and Hubs. Each one is the platform view, not a single store.</p>
+    <figure><img src="${img('super-stores')}" alt="Stores" /><figcaption>Screen: Stores</figcaption></figure>
+    <figure><img src="${img('super-users')}" alt="Users" /><figcaption>Screen: Users</figcaption></figure>
+    <figure><img src="${img('super-billing')}" alt="Apps and billing" /><figcaption>Screen: Apps and billing</figcaption></figure>
+    <figure><img src="${img('super-plans')}" alt="Plans" /><figcaption>Screen: Plans</figcaption></figure>
+    <figure><img src="${img('super-health')}" alt="System health" /><figcaption>Screen: System health</figcaption></figure>
+    <figure><img src="${img('super-reports')}" alt="Platform reports" /><figcaption>Screen: Platform reports</figcaption></figure>
+    <figure><img src="${img('super-settings')}" alt="Settings and Generate Ads" /><figcaption>Screen: Settings, with Generate Ads in the menu</figcaption></figure>
   </section>
 
   <section class="chapter">
@@ -728,7 +973,7 @@ const html = `<!doctype html>
       <li>Sign in as Super Admin, open Settings and change a store’s theme colour, then open Customers &amp; tenants.</li>
       <li>Submit a Register Me request from Sign in, then confirm it appears on the Super Admin Feedback page and can be marked Done.</li>
     </ol>
-    <p class="footer-note">End of user manual — My Stores Hubs. Version 5.0 — ${today}.</p>
+    <p class="footer-note">End of user manual — My Stores Hubs. Version 6.0 — ${today}.</p>
   </section>
 </body>
 </html>`;
@@ -747,5 +992,9 @@ await pdfPage.pdf({
 await pdfBrowser.close();
 
 copyFileSync(outPdf, helpPdf);
+copyFileSync(
+  outPdf,
+  join(__dirname, '..', '..', 'backend', 'public', 'assets', 'help', 'My-Store-Hub-Training-Manual.pdf')
+);
 console.log('PDF written:', outPdf);
 console.log('Help Center / Demo copy:', helpPdf);

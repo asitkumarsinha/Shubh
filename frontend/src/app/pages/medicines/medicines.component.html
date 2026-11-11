@@ -84,6 +84,8 @@
     <div class="intro-row">
       <div class="intro-copy">
         <h1>{{ 'mall.heroTitle' | t }}</h1>
+        <p class="owner-line">{{ 'mall.openFreeLine' | t }}</p>
+        <a class="open-store" routerLink="/register">{{ 'mall.openFreeButton' | t }}</a>
         <p>{{ 'mall.shopperSteps' | t }}</p>
         <p class="owner-line">{{ 'mall.ownerLine' | t }}</p>
       </div>
@@ -111,7 +113,7 @@
 
     <nav class="guide-strip" [attr.aria-label]="'mall.shoppingMall' | t">
       <button type="button" (click)="scrollToStores()">{{ 'mall.guideShop' | t }}</button>
-      <a routerLink="/login">{{ 'mall.guideOpen' | t }}</a>
+      <a routerLink="/register">{{ 'mall.guideOpen' | t }}</a>
       <a routerLink="/demo">{{ 'mall.guideDemo' | t }}</a>
     </nav>
 

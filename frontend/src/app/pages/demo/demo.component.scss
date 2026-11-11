@@ -54,6 +54,28 @@ h1 {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
+.demo-screen.embedded {
+  min-height: 100%;
+  background: #000;
+}
+
+.demo-screen.embedded .demo-card-shell {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.demo-screen.embedded .demo-video {
+  width: 100%;
+  height: 100vh;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #000;
+  object-fit: contain;
+}
+
 .music-credit {
   margin: 0.55rem 0 0;
   color: #9ca3af;

@@ -370,6 +370,8 @@ const en: Dict = {
   'mall.viewShop': 'Shop all products',
   'mall.heroTitle': 'Your Store, Online in Minutes',
   'mall.heroLead': 'Every store in one mall. We help each store grow its business.',
+  'mall.openFreeLine': 'No .com website? We create your free hub. You add your clients.',
+  'mall.openFreeButton': 'Open your store free',
   'mall.shopperSteps': 'Browse every store, open one, then sign in to order.',
   'mall.ownerLine': 'Store owners: each shop has its own page, products, and orders.',
   'mall.guideShop': 'Shop',

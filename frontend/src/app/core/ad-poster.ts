@@ -320,20 +320,22 @@ function paintAd(plan: AdPlan, seal: HTMLImageElement | null): HTMLCanvasElement
   return canvas;
 }
 
-function canvasBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not draw the ad'))), 'image/png');
+export async function renderAdPoster(): Promise<{ plan: AdPlan; blob: Blob; filename: string }> {
+  const plan = planAd(nextAdSeed());
+  const seal = await loadSeal();
+  const canvas = paintAd(plan, seal);
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((value) => (value ? resolve(value) : reject(new Error('Could not draw the ad'))), 'image/jpeg', 0.92);
   });
+  return { plan, blob, filename: `MyStoresHubs-${plan.format}-${plan.seed.toString(36)}.jpg` };
 }
 
 export async function downloadAdPoster(): Promise<AdPlan> {
-  const plan = planAd(nextAdSeed());
-  const seal = await loadSeal();
-  const blob = await canvasBlob(paintAd(plan, seal));
+  const { plan, blob, filename } = await renderAdPoster();
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `MyStoresHubs-${plan.format}-${plan.seed.toString(36)}.png`;
+  link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
   return plan;

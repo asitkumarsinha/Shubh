@@ -33,11 +33,18 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4200,http:/
   .filter(Boolean);
 
 app.use(securityHeaders);
-app.use(compression({ threshold: 1024 }));
-// The architecture page is self-contained and is only ever framed by our own
-// login page, so allow same-origin framing for it specifically.
+const alreadyPacked = /\.(mp4|webm|mp3|m4a|jpg|jpeg|png|gif|webp|avif|pdf|zip|gz|woff2?)$/i;
+app.use(compression({
+  threshold: 1024,
+  filter(req, res) {
+    if (alreadyPacked.test(req.path || '')) return false;
+    return compression.filter(req, res);
+  },
+}));
+// The architecture page and the demo player are only framed by our own login
+// page, so allow same-origin framing for those two paths.
 app.use((req, res, next) => {
-  if (req.path === '/assets/demo/mystoreshubs-architecture.html') {
+  if (req.path === '/assets/demo/mystoreshubs-architecture.html' || req.path === '/demo') {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   }
   next();
@@ -138,8 +145,12 @@ function cacheStatic(res, filePath) {
     return;
   }
   // Angular outputHashing puts a content hash in built JS and CSS names.
-  if (/\.[0-9a-f]{8,}\./i.test(name)) {
+  if (/\.[0-9a-f]{8,}\./i.test(name) || /-[0-9A-Za-z]{8,}\.(?:js|css)$/i.test(name)) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return;
+  }
+  if (/\.(mp4|mp3|pdf|svg|woff2?)$/i.test(name)) {
+    res.setHeader('Cache-Control', 'public, max-age=604800');
     return;
   }
   res.setHeader('Cache-Control', 'public, max-age=86400');

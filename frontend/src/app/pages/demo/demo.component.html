@@ -1,5 +1,6 @@
-<section class="demo-screen">
+<section class="demo-screen" [class.embedded]="embedded">
   <div class="demo-card-shell">
+    @if (!embedded) {
     <div class="demo-lang">
       <app-language-switcher variant="light" />
       <app-home-login />
@@ -12,11 +13,12 @@
 
     <h1>{{ 'demo.seeStores' | t }}</h1>
     <p class="demo-timer">This page closes in {{ secondsLeft }}s</p>
+    }
 
     <video
       #clip
       class="demo-video"
-      src="assets/demo/mystoreshubs-demo.mp4?v=20261031"
+      src="assets/demo/mystoreshubs-demo.mp4?v=20261111"
       controls
       playsinline
       muted
@@ -27,7 +29,8 @@
       (seeked)="onVideoSeek()"
       (ended)="onVideoPause()"
     ></video>
-    <audio #score src="assets/demo/success.mp3" loop preload="auto"></audio>
+    <audio #score loop preload="none"></audio>
+    @if (!embedded) {
     <p class="music-credit">
       Success by <a href="https://mixaund.bandcamp.com" target="_blank" rel="noopener noreferrer">Mixaund</a>
       · Royalty Free Music by
@@ -74,5 +77,6 @@
     <footer class="demo-footer">
       {{ 'login.footer' | t: { title: settings.current().title } }}
     </footer>
+    }
   </div>
 </section>
