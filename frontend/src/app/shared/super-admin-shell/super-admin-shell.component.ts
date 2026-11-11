@@ -42,6 +42,8 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     lastPath: string;
   }> = [];
   adBusy = false;
+  exportBusy = false;
+  importBusy = false;
   readonly version = APP_VERSION;
 
   readonly links: SuperAdminLink[] = [
@@ -117,6 +119,48 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
       .finally(() => {
         this.adBusy = false;
       });
+  }
+
+  exportWorkbook(): void {
+    if (this.exportBusy) return;
+    this.exportBusy = true;
+    this.http.get('/api/tenants/export', { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'mystoreshubs-export.xlsx';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        this.toast.success('Stores, hubs, and employees exported');
+        this.exportBusy = false;
+      },
+      error: () => {
+        this.toast.error('Could not export');
+        this.exportBusy = false;
+      },
+    });
+  }
+
+  importWorkbook(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.importBusy) return;
+    this.importBusy = true;
+    const body = new FormData();
+    body.append('file', file, file.name);
+    this.http.post<{ hubs: number; stores: number; employees: number }>('/api/tenants/import', body).subscribe({
+      next: (result) => {
+        this.toast.success(`Imported ${result.stores} stores, ${result.hubs} hubs, and ${result.employees} employees`);
+        this.importBusy = false;
+        window.location.reload();
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.toast.error(err?.error?.message || 'Could not import that workbook');
+        this.importBusy = false;
+      },
+    });
   }
 
   downloadTemplate(): void {

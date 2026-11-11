@@ -99,6 +99,23 @@
             <span>{{ link.label }}</span>
           </a>
         }
+        <input #platformFile type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden (change)="importWorkbook($event)" />
+        <button type="button" class="nav-link" (click)="exportWorkbook()" [disabled]="exportBusy" aria-label="Export">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M12 4v10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path d="m8 10 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M5 18.5h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          <span>{{ exportBusy ? 'Exporting…' : 'Export' }}</span>
+        </button>
+        <button type="button" class="nav-link" (click)="platformFile.click()" [disabled]="importBusy" aria-label="Import">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M12 14V4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path d="m8 8 4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M5 18.5h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          <span>{{ importBusy ? 'Importing…' : 'Import' }}</span>
+        </button>
         <button type="button" class="nav-link" (click)="generateAd()" [disabled]="adBusy" aria-label="Generate Ads">
           <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />

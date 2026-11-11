@@ -7,6 +7,7 @@ const { decorateMedicine } = require('../pricing');
 const { productSlug } = require('../product-slug');
 const { authenticate, requireSuperAdmin } = require('../middleware/auth');
 const { buildHubTemplate, importHubWorkbook, WorkbookError } = require('../hub-workbook');
+const { exportPlatformWorkbook, importPlatformWorkbook } = require('../platform-export');
 
 const workbookUpload = multer({
   storage: multer.memoryStorage(),
@@ -161,6 +162,31 @@ router.get('/workbook-template', async (_req, res, next) => {
     res.send(Buffer.from(buffer));
   } catch (err) {
     next(err);
+  }
+});
+
+router.get('/export', async (_req, res, next) => {
+  try {
+    const buffer = await exportPlatformWorkbook();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="mystoreshubs-export.xlsx"');
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/import', workbookUpload.single('file'), async (req, res) => {
+  const name = String(req.file?.originalname || '').toLowerCase();
+  if (!req.file || !name.endsWith('.xlsx')) {
+    return res.status(400).json({ message: 'Upload the exported .xlsx file' });
+  }
+  try {
+    const result = await importPlatformWorkbook(req.file.buffer, req.user.id);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof WorkbookError) return res.status(err.status).json({ message: err.message });
+    throw err;
   }
 });
 
