@@ -9,7 +9,7 @@
 
       <div class="topbar-actions">
         <app-home-login />
-        <a routerLink="/shoppingmall" class="action-chip highlight">
+        <button type="button" class="action-chip highlight" appLeaveLink="/shoppingmall">
           <span class="icon-circle bag">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
               <path d="M7 9V7a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -17,7 +17,7 @@
             </svg>
           </span>
           <span class="chip-label">{{ 'mall.shoppingMall' | t }}</span>
-        </a>
+        </button>
         <span class="chip-divider" aria-hidden="true"></span>
         <a routerLink="/login" class="action-chip">
           <span class="icon-circle">

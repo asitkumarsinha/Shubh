@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MallGroup, MallStore, MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
@@ -15,6 +15,7 @@ import { LanguageSwitcherComponent } from '../../shared/language-switcher/langua
 import { HomeLoginComponent } from '../../shared/home-login/home-login.component';
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
 import { productSlug } from '../../core/product-slug';
+import { LeaveService } from '../../core/leave.service';
 
 type MallSort = 'popular' | 'price' | 'price-desc' | 'newest' | 'stock';
 
@@ -79,7 +80,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     public auth: AuthService,
     public settings: SettingsService,
     private toast: ToastService,
-    private router: Router
+    private leave: LeaveService
   ) {
     effect(() => {
       const logo = this.settings.current().logo;
@@ -195,8 +196,9 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   }
 
   openMall(): void {
-    if (this.auth.isLoggedIn() && !this.auth.isAdmin() && !this.auth.isSuperAdmin()) {
-      this.router.navigate(['/cart']);
+    if (this.auth.isLoggedIn()) {
+      void this.leave.go('/shoppingmall');
+      return;
     }
   }
 

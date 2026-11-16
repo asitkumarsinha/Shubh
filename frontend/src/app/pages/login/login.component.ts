@@ -11,11 +11,12 @@ import { LanguageSwitcherComponent } from '../../shared/language-switcher/langua
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationService } from '../../core/i18n/translation.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
+import { LeaveLinkDirective } from '../../shared/leave-link.directive';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PublicCtaComponent, LanguageSwitcherComponent, TranslatePipe, ThemeToggleComponent, LeaveLinkDirective],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

@@ -10,11 +10,12 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationService } from '../../core/i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { HomeLoginComponent } from '../../shared/home-login/home-login.component';
+import { LeaveLinkDirective } from '../../shared/leave-link.directive';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent, LeaveLinkDirective],
   templateUrl: './register.component.html',
   styleUrls: ['../login/login.component.scss', './register.component.scss'],
 })

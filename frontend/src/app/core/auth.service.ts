@@ -57,12 +57,12 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  logout(redirect = '/login'): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.user.set(null);
     this.settings.load();
-    this.router.navigate(['/login']);
+    this.router.navigateByUrl(redirect);
   }
 
   getToken(): string | null {

@@ -14,14 +14,18 @@ export interface DialogState {
 export class DialogService {
   readonly current = signal<DialogState | null>(null);
 
-  confirm(message: string, title = 'Please confirm'): Promise<boolean> {
+  confirm(
+    message: string,
+    title = 'Please confirm',
+    options: { confirm?: string; cancel?: string; danger?: boolean } = {}
+  ): Promise<boolean> {
     return new Promise((resolve) => {
       this.current.set({
         title,
         message,
-        confirmLabel: 'Confirm',
-        cancelLabel: 'Cancel',
-        danger: true,
+        confirmLabel: options.confirm || 'Confirm',
+        cancelLabel: options.cancel || 'Cancel',
+        danger: options.danger ?? true,
         input: null,
         resolve: (value) => resolve(value === true),
       });

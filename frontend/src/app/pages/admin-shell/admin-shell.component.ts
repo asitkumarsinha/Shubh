@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
 import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { HomeLoginComponent } from '../../shared/home-login/home-login.component';
+import { LeaveLinkDirective } from '../../shared/leave-link.directive';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 interface DeskLink {
@@ -23,7 +24,7 @@ const PIN_KEY = 'msh_admin_menu_pinned';
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LanguageSwitcherComponent, TranslatePipe, HomeLoginComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LanguageSwitcherComponent, TranslatePipe, HomeLoginComponent, LeaveLinkDirective],
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.scss',
 })

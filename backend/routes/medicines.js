@@ -121,11 +121,7 @@ for (const [key, order] of Object.entries(TENANT_SORTS)) {
 const listMallStores = db.prepare(
   `SELECT t.id, t.name, t.slug, IFNULL(s.slogan, '') AS slogan,
           COUNT(m.id) AS products,
-          (
-            SELECT image FROM medicines
-            WHERE tenant_id = t.id AND IFNULL(image, '') != ''
-            ORDER BY id DESC LIMIT 1
-          ) AS image,
+          IFNULL(s.logo, '') AS image,
           (
             SELECT GROUP_CONCAT(category, ', ') FROM (
               SELECT category FROM medicines

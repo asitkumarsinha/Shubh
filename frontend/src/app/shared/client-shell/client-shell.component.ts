@@ -6,13 +6,14 @@ import { SettingsService } from '../../core/settings.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { HomeLoginComponent } from '../home-login/home-login.component';
+import { LeaveLinkDirective } from '../leave-link.directive';
 
 const PIN_KEY = 'msh_client_menu_pinned';
 
 @Component({
   selector: 'app-client-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent, LeaveLinkDirective],
   templateUrl: './client-shell.component.html',
   styleUrl: './client-shell.component.scss',
 })

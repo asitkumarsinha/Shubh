@@ -149,7 +149,7 @@
           <article class="store-card" [class.on]="isStoreActive(c.id)">
             <button type="button" class="store-pick" (click)="selectCustomer(c.id)" [attr.aria-pressed]="isStoreActive(c.id)">
               <span class="store-cover">
-                <img [src]="imageUrl(c.image)" alt="" loading="lazy" decoding="async" />
+                <img [src]="imageUrl(c.image)" [alt]="c.name + ' logo'" loading="lazy" decoding="async" />
                 <span class="store-badge" [style.background]="avatarColour(c.id)">{{ badge(c.name) }}</span>
               </span>
               <span class="store-body">

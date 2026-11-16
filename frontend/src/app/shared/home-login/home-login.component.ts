@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../../core/auth.service';
+import { LeaveService } from '../../core/leave.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
@@ -49,10 +48,9 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   `,
 })
 export class HomeLoginComponent {
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private leave: LeaveService) {}
 
   go(): void {
-    if (this.auth.isLoggedIn()) this.auth.logout();
-    else this.router.navigate(['/login']);
+    void this.leave.go('/login');
   }
 }

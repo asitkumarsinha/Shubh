@@ -7,6 +7,7 @@ import { ToastService } from '../../core/toast.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { HomeLoginComponent } from '../home-login/home-login.component';
+import { LeaveLinkDirective } from '../leave-link.directive';
 import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 import { APP_VERSION } from '../../version';
 import { renderAdPoster } from '../../core/ad-poster';
@@ -22,7 +23,7 @@ const PIN_KEY = 'msh_super_menu_pinned';
 @Component({
   selector: 'app-super-admin-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent, HomeLoginComponent, LeaveLinkDirective],
   templateUrl: './super-admin-shell.component.html',
   styleUrl: './super-admin-shell.component.scss',
 })
