@@ -7,11 +7,12 @@ const { decorateMedicine } = require('../pricing');
 const { productSlug } = require('../product-slug');
 const { authenticate, requireSuperAdmin } = require('../middleware/auth');
 const { buildHubTemplate, importHubWorkbook, WorkbookError } = require('../hub-workbook');
-const { exportPlatformWorkbook, importPlatformWorkbook } = require('../platform-export');
+const { exportPlatformArchive, importPlatformWorkbook } = require('../platform-export');
+const JSZip = require('jszip');
 
 const workbookUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 80 * 1024 * 1024 },
 });
 
 const router = express.Router();
@@ -167,22 +168,42 @@ router.get('/workbook-template', async (_req, res, next) => {
 
 router.get('/export', async (_req, res, next) => {
   try {
-    const buffer = await exportPlatformWorkbook();
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="mystoreshubs-export.xlsx"');
-    res.send(Buffer.from(buffer));
+    const archive = await exportPlatformArchive();
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="mystoreshubs-export.zip"');
+    res.setHeader('X-Export-Images', String(archive.images));
+    res.send(Buffer.from(archive.buffer));
   } catch (err) {
     next(err);
   }
 });
 
-router.post('/import', workbookUpload.single('file'), async (req, res) => {
-  const name = String(req.file?.originalname || '').toLowerCase();
-  if (!req.file || !name.endsWith('.xlsx')) {
-    return res.status(400).json({ message: 'Upload the exported .xlsx file' });
+async function workbookFromUpload(file) {
+  const name = String(file.originalname || '').toLowerCase();
+  if (name.endsWith('.zip')) {
+    const zip = await JSZip.loadAsync(file.buffer);
+    const entryName = Object.keys(zip.files).find((item) => item.toLowerCase().endsWith('.xlsx') && !item.includes('__MACOSX'));
+    if (!entryName) {
+      const error = new WorkbookError(400, 'The zip file needs the exported workbook');
+      throw error;
+    }
+    const images = new Map();
+    for (const [item, entry] of Object.entries(zip.files)) {
+      if (entry.dir || !item.startsWith('images/')) continue;
+      images.set(`/${item.slice('images/'.length)}`, await entry.async('nodebuffer'));
+    }
+    return { buffer: await zip.file(entryName).async('nodebuffer'), images };
   }
+  if (name.endsWith('.xlsx')) return { buffer: file.buffer, images: new Map() };
+  const error = new WorkbookError(400, 'Upload the exported .zip file');
+  throw error;
+}
+
+router.post('/import', workbookUpload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Upload the exported .zip file' });
   try {
-    const result = await importPlatformWorkbook(req.file.buffer, req.user.id);
+    const uploaded = await workbookFromUpload(req.file);
+    const result = await importPlatformWorkbook(uploaded.buffer, req.user.id, uploaded.images);
     res.json(result);
   } catch (err) {
     if (err instanceof WorkbookError) return res.status(err.status).json({ message: err.message });

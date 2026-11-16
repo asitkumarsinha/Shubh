@@ -129,10 +129,10 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'mystoreshubs-export.xlsx';
+        link.download = 'mystoreshubs-export.zip';
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1500);
-        this.toast.success('Stores, hubs, and employees exported');
+        this.toast.success('Stores, hubs, employees, and images exported');
         this.exportBusy = false;
       },
       error: () => {
@@ -150,9 +150,9 @@ export class SuperAdminShellComponent implements OnInit, OnDestroy {
     this.importBusy = true;
     const body = new FormData();
     body.append('file', file, file.name);
-    this.http.post<{ hubs: number; stores: number; employees: number }>('/api/tenants/import', body).subscribe({
+    this.http.post<{ hubs: number; stores: number; employees: number; images?: number }>('/api/tenants/import', body).subscribe({
       next: (result) => {
-        this.toast.success(`Imported ${result.stores} stores, ${result.hubs} hubs, and ${result.employees} employees`);
+        this.toast.success(`Imported ${result.stores} stores, ${result.hubs} hubs, ${result.employees} employees, and ${result.images || 0} images`);
         this.importBusy = false;
         window.location.reload();
       },

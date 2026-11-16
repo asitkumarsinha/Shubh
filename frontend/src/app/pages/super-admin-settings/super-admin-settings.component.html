@@ -99,7 +99,7 @@
           <div>
             <p class="eyebrow">Super Admin</p>
             <h2>Website hits</h2>
-            <p>{{ activity.length }} records · {{ hits }} total visits. Scroll the list for every visit and sign-in.</p>
+            <p>{{ filteredActivity.length }} shown · {{ activity.length }} records · {{ hits }} total visits. Drag a heading to move it.</p>
           </div>
         </div>
         <button type="button" class="hits-close" (click)="closeHits()" aria-label="Close">×</button>
@@ -111,56 +111,72 @@
       } @else if (!activity.length) {
         <p class="muted">No visit or sign-in details yet. New activity appears here.</p>
       } @else {
-        <div class="hits-table">
-          <table>
-            <thead>
-              <tr>
-                <th>When</th>
-                <th>Event</th>
-                <th>Who</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>IP address</th>
-                <th>Hostname</th>
-                <th>ASN</th>
-                <th>ISP</th>
-                <th>Services</th>
-                <th>Country</th>
-                <th>State/Region</th>
-                <th>City</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Browser</th>
-                <th>Page</th>
-                <th>Detail</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of activity; track row.id) {
-                <tr>
-                  <td>{{ row.created_at }}</td>
-                  <td>{{ row.outcome === 'success' ? 'Success' : row.outcome === 'failure' ? 'Failure' : row.outcome === 'error' ? 'Error' : (row.kind === 'login' ? 'Login' : row.kind === 'page' ? 'Page' : 'Visit') }}</td>
-                  <td>{{ row.name || '—' }}</td>
-                  <td>{{ row.email || '—' }}</td>
-                  <td>{{ roleLabel(row.role) }}</td>
-                  <td>{{ row.ip || '—' }}</td>
-                  <td>{{ row.hostname || '—' }}</td>
-                  <td>{{ row.asn || '—' }}</td>
-                  <td>{{ row.isp || '—' }}</td>
-                  <td>{{ row.services || '—' }}</td>
-                  <td>{{ row.country || '—' }}</td>
-                  <td>{{ row.region || '—' }}</td>
-                  <td>{{ row.city || '—' }}</td>
-                  <td>{{ row.latitude || '—' }}</td>
-                  <td>{{ row.longitude || '—' }}</td>
-                  <td [title]="row.user_agent">{{ browserLabel(row.user_agent) }}</td>
-                  <td>{{ row.path || '—' }}</td>
-                  <td>{{ row.detail || '—' }}</td>
-                </tr>
+        <div class="hits-tools">
+          <details class="col-menu">
+            <summary>Columns</summary>
+            <div class="col-menu-list">
+              @for (column of hitColumns; track column.id) {
+                <label>
+                  <input type="checkbox" [(ngModel)]="column.visible" [name]="'hit-col-' + column.id" />
+                  {{ column.label }}
+                </label>
               }
-            </tbody>
-          </table>
+            </div>
+          </details>
+          @if (hasColumnFilter) {
+            <button type="button" class="hits-clear" (click)="clearFilters()">Clear filters</button>
+          }
         </div>
+        @if (!visibleColumns.length) {
+          <p class="muted">All columns are hidden. Turn them back on from Columns.</p>
+        } @else {
+          <div class="hits-table">
+            <table>
+              <thead>
+                <tr>
+                  @for (column of visibleColumns; track column.id) {
+                    <th
+                      draggable="true"
+                      [class.dragging]="draggingColumn === column.id"
+                      [class.drop-target]="dragOverColumn === column.id && draggingColumn !== column.id"
+                      (dragstart)="onColumnDragStart(column.id, $event)"
+                      (dragover)="onColumnDragOver(column.id, $event)"
+                      (drop)="onColumnDrop(column.id, $event)"
+                      (dragend)="onColumnDragEnd()"
+                    >
+                      <div class="col-head">
+                        <span class="col-grip" title="Drag to move" aria-hidden="true">⋮⋮</span>
+                        <span>{{ column.label }}</span>
+                        <button type="button" class="col-hide" (click)="hideColumn(column)" [attr.aria-label]="'Hide ' + column.label" title="Hide column">×</button>
+                      </div>
+                      <input
+                        class="col-filter"
+                        [(ngModel)]="column.filter"
+                        [name]="'hit-filter-' + column.id"
+                        [attr.aria-label]="'Filter ' + column.label"
+                        placeholder="Filter"
+                        draggable="false"
+                      />
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of filteredActivity; track row.id) {
+                  <tr>
+                    @for (column of visibleColumns; track column.id) {
+                      <td [title]="column.id === 'browser' ? row.user_agent : ''">{{ cellText(row, column.id) }}</td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td [attr.colspan]="visibleColumns.length">No rows match these filters.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       }
     </section>
   </div>

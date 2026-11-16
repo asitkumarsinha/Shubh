@@ -40,37 +40,107 @@ const listCategories = db.prepare(
    WHERE tenant_id = ? AND trim(category) != ''
    ORDER BY category COLLATE NOCASE`
 );
-const countMall = db.prepare(
-  `SELECT COUNT(*) AS count
-   FROM medicines m
-   JOIN tenants t ON t.id = m.tenant_id
+const MALL_SORTS = {
+  popular: 'm.name COLLATE NOCASE, t.name COLLATE NOCASE',
+  price: 'm.price ASC, m.name COLLATE NOCASE',
+  'price-desc': 'm.price DESC, m.name COLLATE NOCASE',
+  newest: 'm.created_at DESC, m.id DESC',
+  stock: 'm.stock DESC, m.name COLLATE NOCASE',
+};
+const TENANT_SORTS = {
+  popular: 'name COLLATE NOCASE',
+  price: 'price ASC, name COLLATE NOCASE',
+  'price-desc': 'price DESC, name COLLATE NOCASE',
+  newest: 'created_at DESC, id DESC',
+  stock: 'stock DESC, name COLLATE NOCASE',
+};
+
+function mallSortSql(sorts) {
+  const prepared = {};
+  for (const [key, order] of Object.entries(sorts)) {
+    const stock = key === 'stock' ? 'AND m.stock > 0' : '';
+    prepared[key] = {
+      countSearch: db.prepare(
+        `SELECT COUNT(*) AS count, COUNT(DISTINCT m.tenant_id) AS stores
+         FROM medicines m
+         JOIN tenants t ON t.id = m.tenant_id
+         WHERE t.status != 'archived'
+           AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)
+           AND (? = '' OR m.category = ? COLLATE NOCASE)
+           ${stock}`
+      ),
+      listSearch: db.prepare(
+        `SELECT m.*, t.name AS store_name, t.slug AS store_slug
+         FROM medicines m
+         JOIN tenants t ON t.id = m.tenant_id
+         WHERE t.status != 'archived'
+           AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)
+           AND (? = '' OR m.category = ? COLLATE NOCASE)
+           ${stock}
+         ORDER BY ${order}
+         LIMIT ? OFFSET ?`
+      ),
+      countAll: db.prepare(
+        `SELECT COUNT(*) AS count, COUNT(DISTINCT m.tenant_id) AS stores
+         FROM medicines m
+         JOIN tenants t ON t.id = m.tenant_id
+         WHERE t.status != 'archived' ${stock}`
+      ),
+      listAll: db.prepare(
+        `SELECT m.*, t.name AS store_name, t.slug AS store_slug
+         FROM medicines m
+         JOIN tenants t ON t.id = m.tenant_id
+         WHERE t.status != 'archived' ${stock}
+         ORDER BY ${order}
+         LIMIT ? OFFSET ?`
+      ),
+    };
+  }
+  return prepared;
+}
+
+const mallSorted = mallSortSql(MALL_SORTS);
+const tenantSorted = {};
+for (const [key, order] of Object.entries(TENANT_SORTS)) {
+  const stock = key === 'stock' ? "AND stock > 0" : '';
+  tenantSorted[key] = {
+    count: db.prepare(
+      `SELECT COUNT(*) AS count FROM medicines
+       WHERE tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)
+         AND (? = '' OR category = ? COLLATE NOCASE) ${stock}`
+    ),
+    list: db.prepare(
+      `SELECT * FROM medicines
+       WHERE tenant_id = ? AND (? = '' OR name LIKE ? COLLATE NOCASE OR IFNULL(description, '') LIKE ? COLLATE NOCASE)
+         AND (? = '' OR category = ? COLLATE NOCASE) ${stock}
+       ORDER BY ${order}
+       LIMIT ? OFFSET ?`
+    ),
+  };
+}
+const listMallStores = db.prepare(
+  `SELECT t.id, t.name, t.slug, IFNULL(s.slogan, '') AS slogan,
+          COUNT(m.id) AS products,
+          (
+            SELECT image FROM medicines
+            WHERE tenant_id = t.id AND IFNULL(image, '') != ''
+            ORDER BY id DESC LIMIT 1
+          ) AS image,
+          (
+            SELECT GROUP_CONCAT(category, ', ') FROM (
+              SELECT category FROM medicines
+              WHERE tenant_id = t.id AND trim(category) != ''
+              GROUP BY category COLLATE NOCASE
+              ORDER BY COUNT(*) DESC
+              LIMIT 2
+            )
+          ) AS categories
+   FROM tenants t
+   LEFT JOIN tenant_settings s ON s.tenant_id = t.id
+   LEFT JOIN medicines m ON m.tenant_id = t.id
    WHERE t.status != 'archived'
-     AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)
-     AND (? = '' OR m.category = ? COLLATE NOCASE)`
-);
-const listMall = db.prepare(
-  `SELECT m.*, t.name AS store_name, t.slug AS store_slug
-   FROM medicines m
-   JOIN tenants t ON t.id = m.tenant_id
-   WHERE t.status != 'archived'
-     AND (m.name LIKE ? COLLATE NOCASE OR IFNULL(m.description, '') LIKE ? COLLATE NOCASE)
-     AND (? = '' OR m.category = ? COLLATE NOCASE)
-   ORDER BY m.name COLLATE NOCASE, t.name COLLATE NOCASE
-   LIMIT ? OFFSET ?`
-);
-const countMallCategory = db.prepare(
-  `SELECT COUNT(*) AS count
-   FROM medicines m
-   JOIN tenants t ON t.id = m.tenant_id
-   WHERE t.status != 'archived' AND m.category = ? COLLATE NOCASE`
-);
-const listMallCategory = db.prepare(
-  `SELECT m.*, t.name AS store_name, t.slug AS store_slug
-   FROM medicines m
-   JOIN tenants t ON t.id = m.tenant_id
-   WHERE t.status != 'archived' AND m.category = ? COLLATE NOCASE
-   ORDER BY m.name COLLATE NOCASE, t.name COLLATE NOCASE
-   LIMIT ? OFFSET ?`
+   GROUP BY t.id
+   ORDER BY t.name COLLATE NOCASE`
 );
 const listMallGroups = db.prepare(
   `SELECT m.category AS name, COUNT(*) AS count, MIN(m.image) AS image
@@ -89,15 +159,25 @@ function tenantFromRequest(req) {
   return { user, tenantId: tenantExists ? requested : user?.tenant_id || 1 };
 }
 
+function sortKey(sorts, value) {
+  return Object.prototype.hasOwnProperty.call(sorts, value) ? value : null;
+}
+
+function mallSortKey(value) {
+  return sortKey(MALL_SORTS, value) || 'popular';
+}
+
 router.get('/', (req, res) => {
   const { user, tenantId } = tenantFromRequest(req);
   const { page, limit, offset, q, like } = pageQuery(req, 12);
   const category = String(req.query.category || '').trim();
-  const total = countMedicines.get(tenantId, q, like, like, category, category).count;
-  const medicines = listMedicines
+  const key = sortKey(TENANT_SORTS, String(req.query.sort || ''));
+  const sorted = key ? tenantSorted[key] : null;
+  const total = (sorted ? sorted.count : countMedicines).get(tenantId, q, like, like, category, category).count;
+  const medicines = (sorted ? sorted.list : listMedicines)
     .all(tenantId, q, like, like, category, category, limit, offset)
     .map((m) => decorateMedicine(m, user));
-  res.json(pagePayload(medicines, total, page, limit));
+  res.json({ ...pagePayload(medicines, total, page, limit), stores: 1 });
 });
 
 router.get('/categories', (req, res) => {
@@ -109,19 +189,25 @@ router.get('/mall/groups', (_req, res) => {
   res.json(listMallGroups.all());
 });
 
+router.get('/mall/stores', (_req, res) => {
+  res.json(listMallStores.all());
+});
+
 router.get('/mall', (req, res) => {
   const user = optionalUser(req);
   const { page, limit, offset, q, like } = pageQuery(req, 12);
   const category = String(req.query.category || '').trim();
-  if (!q && !category) return res.json(pagePayload([], 0, page, limit));
-  const total = q
-    ? countMall.get(like, like, category, category).count
-    : countMallCategory.get(category).count;
-  const rows = q
-    ? listMall.all(like, like, category, category, limit, offset)
-    : listMallCategory.all(category, limit, offset);
-  const medicines = rows.map((row) => decorateMedicine(row, user));
-  res.json(pagePayload(medicines, total, page, limit));
+  const sorted = mallSorted[mallSortKey(req.query.sort)];
+  const summary = q || category
+    ? sorted.countSearch.get(like, like, category, category)
+    : sorted.countAll.get();
+  const rows = q || category
+    ? sorted.listSearch.all(like, like, category, category, limit, offset)
+    : sorted.listAll.all(limit, offset);
+  res.json({
+    ...pagePayload(rows.map((row) => decorateMedicine(row, user)), summary.count, page, limit),
+    stores: summary.stores,
+  });
 });
 
 router.get('/:id', (req, res) => {

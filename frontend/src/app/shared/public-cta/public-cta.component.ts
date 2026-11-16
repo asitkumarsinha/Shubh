@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
@@ -22,10 +22,11 @@ export class PublicCtaComponent implements OnInit {
   @ViewChild('clip') clip?: ElementRef<HTMLVideoElement>;
   @ViewChild('tune') tune?: ElementRef<HTMLAudioElement>;
 
-  constructor(private http: HttpClient, public auth: AuthService) {}
+  constructor(private http: HttpClient, public auth: AuthService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.loadMusic();
+    if (this.demoOnly && this.route.snapshot.queryParamMap.get('demo') === '1') this.openDemo();
   }
 
   openDemo(): void {

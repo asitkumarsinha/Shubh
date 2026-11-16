@@ -75,104 +75,120 @@
 
   <div class="mall-hero">
     <img class="world-map" src="assets/world-map.svg?v=5" alt="" decoding="async" fetchpriority="low" />
-    <div class="hero-logo">
-      <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
+    <div class="hero-inner">
+      <div class="hero-logo">
+        <img [src]="displayLogo" (load)="onLogoLoad($event)" [alt]="settings.current().title" />
+      </div>
+      <div class="hero-copy">
+        <h1>{{ 'mall.heroTitle' | t }}</h1>
+        <p>{{ 'mall.heroLead' | t }}</p>
+      </div>
+      <div class="hero-cta">
+        <a class="open-store" routerLink="/register">{{ 'mall.openFreeButton' | t }}</a>
+        <a class="demo-link" routerLink="/login" [queryParams]="{ demo: '1' }">▶ {{ 'mall.seeDemo' | t }}</a>
+      </div>
     </div>
   </div>
 
-  <main class="mall-main">
-    <div class="intro-row">
-      <div class="intro-copy">
-        <h1>{{ 'mall.heroTitle' | t }}</h1>
-        <p class="owner-line">{{ 'mall.openFreeLine' | t }}</p>
-        <a class="open-store" routerLink="/register">{{ 'mall.openFreeButton' | t }}</a>
-        <p>{{ 'mall.shopperSteps' | t }}</p>
-        <p class="owner-line">{{ 'mall.ownerLine' | t }}</p>
-      </div>
-
-      <div class="intro-tools">
-        <label class="mall-search">
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
-            <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-          </svg>
-          <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
-          <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'mall.searchAll' | t" />
-        </label>
-        <label class="mall-search group-select">
-          <span class="sr-only">Group</span>
-          <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
-            <option value="">{{ 'mall.allGroups' | t }}</option>
-            @for (group of groups; track group.name) {
-              <option [value]="group.name">{{ group.name }}</option>
-            }
-          </select>
-        </label>
+  <form class="search-wrap" (ngSubmit)="runSearch()">
+    <div class="search-card">
+      <label class="search-input">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="sr-only">{{ 'catalogue.searchLabel' | t }}</span>
+        <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="catalogueSearch" [placeholder]="'mall.searchAll' | t" />
+      </label>
+      <label class="group-select">
+        <span class="sr-only">{{ 'mall.groups' | t }}</span>
+        <select [(ngModel)]="category" (ngModelChange)="onCategory()" name="mallGroup">
+          <option value="">{{ 'mall.allGroups' | t }}</option>
+          @for (group of groups; track group.name) {
+            <option [value]="group.name">{{ group.name }}</option>
+          }
+        </select>
+      </label>
+      <button class="search-btn" type="submit">{{ 'mall.searchButton' | t }}</button>
+      <div class="mall-counts">
+        <div><b>{{ customers.length }}</b><span>{{ 'mall.statStores' | t }}</span></div>
+        <div><b>{{ groups.length }}</b><span>{{ 'mall.statGroups' | t }}</span></div>
+        <div><b>{{ productTotal }}</b><span>{{ 'mall.statProducts' | t }}</span></div>
       </div>
     </div>
+  </form>
 
-    <nav class="guide-strip" [attr.aria-label]="'mall.shoppingMall' | t">
-      <button type="button" (click)="scrollToStores()">{{ 'mall.guideShop' | t }}</button>
-      <a routerLink="/register">{{ 'mall.guideOpen' | t }}</a>
-      <a routerLink="/demo">{{ 'mall.guideDemo' | t }}</a>
-    </nav>
+  <main class="mall-layout">
+    <aside class="group-side" [attr.aria-label]="'mall.groups' | t">
+      <h2>{{ 'mall.shopByGroup' | t }}</h2>
+      @for (group of groups; track group.name) {
+        <button type="button" class="group-row" [class.on]="category === group.name" (click)="pickGroup(group.name)" [attr.aria-pressed]="category === group.name">
+          <img [src]="imageUrl(group.image)" alt="" loading="lazy" decoding="async" />
+          <span>{{ group.name }}</span>
+          <em>{{ group.count }}</em>
+        </button>
+      }
+    </aside>
 
-    @if (groups.length) {
-      <section class="tile-row" [attr.aria-label]="'mall.groups' | t">
-        @for (group of groups; track group.name) {
-          <button type="button" class="tile group-tile" [class.active]="category === group.name" (click)="pickGroup(group.name)" [attr.aria-pressed]="category === group.name">
-            <span class="tile-art">
-              <img [src]="imageUrl(group.image)" [alt]="" loading="lazy" decoding="async" />
-            </span>
-            <span class="tile-label">{{ group.name }}</span>
-            <span class="tile-sub">{{ (category === group.name ? 'mall.showingGroup' : 'mall.shopGroup') | t }}</span>
-          </button>
+    <div class="mall-content">
+      <div class="section-head">
+        <button type="button" class="collapse-toggle" (click)="hubsOpen = !hubsOpen" [attr.aria-expanded]="hubsOpen">
+          <span class="chevron" [class.closed]="!hubsOpen" aria-hidden="true">▾</span>
+          {{ 'mall.storesInMall' | t }}
+        </button>
+        <button type="button" class="text-link" (click)="showAllStores()">{{ 'mall.viewAllStores' | t }}</button>
+      </div>
+      @if (hubsOpen) {
+      <section id="mall-stores" class="store-row" [attr.aria-label]="'mall.stores' | t">
+        @if (customersLoading) {
+          <div class="store-card skeleton-card"></div>
+          <div class="store-card skeleton-card"></div>
+          <div class="store-card skeleton-card"></div>
+        }
+        @for (c of customers; track c.id) {
+          <article class="store-card" [class.on]="isStoreActive(c.id)">
+            <button type="button" class="store-pick" (click)="selectCustomer(c.id)" [attr.aria-pressed]="isStoreActive(c.id)">
+              <span class="store-cover">
+                <img [src]="imageUrl(c.image)" alt="" loading="lazy" decoding="async" />
+                <span class="store-badge" [style.background]="avatarColour(c.id)">{{ badge(c.name) }}</span>
+              </span>
+              <span class="store-body">
+                <strong>{{ c.name }}</strong>
+                <small>{{ c.categories || c.slogan }} · {{ 'mall.productCount' | t: { count: c.products } }}</small>
+              </span>
+            </button>
+          </article>
         }
       </section>
-    }
-
-    <section id="mall-stores" class="tile-row" [attr.aria-label]="'mall.stores' | t">
-      @if (customersLoading) {
-        <div class="tile skeleton-card"></div>
-        <div class="tile skeleton-card"></div>
-        <div class="tile skeleton-card"></div>
       }
-      @for (c of customers; track c.id) {
-        <div class="tile store-tile" [class.active]="isStoreActive(c.id)">
-          <button type="button" class="store-pick" (click)="selectCustomer(c.id)" [attr.aria-pressed]="isStoreActive(c.id)">
-            <svg class="tile-art shop-art" viewBox="0 0 160 100" aria-hidden="true">
-              <rect width="160" height="100" fill="#e9edf2" />
-              <rect x="16" y="34" width="128" height="66" fill="#f8fafc" stroke="#cbd5e1" />
-              <rect x="10" y="26" width="140" height="16" [attr.fill]="avatarColour(c.id)" />
-              @for (i of awningStripes; track i) {
-                <rect [attr.x]="14 + i * 20" y="26" width="10" height="16" fill="#fff" opacity="0.85" />
+
+      <div class="toolbar">
+        <h2>
+          @if (query.trim()) {
+            {{ 'mall.searchResults' | t }}
+          } @else if (category) {
+            {{ category }}
+          } @else if (selected) {
+            {{ selected.name }}
+          } @else {
+            {{ 'mall.shoppingMall' | t }}
+          }
+          @if (!loading) {
+            <small>
+              @if (category && !query.trim()) {
+                {{ (storeCount === 1 ? 'mall.fromStore' : 'mall.fromStores') | t: { count: total, stores: storeCount } }}
+              } @else {
+                {{ 'mall.productCount' | t: { count: total } }}
               }
-              <rect x="26" y="52" width="34" height="28" rx="2" fill="#bfdbfe" />
-              <rect x="100" y="52" width="34" height="28" rx="2" fill="#bfdbfe" />
-              <rect x="68" y="54" width="24" height="46" fill="#94a3b8" />
-              <rect x="52" y="6" width="56" height="16" rx="3" fill="#0f172a" />
-              <text x="80" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">{{ initials(c.name) }}</text>
-            </svg>
-            <span class="tile-label">{{ c.name }}</span>
-            <span class="tile-sub">{{ c.slogan || c.name }}</span>
-          </button>
-          @if (c.slug) {
-            <a class="store-link" [routerLink]="['/store', c.slug]">/store/{{ c.slug }}</a>
+            </small>
+          }
+        </h2>
+        <div class="sorts">
+          @for (sort of sorts; track sort.id) {
+            <button type="button" [class.on]="sortBy === sort.id" (click)="setSort(sort.id)">{{ sort.label | t }}</button>
           }
         </div>
-      }
-    </section>
-
-    <section class="product-panel">
-      <header class="products-head">
-        @if (searchingAll) {
-          <h2>{{ 'mall.searchResults' | t }}</h2>
-        } @else if (selected) {
-          <h2>{{ 'mall.productsFrom' | t: { name: selected.name } }}</h2>
-        } @else {
-          <h2>{{ 'mall.shoppingMall' | t }}</h2>
-        }
-      </header>
+      </div>
 
       @if (error) {
         <div class="mall-error">{{ error }}</div>
@@ -180,10 +196,9 @@
 
       @if (loading) {
         <div class="product-grid">
-          <div class="product-card skeleton-card"></div>
-          <div class="product-card skeleton-card"></div>
-          <div class="product-card skeleton-card"></div>
-          <div class="product-card skeleton-card"></div>
+          @for (card of skeletonCards; track card) {
+            <div class="product-card skeleton-card"></div>
+          }
         </div>
       } @else if (medicines.length === 0) {
         <div class="empty-note">
@@ -210,23 +225,24 @@
                     {{ m.name }}
                   }
                 </h3>
-                <span class="store-name">{{ storeName(m) }}</span>
                 @if (storeSlug(m)) {
-                  <a class="store-link" [routerLink]="['/store', storeSlug(m)]">/store/{{ storeSlug(m) }}</a>
+                  <a class="store-name" [routerLink]="['/store', storeSlug(m)]">{{ storeName(m) }}</a>
+                } @else {
+                  <span class="store-name">{{ storeName(m) }}</span>
                 }
-                @if (m.category) { <p class="blurb">{{ m.category }}</p> }
-                <span class="price">
-                  ₹{{ m.price | number: '1.2-2' }}
-                  @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
-                    <s>₹{{ m.listPrice | number: '1.2-2' }}</s>
+                <div class="price-row">
+                  <span class="price">
+                    ₹{{ m.price | number: '1.0-0' }}
+                    @if (auth.isWholesale() && m.listPrice && m.listPrice > m.price) {
+                      <s>₹{{ m.listPrice | number: '1.0-0' }}</s>
+                    }
+                  </span>
+                  @if (!auth.isAdmin()) {
+                    <button class="add-btn" type="button" [disabled]="m.stock < 1" (click)="addToCart(m)">
+                      {{ (m.stock < 1 ? 'catalogue.outOfStock' : 'mall.add') | t }}
+                    </button>
                   }
-                </span>
-                <span [class.low]="m.stock < 5">{{ 'catalogue.stock' | t: { count: m.stock } }}</span>
-                @if (!auth.isAdmin()) {
-                  <button class="add-btn" type="button" [disabled]="m.stock < 1" (click)="addToCart(m)">
-                    {{ (m.stock < 1 ? 'catalogue.outOfStock' : 'catalogue.addToCart') | t }}
-                  </button>
-                }
+                </div>
               </div>
             </article>
           }
@@ -239,9 +255,7 @@
           </nav>
         }
       }
-    </section>
-
-    <p class="mall-stats">{{ 'mall.stats' | t: { stores: customers.length, groups: groups.length } }}</p>
+    </div>
   </main>
 
   <footer class="mall-footer">

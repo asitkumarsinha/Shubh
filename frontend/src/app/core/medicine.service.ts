@@ -9,28 +9,49 @@ export interface MallGroup {
   image: string | null;
 }
 
+export interface MallStore {
+  id: number;
+  name: string;
+  slug: string;
+  slogan: string;
+  products: number;
+  image: string | null;
+  categories: string | null;
+}
+
+export interface MallPage extends PageResult<Medicine> {
+  stores: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MedicineService {
   private readonly api = '/api/medicines';
 
   constructor(private http: HttpClient) {}
 
-  list(query: { q?: string; page?: number; limit?: number; tenantId?: number; category?: string } = {}): Observable<PageResult<Medicine>> {
+  list(query: { q?: string; page?: number; limit?: number; tenantId?: number; category?: string; sort?: string } = {}): Observable<MallPage> {
     let params = new HttpParams();
     if (query.q) params = params.set('q', query.q);
     if (query.page) params = params.set('page', query.page);
     if (query.limit) params = params.set('limit', query.limit);
     if (query.tenantId) params = params.set('tenantId', query.tenantId);
     if (query.category) params = params.set('category', query.category);
-    return this.http.get<PageResult<Medicine>>(this.api, { params });
+    if (query.sort) params = params.set('sort', query.sort);
+    return this.http.get<MallPage>(this.api, { params });
   }
 
-  mall(query: { q: string; category?: string; page?: number; limit?: number }): Observable<PageResult<Medicine>> {
-    let params = new HttpParams().set('q', query.q);
+  mall(query: { q?: string; category?: string; page?: number; limit?: number; sort?: string }): Observable<MallPage> {
+    let params = new HttpParams();
+    if (query.q) params = params.set('q', query.q);
     if (query.category) params = params.set('category', query.category);
     if (query.page) params = params.set('page', query.page);
     if (query.limit) params = params.set('limit', query.limit);
-    return this.http.get<PageResult<Medicine>>(`${this.api}/mall`, { params });
+    if (query.sort) params = params.set('sort', query.sort);
+    return this.http.get<MallPage>(`${this.api}/mall`, { params });
+  }
+
+  mallStores(): Observable<MallStore[]> {
+    return this.http.get<MallStore[]>(`${this.api}/mall/stores`);
   }
 
   mallGroups(): Observable<MallGroup[]> {

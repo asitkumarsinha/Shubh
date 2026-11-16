@@ -9,7 +9,7 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shubh-platform-'));
 process.env.SQLITE_PATH = path.join(tempDir, 'test.db');
 
 const db = require('../db');
-const { exportPlatformWorkbook, importPlatformWorkbook } = require('../platform-export');
+const { exportPlatformWorkbook, exportPlatformArchive, importPlatformWorkbook } = require('../platform-export');
 
 test('the exported workbook updates a store and adds an employee', async () => {
   const buffer = await exportPlatformWorkbook();
@@ -40,4 +40,30 @@ test('the exported workbook updates a store and adds an employee', async () => {
   const hub = db.prepare('SELECT id FROM tenants WHERE slug = ?').get('shubh-surgical');
   assert.equal(employee.designation, 'Floor lead');
   assert.equal(employee.tenant_id, hub.id);
+});
+
+test('the export archive packs uploaded images and import restores them', async () => {
+  const JSZip = require('jszip');
+  const upload = path.join(tempDir, 'uploads');
+  fs.mkdirSync(upload, { recursive: true });
+  const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]);
+  fs.writeFileSync(path.join(upload, 'sample-logo.png'), bytes);
+  const hub = db.prepare('SELECT id FROM tenants WHERE slug = ?').get('shubh-surgical');
+  db.prepare('UPDATE tenant_settings SET logo = ? WHERE tenant_id = ?').run('/uploads/sample-logo.png', hub.id);
+
+  const archive = await exportPlatformArchive();
+  assert.ok(archive.images >= 1);
+  const zip = await JSZip.loadAsync(archive.buffer);
+  assert.ok(zip.file('images/uploads/sample-logo.png'));
+
+  fs.rmSync(path.join(upload, 'sample-logo.png'));
+  db.prepare('UPDATE tenant_settings SET logo = ? WHERE tenant_id = ?').run('/assets/missing.svg', hub.id);
+  const xlsx = await zip.file('mystoreshubs-export.xlsx').async('nodebuffer');
+  const images = new Map([['/uploads/sample-logo.png', await zip.file('images/uploads/sample-logo.png').async('nodebuffer')]]);
+  const result = await importPlatformWorkbook(xlsx, null, images);
+
+  assert.ok(result.images >= 1);
+  const logo = db.prepare('SELECT logo FROM tenant_settings WHERE tenant_id = ?').get(hub.id).logo;
+  assert.equal(logo, '/uploads/sample-logo.png');
+  assert.deepEqual(fs.readFileSync(path.join(upload, 'sample-logo.png')), bytes);
 });

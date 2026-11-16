@@ -221,6 +221,125 @@ input[type='color'] {
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  cursor: grab;
+  vertical-align: top;
+}
+
+.hits-table th.dragging {
+  opacity: 0.45;
+}
+
+.hits-table th.drop-target {
+  box-shadow: inset 3px 0 0 #0f6f78;
+}
+
+.hits-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.col-menu {
+  position: relative;
+}
+
+.col-menu summary {
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  background: #fff;
+  color: #0f3d4c;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.col-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.col-menu-list {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  min-width: 12rem;
+  max-height: 16rem;
+  overflow: auto;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.col-menu-list label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.18rem 0;
+  color: #111827;
+  font-size: 0.84rem;
+}
+
+.col-menu-list input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: #0f6f78;
+}
+
+.hits-clear {
+  border: 0;
+  background: transparent;
+  color: #0f6f78;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.col-grip {
+  color: #94a3b8;
+  letter-spacing: -0.12em;
+  cursor: grab;
+}
+
+.col-hide {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.col-filter {
+  display: block;
+  width: 100%;
+  min-width: 6.5rem;
+  margin-top: 0.35rem;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid #d7dee6;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: text;
 }
 
 .hit-card span {

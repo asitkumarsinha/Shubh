@@ -99,7 +99,7 @@
             <span>{{ link.label }}</span>
           </a>
         }
-        <input #platformFile type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden (change)="importWorkbook($event)" />
+        <input #platformFile type="file" accept=".zip,.xlsx,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden (change)="importWorkbook($event)" />
         <button type="button" class="nav-link" (click)="exportWorkbook()" [disabled]="exportBusy" aria-label="Export">
           <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path d="M12 4v10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />

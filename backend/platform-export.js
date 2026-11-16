@@ -1,6 +1,10 @@
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const ExcelJS = require('exceljs');
+const JSZip = require('jszip');
 const db = require('./db');
+const { ensureUploadDir, safeImageExt, storedFilePath } = require('./uploads');
 const { WorkbookError } = require('./hub-workbook');
 
 const STORE_HEADERS = ['Store', 'Slug', 'Mobile', 'Address', 'Status'];
@@ -21,8 +25,12 @@ const HUB_HEADERS = [
   'Theme color',
   'Domain',
   'Slogan',
+  'Logo',
+  'QR code',
 ];
+const OPTIONAL_HUB_HEADERS = ['Logo', 'QR code'];
 const EMPLOYEE_HEADERS = ['Hub', 'Name', 'Email', 'Phone', 'Designation', 'Department', 'Address', 'Joining date'];
+const PRODUCT_HEADERS = ['Hub', 'Name', 'Category', 'Price', 'Wholesale price', 'Stock', 'Description', 'Image'];
 const STATUSES = new Set(['active', 'suspended', 'archived']);
 const BILLING = new Set(['monthly', 'yearly']);
 const PAYMENTS = new Set(['trial', 'paid', 'overdue', 'cancelled']);
@@ -47,11 +55,15 @@ function slugify(value) {
     .slice(0, 48);
 }
 
-function sheetRows(workbook, name, headers) {
+function sheetRows(workbook, name, headers, options = {}) {
   const sheet = workbook.getWorksheet(name);
-  if (!sheet) throw new WorkbookError(400, `The workbook needs a ${name} sheet`);
+  if (!sheet) {
+    if (options.optional) return [];
+    throw new WorkbookError(400, `The workbook needs a ${name} sheet`);
+  }
   const found = sheet.getRow(1).values.slice(1).map((cell) => text(cell));
-  const missing = headers.filter((header) => !found.includes(header));
+  const optional = new Set(options.optionalHeaders || []);
+  const missing = headers.filter((header) => !optional.has(header) && !found.includes(header));
   if (missing.length) throw new WorkbookError(400, `${name} sheet is missing ${missing.join(', ')}`);
   const rows = [];
   sheet.eachRow((row, number) => {
@@ -81,6 +93,8 @@ const listHubs = db.prepare(
   `SELECT t.id, t.name, t.slug, t.status, t.plan, t.billing_cycle, t.price, t.payment_status,
           t.contact_name, t.contact_email, t.contact_phone, t.address, t.login_initial, t.theme_color, t.domain,
           IFNULL(s.slogan, '') AS slogan,
+          IFNULL(s.logo, '') AS logo,
+          IFNULL(s.qr_code, '') AS qr_code,
           IFNULL(a.name, t.contact_name) AS admin_name,
           IFNULL(a.email, t.contact_email) AS admin_email
    FROM tenants t
@@ -120,7 +134,28 @@ const insertHub = db.prepare(
 );
 const insertSettings = db.prepare(
   `INSERT INTO tenant_settings (tenant_id, title, slogan, logo, qr_code)
-   VALUES (?, ?, ?, '/assets/shubh-surgical-logo.svg', '/assets/QR.jpeg')`
+   VALUES (?, ?, ?, ?, ?)`
+);
+const updateLogo = db.prepare('UPDATE tenant_settings SET logo = ? WHERE tenant_id = ?');
+const updateQr = db.prepare('UPDATE tenant_settings SET qr_code = ? WHERE tenant_id = ?');
+const findProduct = db.prepare(
+  'SELECT id FROM medicines WHERE tenant_id = ? AND name = ? COLLATE NOCASE ORDER BY id LIMIT 1'
+);
+const updateProduct = db.prepare(
+  `UPDATE medicines
+   SET description = ?, price = ?, wholesale_price = ?, stock = ?, category = ?, image = ?
+   WHERE id = ?`
+);
+const insertProduct = db.prepare(
+  `INSERT INTO medicines (name, description, price, wholesale_price, image, stock, category, created_by, tenant_id)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+);
+const listProducts = db.prepare(
+  `SELECT t.name AS hub, m.name, m.category, m.price, m.wholesale_price, m.stock,
+          m.description, m.image
+   FROM medicines m
+   JOIN tenants t ON t.id = m.tenant_id
+   ORDER BY t.name COLLATE NOCASE, m.name COLLATE NOCASE`
 );
 const insertAdmin = db.prepare(
   `INSERT INTO users (name, email, password, role, phone, address, tenant_id)
@@ -154,10 +189,11 @@ const DEFAULT_MODULES = JSON.stringify({
   prescriptions: false,
 });
 
-async function exportPlatformWorkbook() {
-  const hubs = listHubs.all();
-  const employees = listEmployees.all();
+function readExportData() {
+  return { hubs: listHubs.all(), employees: listEmployees.all(), products: listProducts.all() };
+}
 
+async function buildWorkbook({ hubs, employees, products: productRows }) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'My Stores Hubs';
 
@@ -188,6 +224,8 @@ async function exportPlatformWorkbook() {
       hub.theme_color || '',
       hub.domain || '',
       hub.slogan || '',
+      hub.logo || '',
+      hub.qr_code || '',
     ]);
   }
   styleSheet(hubSheet);
@@ -208,7 +246,88 @@ async function exportPlatformWorkbook() {
   }
   styleSheet(staff);
 
+  const products = workbook.addWorksheet('Products');
+  products.addRow(PRODUCT_HEADERS);
+  for (const row of productRows) {
+    products.addRow([
+      row.hub,
+      row.name,
+      row.category || '',
+      row.price,
+      row.wholesale_price ?? '',
+      row.stock,
+      row.description || '',
+      row.image || '',
+    ]);
+  }
+  styleSheet(products);
+
   return workbook.xlsx.writeBuffer();
+}
+
+function readImage(publicPath) {
+  const value = String(publicPath || '').trim();
+  if (!value.startsWith('/')) return null;
+  if (value.startsWith('/uploads/')) {
+    const file = storedFilePath(value);
+    if (file && fs.existsSync(file)) return fs.readFileSync(file);
+    return null;
+  }
+  const relative = value.replace(/^\/+/, '');
+  const candidates = [
+    path.join(__dirname, 'public', relative),
+    path.join(__dirname, '..', 'frontend', 'public', relative),
+    path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser', relative),
+  ];
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  return found ? fs.readFileSync(found) : null;
+}
+
+function imagePaths({ hubs, products }) {
+  const paths = new Set();
+  for (const hub of hubs) {
+    if (hub.logo) paths.add(hub.logo);
+    if (hub.qr_code) paths.add(hub.qr_code);
+  }
+  for (const product of products) {
+    if (product.image) paths.add(product.image);
+  }
+  return paths;
+}
+
+async function exportPlatformWorkbook() {
+  return buildWorkbook(readExportData());
+}
+
+async function exportPlatformArchive() {
+  const data = readExportData();
+  const xlsx = await buildWorkbook(data);
+  const zip = new JSZip();
+  zip.file('mystoreshubs-export.xlsx', Buffer.from(xlsx));
+  let images = 0;
+  for (const publicPath of imagePaths(data)) {
+    const key = publicPath.trim();
+    const bytes = readImage(key);
+    if (!bytes) continue;
+    zip.file(`images${key}`, bytes);
+    images += 1;
+  }
+  const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  return { buffer, images };
+}
+
+function packedName(publicPath) {
+  const clean = String(publicPath || '').replace(/^\/+/, '');
+  if (clean.startsWith('uploads/')) return path.basename(clean);
+  const ext = safeImageExt(clean);
+  const stem = clean.replace(/\.[a-z0-9]+$/i, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `${stem || 'image'}${ext}`;
+}
+
+function savePackedImage(publicPath, buffer) {
+  const filename = packedName(publicPath);
+  fs.writeFileSync(path.join(ensureUploadDir(), filename), buffer);
+  return `/uploads/${filename}`;
 }
 
 function rememberTenant(index, row) {
@@ -245,12 +364,30 @@ function loadIndex() {
   return index;
 }
 
-async function importPlatformWorkbook(buffer, actorId) {
+async function importPlatformWorkbook(buffer, actorId, images = new Map()) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const stores = sheetRows(workbook, 'Stores', STORE_HEADERS);
-  const hubs = sheetRows(workbook, 'Hubs', HUB_HEADERS);
+  const hubs = sheetRows(workbook, 'Hubs', HUB_HEADERS, { optionalHeaders: OPTIONAL_HUB_HEADERS });
   const employees = sheetRows(workbook, 'Employees', EMPLOYEE_HEADERS);
+  const products = sheetRows(workbook, 'Products', PRODUCT_HEADERS, { optional: true });
+  const savedImages = new Map();
+  let restoredImages = 0;
+
+  function applyImage(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (savedImages.has(raw)) return savedImages.get(raw);
+    const packed = images.get(raw);
+    if (!packed) {
+      savedImages.set(raw, raw);
+      return raw;
+    }
+    const next = savePackedImage(raw, packed);
+    savedImages.set(raw, next);
+    restoredImages += 1;
+    return next;
+  }
 
   const result = db.transaction(() => {
     const index = loadIndex();
@@ -285,6 +422,10 @@ async function importPlatformWorkbook(buffer, actorId) {
           existing.id
         );
         updateSlogan.run(name, row.Slogan || name, existing.id);
+        const logo = applyImage(row.Logo);
+        const qr = applyImage(row['QR code']);
+        if (logo) updateLogo.run(logo, existing.id);
+        if (qr) updateQr.run(qr, existing.id);
         renameTenant(index, existing, name);
         const admin = index.admins.get(existing.id);
         if (admin && (adminName || adminEmail || password)) {
@@ -329,7 +470,13 @@ async function importPlatformWorkbook(buffer, actorId) {
           DEFAULT_MODULES
         );
         const tenantId = Number(inserted.lastInsertRowid);
-        insertSettings.run(tenantId, name, row.Slogan || name);
+        insertSettings.run(
+          tenantId,
+          name,
+          row.Slogan || name,
+          applyImage(row.Logo) || '/assets/shubh-surgical-logo.svg',
+          applyImage(row['QR code']) || '/assets/QR.jpeg'
+        );
         const admin = insertAdmin.run(adminName, adminEmail, bcrypt.hashSync(password, 10), row.Mobile || '', row.Address || '', tenantId);
         const created = {
           id: tenantId,
@@ -391,14 +538,44 @@ async function importPlatformWorkbook(buffer, actorId) {
       }
     }
 
+    for (const row of products) {
+      if (!row.Name) continue;
+      const hub = findTenant(index, slugify(row.Hub), row.Hub);
+      if (!hub) throw new WorkbookError(400, `Product ${row.Name} names a hub that is not in this workbook`);
+      const price = Number(row.Price);
+      if (!Number.isFinite(price)) throw new WorkbookError(400, `Product ${row.Name} needs a price`);
+      const wholesale = row['Wholesale price'] === '' ? null : Number(row['Wholesale price']);
+      const stock = Number(row.Stock) || 0;
+      const image = applyImage(row.Image);
+      const current = findProduct.get(hub.id, row.Name);
+      if (current) {
+        updateProduct.run(row.Description || '', price, wholesale, stock, row.Category || '', image, current.id);
+      } else {
+        insertProduct.run(row.Name, row.Description || '', price, wholesale, image, stock, row.Category || '', actorId || null, hub.id);
+      }
+    }
+
     const home = firstTenant.get();
     if (home) {
-      insertAudit.run(home.id, actorId || null, 'platform_import', `Imported ${hubs.length} hubs, ${stores.length} stores, ${employees.length} employees`);
+      insertAudit.run(
+        home.id,
+        actorId || null,
+        'platform_import',
+        `Imported ${hubs.length} hubs, ${stores.length} stores, ${employees.length} employees, ${products.length} products, ${restoredImages} images`
+      );
     }
-    return { hubs: hubs.length, stores: stores.length, employees: employees.length, createdHubs, createdEmployees };
+    return {
+      hubs: hubs.length,
+      stores: stores.length,
+      employees: employees.length,
+      products: products.length,
+      images: restoredImages,
+      createdHubs,
+      createdEmployees,
+    };
   });
 
   return result();
 }
 
-module.exports = { exportPlatformWorkbook, importPlatformWorkbook };
+module.exports = { exportPlatformWorkbook, exportPlatformArchive, importPlatformWorkbook };

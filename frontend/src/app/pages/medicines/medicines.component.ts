@@ -2,11 +2,10 @@ import { Component, OnDestroy, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MallGroup, MedicineService } from '../../core/medicine.service';
+import { MallGroup, MallStore, MedicineService } from '../../core/medicine.service';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { SettingsService } from '../../core/settings.service';
-import { TenantService } from '../../core/tenant.service';
 import { Medicine } from '../../core/models';
 import { apiErrorMessage } from '../../core/api-error';
 import { ToastService } from '../../core/toast.service';
@@ -17,12 +16,16 @@ import { HomeLoginComponent } from '../../shared/home-login/home-login.component
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
 import { productSlug } from '../../core/product-slug';
 
+type MallSort = 'popular' | 'price' | 'price-desc' | 'newest' | 'stock';
+
 interface CustomerCard {
   id: number;
   name: string;
   slug: string;
   slogan: string;
-  orderCount: number;
+  products: number;
+  image: string;
+  categories: string;
 }
 
 const AVATAR_COLOURS = ['#2563eb', '#0f766e', '#9333ea', '#c2410c', '#be123c', '#0369a1', '#4d7c0f'];
@@ -44,7 +47,18 @@ export class MedicinesComponent implements OnInit, OnDestroy {
   page = 1;
   pages = 1;
   total = 0;
-  readonly awningStripes = [0, 1, 2, 3, 4, 5, 6];
+  storeCount = 0;
+  productTotal = 0;
+  sortBy: MallSort = 'popular';
+  hubsOpen = true;
+  readonly skeletonCards = [1, 2, 3, 4, 5, 6];
+  readonly sorts: { id: MallSort; label: string }[] = [
+    { id: 'popular', label: 'mall.sortPopular' },
+    { id: 'price', label: 'mall.sortPrice' },
+    { id: 'price-desc', label: 'mall.sortPriceDesc' },
+    { id: 'newest', label: 'mall.sortNewest' },
+    { id: 'stock', label: 'mall.sortStock' },
+  ];
 
   customers: CustomerCard[] = [];
   selected: CustomerCard | null = null;
@@ -54,13 +68,16 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   private fittedSource = '';
   private searchTimer?: ReturnType<typeof setTimeout>;
+  private groupsReady = false;
+  private storesReady = false;
+  private opened = false;
+  browseAll = false;
 
   constructor(
     private medicineService: MedicineService,
     public cart: CartService,
     public auth: AuthService,
     public settings: SettingsService,
-    private tenants: TenantService,
     private toast: ToastService,
     private router: Router
   ) {
@@ -83,7 +100,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   /** Search or a group filter shows products from every store in the mall. */
   get searchingAll(): boolean {
-    return this.query.trim().length > 0 || this.category !== '';
+    return this.browseAll || this.query.trim().length > 0 || this.category !== '';
   }
 
   storeName(medicine: Medicine): string {
@@ -100,7 +117,10 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   pickGroup(name: string): void {
     this.category = this.category === name ? '' : name;
-    this.onCategory();
+    this.page = 1;
+    this.query = '';
+    this.browseAll = !this.category && this.selectedId == null;
+    this.load();
   }
 
   selectCustomer(id: number): void {
@@ -110,23 +130,68 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     this.page = 1;
     this.query = '';
     this.category = '';
+    this.browseAll = false;
     this.load();
+  }
+
+  showAllStores(): void {
+    this.category = '';
+    this.query = '';
+    this.selectedId = null;
+    this.selected = null;
+    this.browseAll = true;
+    this.hubsOpen = true;
+    this.page = 1;
+    this.load();
+    setTimeout(() => document.getElementById('mall-stores')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   onCategory(): void {
     this.page = 1;
+    this.browseAll = !this.category && !this.query.trim() && this.selectedId == null;
     this.load();
+  }
+
+  setSort(sort: MallSort): void {
+    if (this.sortBy === sort) return;
+    this.sortBy = sort;
+    this.page = 1;
+    this.load();
+  }
+
+  badge(name: string): string {
+    return (name.trim()[0] || '?').toUpperCase();
   }
 
   private loadGroups(): void {
     this.medicineService.mallGroups().subscribe({
-      next: (groups) => { this.groups = groups; },
-      error: () => { this.groups = []; },
+      next: (groups) => {
+        this.groups = groups;
+        this.productTotal = groups.reduce((sum, group) => sum + Number(group.count || 0), 0);
+        this.groupsReady = true;
+        this.openFirstView();
+      },
+      error: () => {
+        this.groups = [];
+        this.groupsReady = true;
+        this.openFirstView();
+      },
     });
   }
 
-  scrollToStores(): void {
-    document.getElementById('mall-stores')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  private openFirstView(): void {
+    if (this.opened || !this.groupsReady || !this.storesReady) return;
+    this.opened = true;
+    const top = [...this.groups].sort((a, b) => b.count - a.count)[0];
+    if (top) {
+      this.category = top.name;
+      this.browseAll = false;
+      this.load();
+      return;
+    }
+    const first = this.customers[0];
+    if (first) this.selectCustomer(first.id);
+    else this.load();
   }
 
   openMall(): void {
@@ -137,15 +202,6 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.auth.logout();
-  }
-
-  initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]!.toUpperCase())
-      .join('');
   }
 
   avatarColour(id: number): string {
@@ -170,10 +226,14 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   onSearch(): void {
     clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => {
-      this.page = 1;
-      this.load();
-    }, 300);
+    this.searchTimer = setTimeout(() => this.runSearch(), 300);
+  }
+
+  runSearch(): void {
+    clearTimeout(this.searchTimer);
+    this.page = 1;
+    this.browseAll = !this.query.trim() && !this.category && this.selectedId == null;
+    this.load();
   }
 
   goTo(page: number): void {
@@ -186,11 +246,12 @@ export class MedicinesComponent implements OnInit, OnDestroy {
     this.loading = true;
     const q = this.query.trim();
     const request = this.searchingAll
-      ? this.medicineService.mall({ q, category: this.category, page: this.page, limit: 12 })
+      ? this.medicineService.mall({ q, category: this.category, page: this.page, limit: 12, sort: this.sortBy })
       : this.medicineService.list({
           page: this.page,
           limit: 12,
           tenantId: this.selectedId ?? undefined,
+          sort: this.sortBy,
         });
     request.subscribe({
       next: (data) => {
@@ -198,6 +259,7 @@ export class MedicinesComponent implements OnInit, OnDestroy {
         this.total = data.total;
         this.pages = data.pages;
         this.page = data.page;
+        this.storeCount = data.stores || (this.selectedId ? 1 : 0);
         this.loading = false;
       },
       error: (err) => {
@@ -245,26 +307,32 @@ export class MedicinesComponent implements OnInit, OnDestroy {
 
   private loadCustomers(): void {
     this.customersLoading = true;
-    this.tenants.directory().subscribe({
+    this.medicineService.mallStores().subscribe({
       next: (stores) => {
-        this.customers = stores.map((store) => ({
-          id: store.id,
-          name: store.name,
-          slug: store.slug || '',
-          slogan: store.slogan || '',
-          orderCount: store.orderCount,
-        }));
+        this.customers = stores.map((store) => this.toCard(store));
         this.rememberSelection();
         this.customersLoading = false;
-        const first = this.customers[0];
-        if (first) this.selectCustomer(first.id);
-        else this.load();
+        this.storesReady = true;
+        this.openFirstView();
       },
       error: () => {
         this.customersLoading = false;
-        this.load();
+        this.storesReady = true;
+        this.openFirstView();
       },
     });
+  }
+
+  private toCard(store: MallStore): CustomerCard {
+    return {
+      id: store.id,
+      name: store.name,
+      slug: store.slug || '',
+      slogan: store.slogan || '',
+      products: Number(store.products || 0),
+      image: store.image || '',
+      categories: store.categories || '',
+    };
   }
 
 }

@@ -8,6 +8,33 @@ import { TenantService } from '../../core/tenant.service';
 import { PublicSiteService, SiteActivity } from '../../core/public-site.service';
 import { SuperAdminShellComponent } from '../../shared/super-admin-shell/super-admin-shell.component';
 
+type HitColumnId =
+  | 'country'
+  | 'region'
+  | 'city'
+  | 'when'
+  | 'event'
+  | 'who'
+  | 'email'
+  | 'role'
+  | 'ip'
+  | 'hostname'
+  | 'asn'
+  | 'isp'
+  | 'services'
+  | 'latitude'
+  | 'longitude'
+  | 'browser'
+  | 'page'
+  | 'detail';
+
+interface HitColumn {
+  id: HitColumnId;
+  label: string;
+  visible: boolean;
+  filter: string;
+}
+
 @Component({
   selector: 'app-super-admin-settings',
   standalone: true,
@@ -35,6 +62,28 @@ export class SuperAdminSettingsComponent implements OnInit {
   activity: SiteActivity[] = [];
   previewLogo = '';
   previewQr = '';
+  draggingColumn: HitColumnId | null = null;
+  dragOverColumn: HitColumnId | null = null;
+  hitColumns: HitColumn[] = [
+    { id: 'country', label: 'Country', visible: true, filter: '' },
+    { id: 'region', label: 'State/Region', visible: true, filter: '' },
+    { id: 'city', label: 'City', visible: true, filter: '' },
+    { id: 'when', label: 'When', visible: true, filter: '' },
+    { id: 'event', label: 'Event', visible: true, filter: '' },
+    { id: 'who', label: 'Who', visible: true, filter: '' },
+    { id: 'email', label: 'Email', visible: true, filter: '' },
+    { id: 'role', label: 'Role', visible: true, filter: '' },
+    { id: 'ip', label: 'IP address', visible: true, filter: '' },
+    { id: 'hostname', label: 'Hostname', visible: true, filter: '' },
+    { id: 'asn', label: 'ASN', visible: true, filter: '' },
+    { id: 'isp', label: 'ISP', visible: true, filter: '' },
+    { id: 'services', label: 'Services', visible: true, filter: '' },
+    { id: 'latitude', label: 'Latitude', visible: true, filter: '' },
+    { id: 'longitude', label: 'Longitude', visible: true, filter: '' },
+    { id: 'browser', label: 'Browser', visible: true, filter: '' },
+    { id: 'page', label: 'Page', visible: true, filter: '' },
+    { id: 'detail', label: 'Detail', visible: true, filter: '' },
+  ];
 
   constructor(
     public settings: SettingsService,
@@ -75,6 +124,102 @@ export class SuperAdminSettingsComponent implements OnInit {
 
   closeHits(): void {
     this.hitsOpen = false;
+    this.draggingColumn = null;
+    this.dragOverColumn = null;
+  }
+
+  get visibleColumns(): HitColumn[] {
+    return this.hitColumns.filter((column) => column.visible);
+  }
+
+  get filteredActivity(): SiteActivity[] {
+    const filters = this.hitColumns.filter((column) => column.visible && column.filter.trim());
+    if (!filters.length) return this.activity;
+    return this.activity.filter((row) =>
+      filters.every((column) =>
+        this.cellText(row, column.id).toLowerCase().includes(column.filter.trim().toLowerCase())
+      )
+    );
+  }
+
+  get hasColumnFilter(): boolean {
+    return this.hitColumns.some((column) => column.filter.trim());
+  }
+
+  hideColumn(column: HitColumn): void {
+    column.visible = false;
+  }
+
+  clearFilters(): void {
+    for (const column of this.hitColumns) column.filter = '';
+  }
+
+  onColumnDragStart(id: HitColumnId, event: DragEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, button')) {
+      event.preventDefault();
+      return;
+    }
+    this.draggingColumn = id;
+    event.dataTransfer?.setData('text/plain', id);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  onColumnDragOver(id: HitColumnId, event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dragOverColumn = id;
+  }
+
+  onColumnDrop(targetId: HitColumnId, event: DragEvent): void {
+    event.preventDefault();
+    const fromId = this.draggingColumn;
+    this.draggingColumn = null;
+    this.dragOverColumn = null;
+    if (!fromId || fromId === targetId) return;
+    const moving = this.hitColumns.find((column) => column.id === fromId);
+    if (!moving) return;
+    const rest = this.hitColumns.filter((column) => column.id !== fromId);
+    const targetIndex = rest.findIndex((column) => column.id === targetId);
+    if (targetIndex < 0) return;
+    this.hitColumns = [...rest.slice(0, targetIndex), moving, ...rest.slice(targetIndex)];
+  }
+
+  onColumnDragEnd(): void {
+    this.draggingColumn = null;
+    this.dragOverColumn = null;
+  }
+
+  cellText(row: SiteActivity, id: HitColumnId): string {
+    switch (id) {
+      case 'country': return row.country || '—';
+      case 'region': return row.region || '—';
+      case 'city': return row.city || '—';
+      case 'when': return row.created_at || '—';
+      case 'event': return this.eventLabel(row);
+      case 'who': return row.name || '—';
+      case 'email': return row.email || '—';
+      case 'role': return this.roleLabel(row.role);
+      case 'ip': return row.ip || '—';
+      case 'hostname': return row.hostname || '—';
+      case 'asn': return row.asn || '—';
+      case 'isp': return row.isp || '—';
+      case 'services': return row.services || '—';
+      case 'latitude': return row.latitude || '—';
+      case 'longitude': return row.longitude || '—';
+      case 'browser': return this.browserLabel(row.user_agent);
+      case 'page': return row.path || '—';
+      case 'detail': return row.detail || '—';
+    }
+  }
+
+  eventLabel(row: SiteActivity): string {
+    if (row.outcome === 'success') return 'Success';
+    if (row.outcome === 'failure') return 'Failure';
+    if (row.outcome === 'error') return 'Error';
+    if (row.kind === 'login') return 'Login';
+    if (row.kind === 'page') return 'Page';
+    return 'Visit';
   }
 
   roleLabel(role: string): string {

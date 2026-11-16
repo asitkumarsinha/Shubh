@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Shopping Mall – proposed layout</title>
+<style>
+  :root {
+    --ink: #0f172a; --muted: #64748b; --line: #e5e7eb; --brand: #0f6f78; --blue: #2563eb;
+    --bg: #f4f6f9; --card: #fff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  img { display: block; }
+
+  .titlebar { display: flex; align-items: center; justify-content: space-between; padding: 10px 28px; background: #fff; border-bottom: 1px solid var(--line); }
+  .titlebar .left, .titlebar .right { display: flex; align-items: center; gap: 10px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .brand img { width: 30px; height: 30px; border-radius: 50%; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; background: #fff; color: #334155; }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip.mall { background: #e7f6f3; color: var(--brand); border-color: #bfe6df; font-weight: 600; }
+
+  .hero { position: relative; height: 168px; background: #0b2a6b url("http://localhost:3000/assets/world-map.svg?v=5") center/cover no-repeat; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,24,70,.92) 0%, rgba(8,24,70,.55) 55%, rgba(8,24,70,.25) 100%); }
+  .hero-inner { position: relative; z-index: 1; height: 100%; max-width: 1480px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; gap: 26px; }
+  .hero-logo { width: 104px; height: 104px; border-radius: 50%; background: #fff; padding: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .hero-logo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .hero h1 { margin: 0 0 6px; color: #fff; font-size: 30px; letter-spacing: -.01em; }
+  .hero p { margin: 0; color: #dbe5ff; font-size: 15px; }
+  .hero-cta { margin-left: auto; display: flex; gap: 10px; }
+  .btn { border: 0; border-radius: 10px; padding: 11px 18px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .btn.green { background: #16a34a; color: #fff; }
+  .btn.ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.45); }
+
+  .search-bar { max-width: 1480px; margin: -26px auto 0; padding: 0 28px; position: relative; z-index: 2; }
+  .search-card { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 12px; box-shadow: 0 14px 34px rgba(15,23,42,.12); }
+  .search-input { flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--muted); font-size: 15px; }
+  .search-input svg { color: #94a3b8; }
+  .select { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #334155; min-width: 170px; display: flex; justify-content: space-between; }
+  .btn.blue { background: var(--blue); color: #fff; padding: 12px 22px; }
+  .stats { display: flex; gap: 18px; padding: 0 6px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .stats b { color: var(--ink); font-size: 16px; display: block; }
+
+  .layout { max-width: 1480px; margin: 22px auto 0; padding: 0 28px 40px; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 22px; }
+
+  .side { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; align-self: start; position: sticky; top: 16px; }
+  .side h3 { margin: 2px 4px 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .group { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 10px; font-size: 14px; }
+  .group img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: #f1f5f9; }
+  .group span { flex: 1; }
+  .group em { font-style: normal; font-size: 12px; color: var(--muted); background: #f1f5f9; border-radius: 999px; padding: 2px 8px; }
+  .group.on { background: #eef4ff; color: var(--blue); font-weight: 700; }
+  .group.on em { background: var(--blue); color: #fff; }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 12px; }
+  .section-head h2 { margin: 0; font-size: 19px; }
+  .section-head a { color: var(--blue); font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  .stores { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .store { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .store .cover { height: 84px; position: relative; }
+  .store .cover img { width: 100%; height: 100%; object-fit: cover; }
+  .store .badge { position: absolute; left: 12px; bottom: -18px; width: 40px; height: 40px; border-radius: 50%; border: 3px solid #fff; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 14px; }
+  .store .body { padding: 24px 12px 12px; }
+  .store strong { display: block; font-size: 15px; }
+  .store small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .store.on { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 12px; }
+  .toolbar h2 { margin: 0; font-size: 19px; }
+  .toolbar h2 small { color: var(--muted); font-weight: 500; font-size: 14px; margin-left: 6px; }
+  .sorts { display: flex; gap: 8px; }
+  .sorts .chip.on { background: var(--blue); border-color: var(--blue); }
+
+  .products { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+  .product { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .product .thumb { height: 160px; background: #fff; border-bottom: 1px solid #f1f5f9; padding: 10px; }
+  .product .thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .product .info { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .product h4 { margin: 0; font-size: 15px; }
+  .product .store-name { color: var(--brand); font-size: 12px; font-weight: 600; }
+  .product .row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
+  .product .price { font-size: 17px; font-weight: 800; }
+  .product .add { background: var(--blue); color: #fff; border: 0; border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 13px; }
+
+  .tag { position: absolute; top: -9px; right: 10px; background: #f59e0b; color: #fff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; }
+  .note { position: relative; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 18px; border-top: 1px solid var(--line); background: #fff; }
+</style>
+</head>
+<body>
+  <header class="titlebar">
+    <div class="left">
+      <div class="brand"><img src="http://localhost:3000/assets/mystoreshubs-logo.png" alt="" />My Stores Hubs</div>
+      <span class="chip">English</span>
+      <span class="chip on">White</span>
+      <span class="chip">Black</span>
+    </div>
+    <div class="right">
+      <span class="chip mall">Shopping Mall</span>
+      <span class="chip">Login</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-logo"><img src="http://localhost:3000/assets/mystoreshubs-logo.png" alt="" /></div>
+      <div>
+        <h1>Every local store, one Shopping Mall</h1>
+        <p>Search products from every store. Prices in rupees, delivery or pickup.</p>
+      </div>
+      <div class="hero-cta">
+        <button class="btn green">Open your store free</button>
+        <button class="btn ghost">▶ See the demo</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="search-bar">
+    <div class="search-card">
+      <div class="search-input">
+        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Search laptops, spices, scarves… from every store
+      </div>
+      <div class="select">All groups <span>▾</span></div>
+      <button class="btn blue">Search</button>
+      <div class="stats">
+        <div><b>6</b>Stores</div>
+        <div><b>11</b>Groups</div>
+        <div><b>30</b>Products</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="side">
+      <h3>Shop by group</h3>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/5465e4ef-0c3f-4159-a242-4a080ad02f62.jpg" alt="" /><span>Bags</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/c8dd98de-a5d8-4b41-a565-8d7cfebf80c7.jpg" alt="" /><span>Blends</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/9ff030d3-a783-4df0-90e4-1040ae080bde.jpg" alt="" /><span>Brass</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/c62439c5-b56c-4e6e-b476-ebc100fc1843.jpg" alt="" /><span>Clothing</span><em>2</em></div>
+      <div class="group on"><img src="https://www.mystoreshubs.com/uploads/08a79f29-2e63-4638-97f9-505397b0fd9d.jpg" alt="" /><span>Electronics</span><em>12</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/assets/hubs/pearl-necklace.svg" alt="" /><span>Jewellery</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/160534ba-2293-473e-be51-37a65d6e2042.jpg" alt="" /><span>Medicine</span><em>6</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/260ee6c9-b8c2-437d-9ff7-cf7fce5ed950.jpg" alt="" /><span>Pottery</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/346c669c-e748-4496-b43a-7d876e0a69bf.jpg" alt="" /><span>Textile</span><em>1</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/5b7c8538-9fa5-41db-b620-a353c489fb15.jpg" alt="" /><span>Whole spices</span><em>3</em></div>
+      <div class="group"><img src="https://www.mystoreshubs.com/uploads/5dab60b8-d8ec-4eec-8692-e9400a223956.jpg" alt="" /><span>Wood</span><em>1</em></div>
+    </aside>
+
+    <main>
+      <div class="section-head">
+        <h2>Stores in the mall</h2>
+        <a href="#">View all stores →</a>
+      </div>
+      <div class="stores">
+        <div class="store">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/5465e4ef-0c3f-4159-a242-4a080ad02f62.jpg" alt="" /><span class="badge" style="background:#db2777">B</span></div>
+          <div class="body"><strong>Boutique</strong><small>Clothing &amp; bags · 3 products</small></div>
+        </div>
+        <div class="store on">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/bff30ae2-7d1f-4efc-87a9-6ce8d30dc2ca.jpg" alt="" /><span class="badge" style="background:#2563eb">E</span></div>
+          <div class="body"><strong>Electronics</strong><small>TV, mobile, laptop · 6 products</small></div>
+        </div>
+        <div class="store">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/260ee6c9-b8c2-437d-9ff7-cf7fce5ed950.jpg" alt="" /><span class="badge" style="background:#ea580c">H</span></div>
+          <div class="body"><strong>Handicraft</strong><small>Pottery, brass, wood · 5 products</small></div>
+        </div>
+        <div class="store">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/2ea41555-36fd-4390-b403-ae3b2d7f4334.jpg" alt="" /><span class="badge" style="background:#0f6f78">M</span></div>
+          <div class="body"><strong>My Stores Hubs</strong><small>Medicine · 6 products</small></div>
+        </div>
+        <div class="store">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/cd69c69e-ffdf-4f2b-9ad0-2986eb81bbf7.jpg" alt="" /><span class="badge" style="background:#b45309">S</span></div>
+          <div class="body"><strong>Spices</strong><small>Whole spices, blends · 4 products</small></div>
+        </div>
+        <div class="store">
+          <div class="cover"><img src="https://www.mystoreshubs.com/uploads/aa02e852-96d0-4daf-8d52-982b3422a216.jpg" alt="" /><span class="badge" style="background:#7c3aed">V</span></div>
+          <div class="body"><strong>Vijay Home Store</strong><small>Home appliances · 6 products</small></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <h2>Electronics <small>12 products from 2 stores</small></h2>
+        <div class="sorts">
+          <span class="chip on">Popular</span>
+          <span class="chip">Price: low to high</span>
+          <span class="chip">Price: high to low</span>
+          <span class="chip">Newest</span>
+          <span class="chip">In stock</span>
+        </div>
+      </div>
+
+      <div class="products">
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/bff30ae2-7d1f-4efc-87a9-6ce8d30dc2ca.jpg" alt="" /></div><div class="info"><h4>LED TV</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹20,000</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/d90d48cf-a0a2-4f8f-a893-83c31d099d20.jpg" alt="" /></div><div class="info"><h4>Head Phone</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹850</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/afc8fa6b-5b53-427b-951d-3e3024387a79.jpg" alt="" /></div><div class="info"><h4>Laptop</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹9,500</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/7b53355a-4e5b-4843-9241-5d7829ac7faf.jpg" alt="" /></div><div class="info"><h4>Mobile</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹35,000</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/08a79f29-2e63-4638-97f9-505397b0fd9d.jpg" alt="" /></div><div class="info"><h4>Home Theater</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹12,000</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/104a3333-5bca-46d8-9ff5-cdc725590c10.jpg" alt="" /></div><div class="info"><h4>Notebook Set</h4><span class="store-name">Electronics</span><div class="row"><span class="price">₹450</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/aa02e852-96d0-4daf-8d52-982b3422a216.jpg" alt="" /></div><div class="info"><h4>Washing Machine</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹20,000</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/0fb30bc2-05fe-44dc-858d-e1ffee5dc2f5.jpg" alt="" /></div><div class="info"><h4>Fridge</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹9,500</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/4e022f37-bcbb-4d8f-9854-8b45023b901c.jpg" alt="" /></div><div class="info"><h4>Mixer</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹12,000</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/8a7d2048-f1e5-4b11-959d-4cee9ec84d1f.jpg" alt="" /></div><div class="info"><h4>Vacuum Cleaner</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹4,500</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/9c60e51c-6af1-4821-8958-bedab1ab9d01.jpg" alt="" /></div><div class="info"><h4>Iron</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹850</span><button class="add">Add</button></div></div></div>
+        <div class="product"><div class="thumb"><img src="https://www.mystoreshubs.com/uploads/932cd238-324f-481a-a65c-ae3231dd7091.jpg" alt="" /></div><div class="info"><h4>Kitchen Chimney</h4><span class="store-name">Vijay Home Store</span><div class="row"><span class="price">₹35,000</span><button class="add">Add</button></div></div></div>
+      </div>
+    </main>
+  </div>
+
+  <footer>© My Stores Hubs · Your store, Your clients, Your hub</footer>
+</body>
+</html>
