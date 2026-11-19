@@ -13,6 +13,19 @@
       Search stores
       <input [(ngModel)]="query" (ngModelChange)="onSearch()" name="storeSearch" placeholder="Search stores..." />
     </label>
+    <button class="btn ghost" type="button" [disabled]="deletingAll" (click)="removeAllStores()">
+      {{ deletingAll ? 'Deleting…' : 'Delete All' }}
+    </button>
+    <button class="btn ghost" type="button" [disabled]="importing" (click)="importFile.click()">
+      {{ importing ? 'Importing…' : 'Import' }}
+    </button>
+    <input
+      #importFile
+      type="file"
+      accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      hidden
+      (change)="onImportFile($event)"
+    />
     <button class="btn ghost" type="button" [disabled]="exporting" (click)="exportList()">
       {{ exporting ? 'Saving…' : 'Export' }}
     </button>
@@ -54,6 +67,7 @@
             <th>Phone</th>
             <th>Orders</th>
             <th>Access</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -62,7 +76,7 @@
               <td>
                 <a class="store-name" [routerLink]="['/admin/stores', store.id]">{{ store.name }}</a>
               </td>
-              <td><a [href]="'mailto:' + store.email">{{ store.email }}</a></td>
+              <td><a class="store-email" [href]="'mailto:' + store.email">{{ store.email }}</a></td>
               <td>{{ store.phone || '—' }}</td>
               <td>{{ store.orderCount }}</td>
               <td>
@@ -76,9 +90,19 @@
                   }
                 </select>
               </td>
+              <td>
+                <button
+                  class="btn ghost"
+                  type="button"
+                  [disabled]="deletingId === store.id"
+                  (click)="removeStore(store)"
+                >
+                  {{ deletingId === store.id ? 'Deleting…' : 'Delete' }}
+                </button>
+              </td>
             </tr>
           } @empty {
-            <tr><td colspan="5">No stores match this search.</td></tr>
+            <tr><td colspan="6">No stores match this search.</td></tr>
           }
         </tbody>
       </table>

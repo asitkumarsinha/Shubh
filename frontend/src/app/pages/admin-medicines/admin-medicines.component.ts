@@ -64,7 +64,9 @@ export class AdminMedicinesComponent implements OnInit {
       next: (result) => {
         this.importing = false;
         this.sheet = null;
-        this.toast.success(`${result.created} products added`);
+        const added = result.created ? `${result.created} products added` : '';
+        const pictured = result.updated ? `${result.updated} product images added` : '';
+        this.toast.success([added, pictured].filter(Boolean).join(', ') || 'No products added');
       },
       error: (err) => {
         this.importing = false;

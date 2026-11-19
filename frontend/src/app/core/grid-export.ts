@@ -35,6 +35,35 @@ export function downloadGrid(filename: string, sections: GridSection[]): void {
   URL.revokeObjectURL(url);
 }
 
+interface SaveFileHandle {
+  createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }>;
+}
+
+// Opens the browser's Save As dialog so the user can pick the folder. Falls back to a normal download
+// where the dialog is not supported. Must be called straight from a click so the browser allows the dialog.
+export function saveGridCsv(filename: string, sections: GridSection[]): void {
+  const name = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  const picker = (window as unknown as {
+    showSaveFilePicker?: (options: unknown) => Promise<SaveFileHandle>;
+  }).showSaveFilePicker;
+  if (typeof picker !== 'function') {
+    downloadGrid(name, sections);
+    return;
+  }
+  picker({
+    suggestedName: name,
+    types: [{ description: 'CSV file', accept: { 'text/csv': ['.csv'] } }],
+  })
+    .then(async (handle) => {
+      const writable = await handle.createWritable();
+      await writable.write(new Blob([`\uFEFF${toCsv(sections)}`], { type: 'text/csv;charset=utf-8' }));
+      await writable.close();
+    })
+    .catch((err: unknown) => {
+      if ((err as DOMException)?.name !== 'AbortError') downloadGrid(name, sections);
+    });
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')

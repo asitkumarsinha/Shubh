@@ -64,10 +64,10 @@ export class MedicineService {
     return this.http.get<string[]>(`${this.api}/categories`, { params });
   }
 
-  importCsv(file: File): Observable<{ created: number; skipped: number }> {
+  importCsv(file: File): Observable<{ created: number; updated: number; skipped: number }> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.post<{ created: number; skipped: number }>(`${this.api}/import`, form);
+    return this.http.post<{ created: number; updated: number; skipped: number }>(`${this.api}/import`, form);
   }
 
   get(id: number): Observable<Medicine> {

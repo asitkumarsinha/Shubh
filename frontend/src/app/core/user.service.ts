@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminClientDetail, AdminUserDetail, AdminUsersResponse } from './models';
+import {
+  AdminClientDetail,
+  AdminUserDetail,
+  AdminUsersResponse,
+  StoreDeleteAllResult,
+  StoreDeleteResult,
+  StoreImportResult,
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -49,5 +56,19 @@ export class UserService {
 
   exportCsv(): Observable<Blob> {
     return this.http.get(`${this.api}/export`, { responseType: 'blob' });
+  }
+
+  removeAll(): Observable<StoreDeleteAllResult> {
+    return this.http.delete<StoreDeleteAllResult>(this.api);
+  }
+
+  remove(id: number): Observable<StoreDeleteResult> {
+    return this.http.delete<StoreDeleteResult>(`${this.api}/${id}`);
+  }
+
+  importStores(file: File): Observable<StoreImportResult> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<StoreImportResult>(`${this.api}/import`, form);
   }
 }

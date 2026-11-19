@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { GridSection, downloadGrid, printGrid } from '../../core/grid-export';
+import { GridSection, downloadGrid, printGrid, saveGridCsv } from '../../core/grid-export';
 
 @Component({
   selector: 'app-grid-actions',
@@ -17,12 +17,14 @@ import { GridSection, downloadGrid, printGrid } from '../../core/grid-export';
 export class GridActionsComponent {
   @Input() file = 'grid';
   @Input() sections: GridSection[] = [];
+  @Input() saveAs = false;
 
   print(): void {
     printGrid(this.sections);
   }
 
   download(): void {
-    downloadGrid(this.file, this.sections);
+    if (this.saveAs) saveGridCsv(this.file, this.sections);
+    else downloadGrid(this.file, this.sections);
   }
 }

@@ -1,4 +1,8 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
+const ExcelJS = require('exceljs');
+const JSZip = require('jszip');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
@@ -8,6 +12,8 @@ const { pageQuery, pagePayload } = require('../paging');
 const { imageFileFilter, safeImageExt, ensureUploadDir, unlinkStored } = require('../uploads');
 
 const router = express.Router();
+
+const { parseCsv, cellText, normalizeHeader, headerRowOf, pickSheet } = require('../spreadsheet');
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, ensureUploadDir()),
@@ -288,78 +294,338 @@ router.patch('/:id/restock', authenticate, requireAdmin, (req, res) => {
   res.json(db.prepare('SELECT * FROM medicines WHERE id = ?').get(req.params.id));
 });
 
-const csvUpload = multer({
+const bulkUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 1024 * 1024 },
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/\.(xlsx|csv)$/i.test(file.originalname || '')) return cb(null, true);
+    const err = new Error('Upload an Excel (.xlsx) or CSV file');
+    err.status = 400;
+    return cb(err);
+  },
 });
 const countForTenant = db.prepare('SELECT COUNT(*) AS count FROM medicines WHERE tenant_id = ?');
+const blankImageFor = db.prepare(
+  `SELECT id FROM medicines
+   WHERE tenant_id = ? AND name = ? COLLATE NOCASE AND IFNULL(size, '') = ? COLLATE NOCASE
+     AND (image IS NULL OR trim(image) = '')
+   ORDER BY id LIMIT 1`
+);
+const setImportedImage = db.prepare('UPDATE medicines SET image = ? WHERE id = ? AND tenant_id = ?');
 const maxForTenant = db.prepare('SELECT max_medicines AS max FROM tenants WHERE id = ?');
 const insertImported = db.prepare(
-  `INSERT INTO medicines (name, description, price, wholesale_price, image, stock, category, created_by, tenant_id)
-   VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)`
+  `INSERT INTO medicines (name, description, price, wholesale_price, image, stock, category, size, mrp, created_by, tenant_id)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 );
 
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let cell = '';
-  let quoted = false;
-  const src = String(text || '').replace(/^\uFEFF/, '');
-  for (let i = 0; i < src.length; i += 1) {
-    const ch = src[i];
-    if (quoted) {
-      if (ch === '"') {
-        if (src[i + 1] === '"') {
-          cell += '"';
-          i += 1;
-        } else quoted = false;
-      } else cell += ch;
-    } else if (ch === '"') quoted = true;
-    else if (ch === ',') {
-      row.push(cell);
-      cell = '';
-    } else if (ch === '\n') {
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = '';
-    } else if (ch !== '\r') cell += ch;
-  }
-  if (cell.length || row.length) {
-    row.push(cell);
-    rows.push(row);
-  }
-  return rows.filter((line) => line.some((value) => String(value).trim()));
+const LOCAL_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.jfif', '.webp', '.gif', '.svg']);
+
+// An Image cell may hold a URL, a /uploads path, or a file path on this computer such as C://Image/1.jpeg.
+function imageRef(value) {
+  const text = cellText(value).trim();
+  return /^(https?:\/\/|\/)/i.test(text) ? text : null;
 }
 
-router.post('/import', authenticate, requireAdmin, csvUpload.single('file'), (req, res) => {
-  const text = req.file ? req.file.buffer.toString('utf8') : String(req.body?.csv || '');
-  const table = parseCsv(text);
+function localImagePath(value) {
+  let text = cellText(value).trim().replace(/^"+|"+$/g, '');
+  if (!text || /^(https?:\/\/|\/)/i.test(text)) return '';
+  if (/^file:\/\//i.test(text)) {
+    text = decodeURIComponent(text.replace(/^file:\/\//i, ''));
+    if (/^\/[A-Za-z]:/.test(text)) text = text.slice(1);
+  }
+  text = text.replace(/\\/g, '/').replace(/^([A-Za-z]:)\/+/, '$1/');
+  if (!/^[A-Za-z]:\//.test(text)) return '';
+  const resolved = path.resolve(text);
+  if (!LOCAL_IMAGE_EXT.has(path.extname(resolved).toLowerCase())) return '';
+  return fs.existsSync(resolved) && fs.statSync(resolved).isFile() ? resolved : '';
+}
+
+function saveLocalImage(filePath) {
+  const name = `${uuidv4()}${safeImageExt(filePath)}`;
+  fs.copyFileSync(filePath, path.join(ensureUploadDir(), name));
+  return `/uploads/${name}`;
+}
+
+const PRODUCT_SHEET_NAMES = ['products', 'product'];
+
+const IMAGE_HEADERS = ['image', 'product image', 'photo', 'picture', 'img', 'product photo'];
+
+function imageColumn(headers) {
+  for (const name of IMAGE_HEADERS) {
+    const at = headers.indexOf(name);
+    if (at >= 0) return at;
+  }
+  return headers.findIndex((header) => header.endsWith(' image') || header.startsWith('image '));
+}
+
+function decodeXml(text) {
+  return String(text)
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+function xmlAttr(tag, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(`(?:^|[\\s])${escaped}="([^"]*)"`, 'i').exec(tag);
+  return match ? decodeXml(match[1]) : '';
+}
+
+function zipEntry(zip, name) {
+  const want = `/${name.toLowerCase()}`;
+  return Object.values(zip.files).find((file) => {
+    if (file.dir) return false;
+    const clean = file.name.replace(/\\/g, '/').toLowerCase();
+    return clean === name.toLowerCase() || clean.endsWith(want);
+  });
+}
+
+function resolveZipPath(baseDir, target) {
+  const parts = [];
+  for (const part of `${baseDir}/${target}`.replace(/\\/g, '/').split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') parts.pop();
+    else parts.push(part);
+  }
+  return parts.join('/');
+}
+
+function colIndex(letters) {
+  let index = 0;
+  for (const ch of letters) index = index * 26 + (ch.charCodeAt(0) - 64);
+  return index - 1;
+}
+
+async function mediaPicture(zip, target, baseDir) {
+  const located = resolveZipPath(baseDir, target);
+  const file = zip.file(located) || zip.file(`/${located}`);
+  if (!file) return null;
+  const ext = path.extname(located).slice(1).toLowerCase();
+  if (!['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'jfif'].includes(ext)) return null;
+  return { buffer: await file.async('nodebuffer'), extension: ext === 'jpg' ? 'jpeg' : ext };
+}
+
+// WPS and some Excel builds store a picture inside the cell as =DISPIMG("ID_...", 1).
+async function dispImgPictures(zip) {
+  const imagesXml = zipEntry(zip, 'xl/cellimages.xml');
+  const relsXml = zipEntry(zip, 'xl/_rels/cellimages.xml.rels');
+  if (!imagesXml || !relsXml) return new Map();
+  const rels = new Map();
+  for (const tag of (await relsXml.async('string')).match(/<Relationship\b[^>]*>/gi) || []) {
+    rels.set(xmlAttr(tag, 'Id'), xmlAttr(tag, 'Target'));
+  }
+  const byId = new Map();
+  const xml = await imagesXml.async('string');
+  for (const block of xml.match(/<(?:[\w.]+:)?cNvPr\b[^>]*>[\s\S]*?<(?:[\w.]+:)?blip\b[^>]*>/gi) || []) {
+    const id = xmlAttr(block.match(/<(?:[\w.]+:)?cNvPr\b[^>]*>/i)[0], 'name');
+    const embed = xmlAttr(block.match(/<(?:[\w.]+:)?blip\b[^>]*>/i)[0], 'r:embed');
+    const target = rels.get(embed);
+    if (!id || !target || byId.has(id)) continue;
+    const picture = await mediaPicture(zip, target, 'xl');
+    if (picture) byId.set(id, picture);
+  }
+  return byId;
+}
+
+// Excel 365 "Place in Cell" stores the picture as rich-value metadata, not as a drawing.
+async function placedCellPictures(zip) {
+  const metadataFile = zipEntry(zip, 'xl/metadata.xml');
+  const valuesFile = zipEntry(zip, 'xl/richData/rdrichvalue.xml');
+  const structuresFile = zipEntry(zip, 'xl/richData/rdrichvaluestructure.xml');
+  const relsFile = zipEntry(zip, 'xl/richData/richValueRel.xml');
+  const relsLinks = zipEntry(zip, 'xl/richData/_rels/richValueRel.xml.rels');
+  if (!metadataFile || !valuesFile || !structuresFile || !relsFile || !relsLinks) return new Map();
+
+  const metadata = await metadataFile.async('string');
+  const valueMetadata = metadata.split(/<valueMetadata\b/i)[1] || '';
+  const richIndexes = [...valueMetadata.matchAll(/<bk\b[^>]*>([\s\S]*?)<\/bk>/gi)].map((block) => {
+    const record = block[1].match(/<rc\b[^>]*>/i);
+    return record ? Number(xmlAttr(record[0], 'v')) : NaN;
+  });
+
+  const structures = [...(await structuresFile.async('string')).matchAll(/<s\b([^>]*)>([\s\S]*?)<\/s>/gi)]
+    .map((block) => ({
+      type: xmlAttr(block[1], 't'),
+      keys: [...block[2].matchAll(/<k\b[^>]*>/gi)].map((key) => xmlAttr(key[0], 'n')),
+    }));
+  const richValues = [...(await valuesFile.async('string')).matchAll(/<rv\b([^>]*)>([\s\S]*?)<\/rv>/gi)]
+    .map((block) => ({
+      structure: Number(xmlAttr(block[1], 's')),
+      values: [...block[2].matchAll(/<v\b[^>]*>([\s\S]*?)<\/v>/gi)].map((value) => value[1].trim()),
+    }));
+
+  const relIds = [...(await relsFile.async('string')).matchAll(/<(?:[\w.]+:)?rel\b[^>]*>/gi)]
+    .map((tag) => xmlAttr(tag[0], 'r:id'));
+  const targets = new Map();
+  for (const tag of (await relsLinks.async('string')).match(/<Relationship\b[^>]*>/gi) || []) {
+    targets.set(xmlAttr(tag, 'Id'), xmlAttr(tag, 'Target'));
+  }
+
+  const byVm = new Map();
+  for (let vm = 0; vm < richIndexes.length; vm += 1) {
+    const rich = richValues[richIndexes[vm]];
+    const structure = rich ? structures[rich.structure] : null;
+    if (!rich || !structure || structure.type !== '_localImage') continue;
+    const keyAt = structure.keys.indexOf('_rvRel:LocalImageIdentifier');
+    const relId = relIds[Number(rich.values[keyAt])];
+    const target = targets.get(relId);
+    if (!target) continue;
+    const picture = await mediaPicture(zip, target, 'xl/richData');
+    if (picture) byVm.set(vm + 1, picture);
+  }
+  return byVm;
+}
+
+async function sheetFiles(zip) {
+  const workbook = zipEntry(zip, 'xl/workbook.xml');
+  const rels = zipEntry(zip, 'xl/_rels/workbook.xml.rels');
+  if (!workbook || !rels) return [];
+  const targets = new Map();
+  for (const tag of (await rels.async('string')).match(/<Relationship\b[^>]*>/gi) || []) {
+    targets.set(xmlAttr(tag, 'Id'), xmlAttr(tag, 'Target'));
+  }
+  const sheets = [];
+  for (const tag of (await workbook.async('string')).match(/<sheet\b[^>]*>/gi) || []) {
+    const target = targets.get(xmlAttr(tag, 'r:id'));
+    if (!target) continue;
+    sheets.push({ name: xmlAttr(tag, 'name'), path: resolveZipPath('xl', target) });
+  }
+  return sheets;
+}
+
+// Pictures that live inside a cell. Keyed by sheet name, then "row,col" using the same 0-based indexes as the grid.
+async function cellPictures(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  const byDisp = await dispImgPictures(zip);
+  const byVm = await placedCellPictures(zip);
+  const placed = new Map();
+  if (!byDisp.size && !byVm.size) return placed;
+  for (const sheet of await sheetFiles(zip)) {
+    const file = zip.file(sheet.path);
+    if (!file) continue;
+    const cells = new Map();
+    const xml = await file.async('string');
+    for (const match of xml.matchAll(/<c\b[^>]*>[\s\S]*?<\/c>/gi)) {
+      const cell = match[0];
+      const ref = /<c\b[^>]*\br="([A-Z]+)(\d+)"/i.exec(cell);
+      if (!ref) continue;
+      const key = `${Number(ref[2]) - 1},${colIndex(ref[1])}`;
+      const disp = /DISPIMG\(\s*"([^"]+)"/i.exec(decodeXml(cell));
+      if (disp && byDisp.has(disp[1])) {
+        cells.set(key, byDisp.get(disp[1]));
+        continue;
+      }
+      const vm = /\bvm="(\d+)"/i.exec(cell.slice(0, cell.indexOf('>')));
+      if (vm && byVm.has(Number(vm[1]))) cells.set(key, byVm.get(Number(vm[1])));
+    }
+    if (cells.size) placed.set(sheet.name, cells);
+  }
+  return placed;
+}
+
+function anchorColumn(anchor) {
+  if (!anchor) return -1;
+  if (Number.isInteger(anchor.nativeCol)) return anchor.nativeCol;
+  const col = Number(anchor.col);
+  return Number.isFinite(col) ? Math.floor(col) : -1;
+}
+
+// A workbook export holds several sheets (Hub, Client, Employee, Product), so pick the product sheet.
+// Pictures are kept as objects until a row is inserted, so skipped rows leave no files.
+async function readWorkbook(buffer) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(Buffer.from(buffer));
+  const embedded = await cellPictures(buffer);
+  const { sheet, rows } = pickSheet(workbook, { preferredNames: PRODUCT_SHEET_NAMES, required: ['name', 'price'] });
+  if (!sheet) return { table: [], sheetName: null };
+
+  const headerAt = headerRowOf(rows);
+  const imageCol = headerAt < 0 ? -1 : imageColumn(rows[headerAt].map(normalizeHeader));
+  if (imageCol >= 0) {
+    const inCell = embedded.get(sheet.name);
+    if (inCell) {
+      for (const [key, picture] of inCell) {
+        const [nativeRow, nativeCol] = key.split(',').map(Number);
+        if (nativeCol !== imageCol || nativeRow <= headerAt) continue;
+        const row = rows[nativeRow] || (rows[nativeRow] = []);
+        row[imageCol] = { picture };
+      }
+    }
+    for (const picture of sheet.getImages()) {
+      const nativeRow = picture.range?.tl?.nativeRow;
+      const fromCol = anchorColumn(picture.range?.tl);
+      const toCol = picture.range?.br ? anchorColumn(picture.range.br) : fromCol;
+      if (nativeRow == null || nativeRow <= headerAt || imageCol < fromCol || imageCol > toCol) continue;
+      const data = workbook.getImage(Number(picture.imageId));
+      if (!data?.buffer) continue;
+      const row = rows[nativeRow] || (rows[nativeRow] = []);
+      if (row[imageCol] && typeof row[imageCol] === 'object') continue;
+      row[imageCol] = { picture: data };
+    }
+  }
+  const table = rows.filter((row) => row && row.some((value) => typeof value === 'object' || String(value).trim()));
+  return { table, sheetName: sheet.name };
+}
+
+function saveImage(picture) {
+  const ext = safeImageExt(`picture.${picture.extension || 'png'}`);
+  const name = `${uuidv4()}${ext}`;
+  fs.writeFileSync(path.join(ensureUploadDir(), name), Buffer.from(picture.buffer));
+  return `/uploads/${name}`;
+}
+
+async function readSpreadsheet(file) {
+  if (/\.xlsx$/i.test(file.originalname || '')) return readWorkbook(file.buffer);
+  return { table: parseCsv(file.buffer.toString('utf8')), sheetName: null };
+}
+
+router.post('/import', authenticate, requireAdmin, bulkUpload.single('file'), async (req, res) => {
+  let read;
+  try {
+    read = req.file
+      ? await readSpreadsheet(req.file)
+      : { table: parseCsv(String(req.body?.csv || '')), sheetName: null };
+  } catch (err) {
+    return res.status(400).json({ message: 'Could not read the spreadsheet. Upload an Excel (.xlsx) or CSV file' });
+  }
+  const { table } = read;
   if (table.length < 2) {
     return res.status(400).json({ message: 'The spreadsheet needs a header row and at least one product' });
   }
-  const headers = table[0].map((header) => String(header).trim().toLowerCase());
-  const index = (name) => headers.indexOf(name);
-  const nameAt = index('name');
+  const headers = table[0].map(normalizeHeader);
+  const index = (...names) => {
+    for (const name of names) {
+      const at = headers.indexOf(name);
+      if (at >= 0) return at;
+    }
+    return -1;
+  };
+  const nameAt = index('name', 'product name');
   const priceAt = index('price');
   const stockAt = index('stock');
   const descriptionAt = index('description');
   const categoryAt = index('category');
-  const wholesaleAt = index('wholesale_price');
+  const sizeAt = index('size');
+  const mrpAt = index('mrp');
+  const imageAt = imageColumn(headers);
+  const hospitalAt = index('price to hospital', 'wholesale price');
   if (nameAt < 0 || priceAt < 0) {
-    return res.status(400).json({ message: 'The header row must include name and price' });
+    const found = headers.filter(Boolean).join(', ') || 'none';
+    const sheet = read.sheetName ? ` on sheet "${read.sheetName}"` : '';
+    return res.status(400).json({
+      message: `The header row must include name and price. Columns found${sheet}: ${found}`,
+    });
   }
   const room = Math.max(0,
     Number(maxForTenant.get(req.user.tenant_id)?.max || 1000) - countForTenant.get(req.user.tenant_id).count
   );
   let created = 0;
+  let updated = 0;
   let skipped = 0;
   const insert = db.transaction((lines) => {
     for (const line of lines) {
-      if (created >= room) {
-        skipped += 1;
-        continue;
-      }
       const name = String(line[nameAt] || '').trim();
       const price = Number(line[priceAt]);
       if (!name || !Number.isFinite(price) || price < 0) {
@@ -367,11 +633,34 @@ router.post('/import', authenticate, requireAdmin, csvUpload.single('file'), (re
         continue;
       }
       const stock = stockAt >= 0 ? Number(line[stockAt] || 0) : 0;
-      const wholesale = wholesaleAt >= 0 && String(line[wholesaleAt] || '').trim() !== ''
-        ? Number(line[wholesaleAt])
+      const wholesale = hospitalAt >= 0 && String(line[hospitalAt] || '').trim() !== ''
+        ? Number(line[hospitalAt])
         : null;
-      if (!Number.isFinite(stock) || stock < 0 || (wholesale !== null && (!Number.isFinite(wholesale) || wholesale < 0))) {
+      const mrp = mrpAt >= 0 && String(line[mrpAt] || '').trim() !== ''
+        ? Number(line[mrpAt])
+        : null;
+      if (
+        !Number.isFinite(stock) || stock < 0 ||
+        (wholesale !== null && (!Number.isFinite(wholesale) || wholesale < 0)) ||
+        (mrp !== null && (!Number.isFinite(mrp) || mrp < 0))
+      ) {
         skipped += 1;
+        continue;
+      }
+      const cell = imageAt >= 0 ? line[imageAt] : '';
+      const size = sizeAt >= 0 ? String(line[sizeAt] || '').trim() : '';
+      const picture = cell && typeof cell === 'object' ? cell.picture : null;
+      const linked = picture ? null : imageRef(cell);
+      const local = picture || linked ? '' : localImagePath(cell);
+      const existing = picture || linked || local ? blankImageFor.get(req.user.tenant_id, name, size) : null;
+      if (!existing && created >= room) {
+        skipped += 1;
+        continue;
+      }
+      const image = picture ? saveImage(picture) : linked || (local ? saveLocalImage(local) : null);
+      if (existing) {
+        setImportedImage.run(image, existing.id, req.user.tenant_id);
+        updated += 1;
         continue;
       }
       insertImported.run(
@@ -379,8 +668,11 @@ router.post('/import', authenticate, requireAdmin, csvUpload.single('file'), (re
         descriptionAt >= 0 ? String(line[descriptionAt] || '').trim() : '',
         price,
         wholesale,
+        image,
         stock,
         categoryAt >= 0 ? String(line[categoryAt] || '').trim() : '',
+        size,
+        mrp,
         req.user.id,
         req.user.tenant_id
       );
@@ -388,7 +680,7 @@ router.post('/import', authenticate, requireAdmin, csvUpload.single('file'), (re
     }
   });
   insert(table.slice(1, 501));
-  res.status(201).json({ created, skipped });
+  res.status(201).json({ created, updated, skipped });
 });
 
 router.delete('/:id', authenticate, requireAdmin, (req, res) => {

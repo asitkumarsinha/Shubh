@@ -6,6 +6,7 @@ import { UserService } from '../../core/user.service';
 import { AdminUserDetail } from '../../core/models';
 import { GridSection } from '../../core/grid-export';
 import { ToastService } from '../../core/toast.service';
+import { DialogService } from '../../core/dialog.service';
 import { GridActionsComponent } from '../../shared/grid-actions/grid-actions.component';
 
 type AccessStatus = 'allowed' | 'blocked';
@@ -24,6 +25,9 @@ export class AdminUsersComponent implements OnInit {
   loading = true;
   updatingId: number | null = null;
   exporting = false;
+  importing = false;
+  deletingId: number | null = null;
+  deletingAll = false;
   creating = false;
   adding = false;
   newName = '';
@@ -48,7 +52,11 @@ export class AdminUsersComponent implements OnInit {
     { value: 'wholesale', label: 'Wholesale' },
   ];
 
-  constructor(private userService: UserService, private toast: ToastService) {}
+  constructor(
+    private userService: UserService,
+    private toast: ToastService,
+    private dialog: DialogService
+  ) {}
 
   ngOnInit(): void {
     this.reload(true);
@@ -162,6 +170,81 @@ export class AdminUsersComponent implements OnInit {
         this.error = msg;
         this.toast.error(msg);
         this.reload();
+      },
+    });
+  }
+
+  async removeAllStores(): Promise<void> {
+    const confirmed = await this.dialog.confirm(
+      'Delete all stores? Stores that have orders or created products will be kept. This cannot be undone.',
+      'Delete all stores'
+    );
+    if (!confirmed) return;
+    this.deletingAll = true;
+    this.error = '';
+    this.toast.beginSave();
+    this.userService.removeAll().subscribe({
+      next: (result) => {
+        this.deletingAll = false;
+        this.toast.success(result.message);
+        if (result.kept) this.error = `${result.kept} ${result.kept === 1 ? 'store' : 'stores'} kept because in use.`;
+        this.reload(true);
+      },
+      error: (err) => {
+        this.deletingAll = false;
+        const msg = err.error?.message || 'Could not delete stores';
+        this.error = msg;
+        this.toast.error(msg);
+      },
+    });
+  }
+
+  async removeStore(store: AdminUserDetail): Promise<void> {
+    const confirmed = await this.dialog.confirm(
+      `Delete ${store.name}? This cannot be undone.`,
+      'Delete store'
+    );
+    if (!confirmed) return;
+    this.deletingId = store.id;
+    this.error = '';
+    this.toast.beginSave();
+    this.userService.remove(store.id).subscribe({
+      next: () => {
+        this.deletingId = null;
+        this.toast.success(`${store.name} deleted`);
+        this.reload(true);
+      },
+      error: (err) => {
+        this.deletingId = null;
+        const msg = err.error?.message || 'Could not delete store';
+        this.error = msg;
+        this.toast.error(msg);
+      },
+    });
+  }
+
+  onImportFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.importing = true;
+    this.error = '';
+    this.toast.beginSave();
+    this.userService.importStores(file).subscribe({
+      next: (result) => {
+        this.importing = false;
+        const added = `${result.created} ${result.created === 1 ? 'store' : 'stores'} added`;
+        const skipped = result.skipped ? `, ${result.skipped} skipped` : '';
+        this.toast.success(`${added}${skipped}`);
+        if (result.reasons.length) this.error = result.reasons.join(' · ');
+        this.reload(true);
+      },
+      error: (err) => {
+        this.importing = false;
+        const msg = err.error?.message || 'Could not import stores';
+        this.error = msg;
+        this.toast.error(msg);
       },
     });
   }

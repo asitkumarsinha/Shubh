@@ -46,9 +46,9 @@
 
     <form class="panel" (ngSubmit)="importSheet()">
       <h2>Upload many products</h2>
-      <p>Use a spreadsheet with columns name, price, stock, description, and category. The first row is the header.</p>
+      <p>Use an Excel (.xlsx) or CSV file with columns name, price, stock, description, category, size, price to hospital, MRP, and image. The first row is the header. Put a product picture inside the Image column, or type an image URL or a file path such as C:/Image/1.jpeg.</p>
       <label>Spreadsheet
-        <input type="file" accept=".csv,text/csv" (change)="onSheet($event)" />
+        <input type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onSheet($event)" />
       </label>
       <button class="btn primary" type="submit" [disabled]="importing || !sheet">Upload spreadsheet</button>
     </form>

@@ -397,15 +397,13 @@ for (const [from, to, description] of productRenames) {
   ).all();
   const update = db.prepare('UPDATE medicines SET image = ? WHERE id = ?');
   for (const row of rows) {
-    const sample = sampleImages[row.name] || '/assets/medicines/default.svg';
+    const sample = sampleImages[row.name];
     if (!row.image) {
-      update.run(sample, row.id);
+      if (sample) update.run(sample, row.id);
       continue;
     }
-    if (row.image.startsWith('/uploads/')) {
-      if (!fs.existsSync(storedFilePath(row.image))) {
-        update.run(sample, row.id);
-      }
+    if (row.image.startsWith('/uploads/') && !fs.existsSync(storedFilePath(row.image))) {
+      update.run(sample || '/assets/medicines/default.svg', row.id);
     }
   }
 })();
@@ -427,6 +425,16 @@ for (const [from, to, description] of productRenames) {
   const cols = db.prepare(`PRAGMA table_info(medicines)`).all();
   if (!cols.some((c) => c.name === 'wholesale_price')) {
     db.exec(`ALTER TABLE medicines ADD COLUMN wholesale_price REAL`);
+  }
+})();
+
+(() => {
+  const cols = db.prepare(`PRAGMA table_info(medicines)`).all();
+  if (!cols.some((c) => c.name === 'size')) {
+    db.exec(`ALTER TABLE medicines ADD COLUMN size TEXT NOT NULL DEFAULT ''`);
+  }
+  if (!cols.some((c) => c.name === 'mrp')) {
+    db.exec(`ALTER TABLE medicines ADD COLUMN mrp REAL`);
   }
 })();
 

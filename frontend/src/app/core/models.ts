@@ -101,6 +101,23 @@ export interface AdminUsersResponse {
   };
 }
 
+export interface StoreImportResult {
+  created: number;
+  skipped: number;
+  reasons: string[];
+}
+
+export interface StoreDeleteResult {
+  message: string;
+  id: number;
+}
+
+export interface StoreDeleteAllResult {
+  deleted: number;
+  kept: number;
+  message: string;
+}
+
 export interface AdminClientDetail {
   client: AdminUserDetail;
   orders: Array<{
@@ -179,6 +196,8 @@ export interface Medicine {
   image: string | null;
   stock: number;
   category?: string;
+  size?: string;
+  mrp?: number | null;
   created_at?: string;
   store_name?: string;
   store_slug?: string;

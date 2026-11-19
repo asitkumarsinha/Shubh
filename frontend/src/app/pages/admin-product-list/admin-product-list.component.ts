@@ -31,13 +31,17 @@ export class AdminProductListComponent implements OnInit {
   get gridSections(): GridSection[] {
     return [{
       title: 'Products',
-      headers: ['Product', 'Description', 'Group', 'Price', 'Stock'],
+      headers: ['Product', 'Description', 'Group', 'Size', 'Price', 'Price to Hospital', 'MRP', 'Stock', 'Image'],
       rows: this.medicines.map((medicine) => [
         medicine.name,
         medicine.description || '',
         medicine.category || '',
+        medicine.size || '',
         inr(medicine.listPrice || medicine.price),
+        medicine.wholesale_price != null ? inr(medicine.wholesale_price) : '',
+        medicine.mrp != null ? inr(medicine.mrp) : '',
         String(medicine.stock),
+        medicine.image || '',
       ]),
     }];
   }
